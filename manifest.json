@@ -1,0 +1,22 @@
+{
+  "name": "Conferente Pro",
+  "short_name": "Conferente",
+  "description": "Control de pesaje inteligente y conferencias",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#eff6ff",
+  "theme_color": "#2563eb",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%232563eb%22/><path d=%22M50 20C33.4 20 20 33.4 20 50s13.4 30 30 30 30-13.4 30-30-13.4-30-30-30zm0 10c11 0 20 9 20 20 0 11-9 20-20 20s-20-9-20-20c0-11 9-20 20-20zm-2 8v14h14v4H48V38h-4z%22 fill=%22white%22/></svg>",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "https://picsum.photos/192/192",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
