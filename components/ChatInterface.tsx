@@ -15,6 +15,7 @@ export const ChatInterface: React.FC = () => {
 
     // Initialize Chat Session
     useEffect(() => {
+        if (!navigator.onLine) return; // Skip if offline
         try {
             const session = createChatSession();
             setChatSession(session);
@@ -35,7 +36,18 @@ export const ChatInterface: React.FC = () => {
 
     const handleSendMessage = useCallback(async (e?: React.FormEvent) => {
         e?.preventDefault();
-        if (!input.trim() || !chatSession || isLoading) return;
+        if (!input.trim() || isLoading) return;
+        
+        // CHECK OFFLINE
+        if (!navigator.onLine) {
+            setMessages(prev => [...prev, { 
+                id: Date.now().toString(), 
+                role: 'model', 
+                text: "⚠️ No hay conexión a internet. El asistente no puede responder.", 
+                timestamp: Date.now() 
+            }]);
+            return;
+        }
 
         // Track interaction event
         trackEvent('message_sent', { 
@@ -60,7 +72,14 @@ export const ChatInterface: React.FC = () => {
         setMessages(prev => [...prev, { id: modelMsgId, role: 'model', text: '', timestamp: Date.now() }]);
 
         try {
-            const streamResult = await sendMessageStream(chatSession, userMessage.text);
+            // Re-init session if missing (e.g. came online later)
+            let session = chatSession;
+            if (!session) {
+                 session = createChatSession();
+                 setChatSession(session);
+            }
+
+            const streamResult = await sendMessageStream(session, userMessage.text);
             
             let fullText = '';
             for await (const chunk of streamResult) {
@@ -96,8 +115,8 @@ export const ChatInterface: React.FC = () => {
                     <div>
                         <h2 className="text-white font-display font-medium text-sm">Sesión Activa</h2>
                         <div className="flex items-center gap-1.5">
-                             <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
-                             <span className="text-white/40 text-xs">Conectado a Gemini 3</span>
+                             <div className={`w-1.5 h-1.5 rounded-full ${navigator.onLine ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
+                             <span className="text-white/40 text-xs">{navigator.onLine ? 'Conectado a Gemini 3' : 'Sin Conexión'}</span>
                         </div>
                     </div>
                 </div>

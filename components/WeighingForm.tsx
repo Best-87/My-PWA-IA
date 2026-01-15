@@ -315,6 +315,12 @@ export const WeighingForm = forwardRef<WeighingFormHandle>((_, ref) => {
     };
     
     const analyzeImageContent = async (base64Image: string) => {
+        // OFFLINE CHECK
+        if (!navigator.onLine) {
+            setAiAlert("Modo Offline: IA no disponible.");
+            return;
+        }
+
         setIsReadingImage(true);
         // LOCK AI Populating to prevent useEffect history overwrite
         isAiPopulating.current = true;
@@ -472,6 +478,12 @@ export const WeighingForm = forwardRef<WeighingFormHandle>((_, ref) => {
     }));
 
     const analyzeWithAI = async () => {
+        // OFFLINE CHECK
+        if (!navigator.onLine) {
+            setAiAlert("Modo Offline: IA no disponible.");
+            return;
+        }
+
         setIsAnalyzing(true);
         try {
             // INITIALIZE HERE to ensure process.env is read at execution time

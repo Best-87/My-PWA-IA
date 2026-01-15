@@ -1,86 +1,93 @@
-// Nombre de la cache
-const CACHE_NAME = 'gemini-pwa-cache-v5';
+importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.4.1/workbox-sw.js');
 
-// Archivos shell básicos (Rutas relativas)
-// NOTA: No cacheamos index.tsx ni archivos fuente, ya que no existen en producción (build).
-// El Service Worker cacheará los chunks JS/CSS generados por Vite dinámicamente.
-const urlsToCache = [
-  './',
-  './index.html',
-  './manifest.json',
-  // Tesseract Dependencies for Offline Support
-  'https://cdn.jsdelivr.net/npm/tesseract.js@5.0.4/dist/worker.min.js',
-  'https://cdn.jsdelivr.net/npm/tesseract.js-core@5.0.0/tesseract-core.wasm.js',
-  'https://tessdata.projectnaptha.com/4.0.0/por.traineddata.gz',
-  'https://cdn.tailwindcss.com'
-];
+const CACHE_NAME = 'conferente-pro-v6';
+const OFFLINE_PAGE = './offline.html';
 
-// Instalar el Service Worker
-self.addEventListener('install', event => {
+// 1. Precache Offline Page
+self.addEventListener('install', (event) => {
+  const urlsToCache = [
+    OFFLINE_PAGE,
+    './index.html',
+    './manifest.json',
+    './', // Alias for index
+    // Precache Critical CDNs for UI
+    'https://cdn.tailwindcss.com',
+    'https://fonts.googleapis.com/icon?family=Material+Icons+Round',
+    'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap'
+  ];
+
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log('Cache abierto - Pre-cargando shell');
-        return cache.addAll(urlsToCache);
-      })
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(urlsToCache))
   );
+  self.skipWaiting();
 });
 
-// Interceptar solicitudes
-self.addEventListener('fetch', event => {
-  // Ignorar API Calls
-  if (event.request.url.includes('generativelanguage.googleapis.com')) {
-    return;
+self.addEventListener('activate', (event) => {
+  event.waitUntil(self.clients.claim());
+});
+
+// 2. Navigation Route (The Core PWA Logic)
+// Try Network -> Fallback to Cache (index.html) -> Fallback to Offline Page
+const navigationRoute = new workbox.routing.NavigationRoute(async ({ event }) => {
+  try {
+    const networkResp = await fetch(event.request);
+    return networkResp;
+  } catch (error) {
+    const cache = await caches.open(CACHE_NAME);
+    // Try to return index.html from cache first (SPA behavior)
+    const cachedIndex = await cache.match('./index.html');
+    if (cachedIndex) return cachedIndex;
+    
+    // Finally return custom offline page
+    return await cache.match(OFFLINE_PAGE);
   }
-
-  // Estrategia: Cache First, falling back to Network, then Cache Put
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        if (response) {
-          return response;
-        }
-        
-        const fetchRequest = event.request.clone();
-        
-        return fetch(fetchRequest).then(
-          response => {
-            if(!response || response.status !== 200 || (response.type !== 'basic' && response.type !== 'cors')) {
-              return response;
-            }
-            
-            // Cachear dinámicamente los recursos nuevos (chunks de JS, CSS, imágenes)
-            const responseToCache = response.clone();
-            
-            if (event.request.url.startsWith('http')) {
-                caches.open(CACHE_NAME)
-                .then(cache => {
-                    try {
-                        cache.put(event.request, responseToCache);
-                    } catch (err) {
-                        // Ignorar errores de cacheo de streams o cuota
-                    }
-                });
-            }
-              
-            return response;
-          }
-        );
-      })
-    );
 });
+workbox.routing.registerRoute(navigationRoute);
 
-// Limpiar caches antiguas
-self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheName !== CACHE_NAME) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
-  );
-});
+// 3. Cache CDNs (Tailwind, Fonts, Tesseract) - StaleWhileRevalidate
+// This makes the app load instantly even if offline or slow
+workbox.routing.registerRoute(
+  ({ url }) => url.origin === 'https://cdn.tailwindcss.com' ||
+               url.origin === 'https://fonts.googleapis.com' ||
+               url.origin === 'https://fonts.gstatic.com' ||
+               url.origin === 'https://cdn.jsdelivr.net' || 
+               url.origin === 'https://tessdata.projectnaptha.com',
+  new workbox.strategies.StaleWhileRevalidate({
+    cacheName: 'cdn-resources',
+    plugins: [
+      new workbox.expiration.ExpirationPlugin({
+        maxEntries: 20,
+        maxAgeSeconds: 30 * 24 * 60 * 60, // 30 Days
+      }),
+    ],
+  })
+);
+
+// 4. Cache Images - CacheFirst
+workbox.routing.registerRoute(
+  ({ request }) => request.destination === 'image',
+  new workbox.strategies.CacheFirst({
+    cacheName: 'images',
+    plugins: [
+      new workbox.expiration.ExpirationPlugin({
+        maxEntries: 50,
+        maxAgeSeconds: 30 * 24 * 60 * 60, // 30 Days
+      }),
+    ],
+  })
+);
+
+// 5. Scripts and Styles (Local build chunks) - StaleWhileRevalidate
+workbox.routing.registerRoute(
+  ({ request }) => request.destination === 'script' || request.destination === 'style',
+  new workbox.strategies.StaleWhileRevalidate({
+    cacheName: 'static-resources',
+  })
+);
+
+// 6. API Calls (Gemini) - NetworkOnly
+// We DO NOT want to cache failed AI responses or serve stale AI data usually.
+workbox.routing.registerRoute(
+  ({ url }) => url.href.includes('generativelanguage.googleapis.com'),
+  new workbox.strategies.NetworkOnly()
+);

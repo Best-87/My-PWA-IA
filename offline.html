@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sin Conexión - Conferente Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <style>
+        body { background-color: #fafafa; font-family: sans-serif; }
+        @media (prefers-color-scheme: dark) { body { background-color: #09090b; color: white; } }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center h-screen text-center p-6">
+    <div class="bg-zinc-200 dark:bg-zinc-800 p-6 rounded-full mb-6 animate-pulse">
+        <span class="material-icons-round text-6xl text-zinc-400">wifi_off</span>
+    </div>
+    <h1 class="text-2xl font-bold mb-2 text-zinc-800 dark:text-white">Estás Offline</h1>
+    <p class="text-zinc-500 dark:text-zinc-400 mb-8 max-w-xs mx-auto">
+        No tienes conexión a internet. Puedes seguir usando el historial y el formulario básico, pero la IA no estará disponible.
+    </p>
+    <button onclick="window.location.reload()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-2xl transition-all shadow-lg shadow-blue-500/30">
+        Reintentar Conexión
+    </button>
+</body>
+</html>
