@@ -1,12 +1,11 @@
-
 // Nombre de la cache
-const CACHE_NAME = 'gemini-pwa-cache-v3';
+const CACHE_NAME = 'gemini-pwa-cache-v4';
 
-// Archivos para cachear
+// Archivos para cachear (Rutas relativas para soportar subdirectorios de GH Pages)
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/manifest.json',
+  './',
+  './index.html',
+  './manifest.json',
   // Tesseract Dependencies for Offline Support (Explicit Versions)
   'https://cdn.jsdelivr.net/npm/tesseract.js@5.0.4/dist/worker.min.js',
   'https://cdn.jsdelivr.net/npm/tesseract.js-core@5.0.0/tesseract-core.wasm.js',
@@ -53,14 +52,17 @@ self.addEventListener('fetch', event => {
             // Clonar la respuesta para cachearla
             const responseToCache = response.clone();
             
-            caches.open(CACHE_NAME)
-              .then(cache => {
-                try {
-                    cache.put(event.request, responseToCache);
-                } catch (err) {
-                    console.warn('Error caching stream', err);
-                }
-              });
+            // Solo cachear si la request es del mismo origen o CDNs permitidos, evitando extensiones de chrome
+            if (event.request.url.startsWith('http')) {
+                caches.open(CACHE_NAME)
+                .then(cache => {
+                    try {
+                        cache.put(event.request, responseToCache);
+                    } catch (err) {
+                        console.warn('Error caching stream', err);
+                    }
+                });
+            }
               
             return response;
           }

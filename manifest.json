@@ -2,7 +2,7 @@
   "name": "Conferente Pro",
   "short_name": "Conferente",
   "description": "Control de pesaje inteligente y conferencias",
-  "start_url": "/",
+  "start_url": ".",
   "display": "standalone",
   "background_color": "#eff6ff",
   "theme_color": "#2563eb",
