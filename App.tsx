@@ -202,29 +202,40 @@ const App: React.FC = () => {
             try {
                 if ('wakeLock' in navigator) {
                     wakeLock = await (navigator as any).wakeLock.request('screen');
-                    console.log('Screen Wake Lock acquired');
-                    
-                    wakeLock.addEventListener('release', () => {
-                        console.log('Screen Wake Lock released');
-                    });
+                    // console.log('Screen Wake Lock acquired'); 
                 }
-            } catch (err) {
-                console.error(`Wake Lock Error: ${err}`);
+            } catch (err: any) {
+                // Ignore NotAllowedError (expected without user gesture)
+                if (err.name !== 'NotAllowedError') {
+                    console.error(`Wake Lock Error: ${err}`);
+                }
             }
         };
 
         const handleVisibilityChange = () => {
-            if (wakeLock !== null && document.visibilityState === 'visible') {
+            if (document.visibilityState === 'visible') {
                 requestWakeLock();
             }
+        };
+        
+        const handleInteraction = () => {
+            requestWakeLock();
+            // Clean up interaction listeners once triggered
+            document.removeEventListener('click', handleInteraction);
+            document.removeEventListener('touchstart', handleInteraction);
         };
 
         // Initial request
         requestWakeLock();
+        
         document.addEventListener('visibilitychange', handleVisibilityChange);
+        document.addEventListener('click', handleInteraction);
+        document.addEventListener('touchstart', handleInteraction);
 
         return () => {
             document.removeEventListener('visibilitychange', handleVisibilityChange);
+            document.removeEventListener('click', handleInteraction);
+            document.removeEventListener('touchstart', handleInteraction);
             if (wakeLock) wakeLock.release();
         };
     }, []);
