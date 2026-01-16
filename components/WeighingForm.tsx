@@ -33,7 +33,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle>((_, ref) => {
     // Collapsible sections
     const [showBoxes, setShowBoxes] = useState(false);
     const [boxQty, setBoxQty] = useState<string>('');
-    const [boxTara, setBoxTara] = useState<string>(''); // Stores raw string like "500, 200"
+    const [boxTara, setBoxTara] = useState<string>(''); // Stores strictly integer string (grams)
     
     // Additional extracted metadata for smart tips
     const [storageType, setStorageType] = useState<'frozen' | 'refrigerated' | 'dry' | null>(null);
@@ -105,7 +105,11 @@ export const WeighingForm = forwardRef<WeighingFormHandle>((_, ref) => {
 
     // Calculate totals from comma-separated strings
     const parsedGrossWeight = useMemo(() => parseSum(grossWeight), [grossWeight]);
-    const parsedBoxTara = useMemo(() => parseSum(boxTara), [boxTara]);
+    // Box Tara is now a single Integer field
+    const parsedBoxTara = useMemo(() => {
+        const val = parseInt(boxTara, 10);
+        return isNaN(val) ? 0 : val;
+    }, [boxTara]);
 
     // Reactive Assistant & Prediction Logic
     useEffect(() => {
@@ -119,10 +123,13 @@ export const WeighingForm = forwardRef<WeighingFormHandle>((_, ref) => {
             // Auto-fill logic when prediction exists
             if (product && pred.suggestedTaraBox) {
                 setShowBoxes(true);
+                // Convert stored Kg to Grams for input (Important fix: * 1000)
+                const suggestedGrams = Math.round(pred.suggestedTaraBox * 1000);
+                
                 // Only fill if empty or 0 to avoid overwriting user edits
                 if (!boxTara || boxTara === '0') {
-                    setBoxTara(pred.suggestedTaraBox.toString());
-                    setBoxQty('0'); // Set to 0 as requested
+                    setBoxTara(suggestedGrams.toString());
+                    setBoxQty('0'); // Reset qty to force user input but keep tara ready
                 }
             }
             
@@ -411,10 +418,13 @@ export const WeighingForm = forwardRef<WeighingFormHandle>((_, ref) => {
             let normalizedTara: string | null = null;
             
             if (data.tara) {
-                const val = parseInt(String(data.tara), 10);
+                // Parse float first to catch "0.5" etc.
+                let val = parseFloat(String(data.tara));
                 if (!isNaN(val)) {
                     // Logic: if small (< 20), likely kg -> convert to g. else assume g.
-                    normalizedTara = (val < 20 ? val * 1000 : val).toString();
+                    if (val < 20) val = val * 1000;
+                    // FORCE INTEGER: Round to remove decimals
+                    normalizedTara = Math.round(val).toString();
                 }
             }
             
@@ -614,10 +624,25 @@ export const WeighingForm = forwardRef<WeighingFormHandle>((_, ref) => {
                     </div>
 
                     <div className="space-y-4">
-                         <div className="relative group">
-                            <span className="absolute left-5 top-5 text-zinc-400 dark:text-zinc-500 material-icons-round text-xl group-focus-within:text-primary-500 transition-colors pointer-events-none">store</span>
-                            <input list="suppliers" type="text" value={supplier} onChange={e => setSupplier(e.target.value)} placeholder={t('ph_supplier')} className={inputClass + " pl-14 text-lg"} />
-                            <datalist id="suppliers">{suggestions.suppliers.map(s => <option key={s} value={s} />)}</datalist>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="relative group">
+                                <span className="absolute left-4 top-4 text-zinc-400 dark:text-zinc-500 material-icons-round text-lg group-focus-within:text-primary-500 transition-colors pointer-events-none">store</span>
+                                <input list="suppliers" type="text" value={supplier} onChange={e => setSupplier(e.target.value)} placeholder={t('ph_supplier')} className={inputClass + " pl-12 text-sm"} />
+                                <datalist id="suppliers">{suggestions.suppliers.map(s => <option key={s} value={s} />)}</datalist>
+                            </div>
+
+                            <div className="relative group">
+                                <span className={`absolute left-4 top-4 material-icons-round text-lg transition-colors pointer-events-none ${prediction.suggestedProduct && !product ? 'text-purple-500 animate-pulse' : 'text-zinc-400 dark:text-zinc-500 group-focus-within:text-primary-500'}`}>inventory_2</span>
+                                <input 
+                                    list="products" 
+                                    type="text" 
+                                    value={product} 
+                                    onChange={e => setProduct(e.target.value)} 
+                                    placeholder={t('ph_product')} 
+                                    className={`${inputClass} pl-12 text-sm ${prediction.suggestedProduct && !product ? suggestionClass : ''}`} 
+                                />
+                                <datalist id="products">{suggestions.products.map(p => <option key={p} value={p} />)}</datalist>
+                            </div>
                         </div>
 
                         {prediction.suggestedProduct && !product && (
@@ -629,19 +654,6 @@ export const WeighingForm = forwardRef<WeighingFormHandle>((_, ref) => {
                                 <span className="material-icons-round text-primary-500 group-hover:scale-110 transition-transform pointer-events-none bg-white dark:bg-zinc-900 rounded-full p-1.5 shadow-sm">add</span>
                             </button>
                         )}
-
-                        <div className="relative group">
-                            <span className={`absolute left-5 top-5 material-icons-round text-xl transition-colors pointer-events-none ${prediction.suggestedProduct && !product ? 'text-purple-500 animate-pulse' : 'text-zinc-400 dark:text-zinc-500 group-focus-within:text-primary-500'}`}>inventory_2</span>
-                            <input 
-                                list="products" 
-                                type="text" 
-                                value={product} 
-                                onChange={e => setProduct(e.target.value)} 
-                                placeholder={t('ph_product')} 
-                                className={`${inputClass} pl-14 text-lg ${prediction.suggestedProduct && !product ? suggestionClass : ''}`} 
-                            />
-                            <datalist id="products">{suggestions.products.map(p => <option key={p} value={p} />)}</datalist>
-                        </div>
 
                         <div className="relative group">
                              <span className="absolute left-5 top-4 text-zinc-400 dark:text-zinc-500 material-icons-round text-xl group-focus-within:text-primary-500 transition-colors pointer-events-none">qr_code_2</span>
@@ -688,10 +700,10 @@ export const WeighingForm = forwardRef<WeighingFormHandle>((_, ref) => {
             </div>
 
              {/* Tara Section (UNIFIED: Exact Match with Dates Grid) */}
-            <div className={`rounded-[2rem] border transition-all duration-300 overflow-hidden ${getSectionStyle('tara')} ${prediction.suggestedTaraBox && !boxTara ? suggestionClass : ''}`} onFocus={() => setActiveSection('tara')}>
+            <div className={`rounded-[2rem] border transition-all duration-300 overflow-hidden ${getSectionStyle('tara')} ${prediction.suggestedTaraBox ? suggestionClass : ''}`} onFocus={() => setActiveSection('tara')}>
                 <div className="px-8 py-4 cursor-pointer flex justify-between items-center" onClick={() => setShowBoxes(!showBoxes)}>
                     <div className="flex items-center gap-2">
-                        <span className={`text-xs font-black uppercase tracking-widest ${prediction.suggestedTaraBox && !boxTara ? 'text-purple-600 dark:text-purple-400' : 'text-zinc-400 dark:text-zinc-500'}`}>{t('lbl_tara_section')}</span>
+                        <span className={`text-xs font-black uppercase tracking-widest ${prediction.suggestedTaraBox ? 'text-purple-600 dark:text-purple-400' : 'text-zinc-400 dark:text-zinc-500'}`}>{t('lbl_tara_section')}</span>
                         {totalTara > 0 && (
                             <div className="flex items-center gap-1">
                                 {Number(boxQty) > 0 && parsedBoxTara > 0 && (
@@ -703,32 +715,48 @@ export const WeighingForm = forwardRef<WeighingFormHandle>((_, ref) => {
                                 <span className="text-xs font-bold text-primary-600 bg-primary-100 dark:bg-primary-900/30 dark:text-primary-300 px-2 py-0.5 rounded-md">-{totalTara.toFixed(2)} kg</span>
                             </div>
                         )}
-                        {prediction.suggestedTaraBox && !boxTara && <span className="material-icons-round text-purple-500 text-sm animate-bounce">smart_toy</span>}
+                        {prediction.suggestedTaraBox && <span className="material-icons-round text-purple-500 text-sm animate-bounce">smart_toy</span>}
                     </div>
                     <span className={`material-icons-round text-zinc-400 transition-transform ${showBoxes ? 'rotate-180' : ''}`}>expand_more</span>
                 </div>
                 
                 {showBoxes && (
                     <div className="px-8 pb-8 pt-0 animate-slide-down">
-                        {prediction.suggestedTaraBox && !boxTara && (
+                        {prediction.suggestedTaraBox && (
                             <div className="mb-6 bg-purple-50 dark:bg-purple-900/10 border border-purple-100 dark:border-purple-800/30 rounded-xl p-3 flex items-center justify-between">
                                 <div className="text-xs text-purple-700 dark:text-purple-300 flex items-center gap-2">
                                     <span className="material-icons-round text-sm">smart_toy</span>
                                     {t('lbl_ai_pattern')}
                                 </div>
-                                <button onClick={() => { setBoxTara(prediction.suggestedTaraBox!.toString()); setBoxQty('0'); }} className="text-[10px] font-bold bg-white dark:bg-purple-800/50 px-3 py-1.5 rounded-lg shadow-sm hover:shadow-md transition-all text-purple-700 dark:text-purple-200">
-                                    {t('btn_apply_tara', { supplier, weight: prediction.suggestedTaraBox!.toString() })}
+                                <button onClick={() => { setBoxTara(Math.round(prediction.suggestedTaraBox! * 1000).toString()); setBoxQty('0'); }} className="text-[10px] font-bold bg-white dark:bg-purple-800/50 px-3 py-1.5 rounded-lg shadow-sm hover:shadow-md transition-all text-purple-700 dark:text-purple-200">
+                                    {t('btn_apply_tara', { supplier, weight: Math.round(prediction.suggestedTaraBox! * 1000).toString() })}
                                 </button>
                             </div>
                         )}
                         <div className="grid grid-cols-2 gap-4">
                             <div className="relative group">
                                 <span className="absolute left-4 top-4 text-zinc-400 dark:text-zinc-500 material-icons-round text-lg group-focus-within:text-primary-500 transition-colors pointer-events-none">fitness_center</span>
-                                <input type="text" inputMode="decimal" value={boxTara} onChange={e => setBoxTara(e.target.value)} className={inputClass + " pl-12 text-sm"} placeholder={t('lbl_unit_weight')} />
+                                <input 
+                                    type="tel" 
+                                    inputMode="numeric"
+                                    pattern="[0-9]*" 
+                                    value={boxTara} 
+                                    onChange={e => setBoxTara(e.target.value.replace(/[^0-9]/g, ''))} 
+                                    className={inputClass + " pl-12 text-sm"} 
+                                    placeholder={t('lbl_unit_weight')} 
+                                />
                             </div>
                             <div className="relative group">
                                 <span className="absolute left-4 top-4 text-zinc-400 dark:text-zinc-500 material-icons-round text-lg group-focus-within:text-primary-500 transition-colors pointer-events-none">tag</span>
-                                <input type="number" inputMode="numeric" value={boxQty} onChange={e => setBoxQty(e.target.value)} className={inputClass + " pl-12 text-sm"} placeholder={t('lbl_qty')} />
+                                <input 
+                                    type="tel" 
+                                    inputMode="numeric"
+                                    pattern="[0-9]*" 
+                                    value={boxQty} 
+                                    onChange={e => setBoxQty(e.target.value.replace(/[^0-9]/g, ''))} 
+                                    className={inputClass + " pl-12 text-sm"} 
+                                    placeholder={t('lbl_qty')} 
+                                />
                             </div>
                         </div>
                     </div>

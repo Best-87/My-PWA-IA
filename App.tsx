@@ -367,8 +367,8 @@ const App: React.FC = () => {
             <header className="fixed top-0 w-full z-40 glass transition-all duration-300">
                 <div className="max-w-7xl mx-auto px-4 lg:px-6 h-16 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                         <div className="w-10 h-10 bg-gradient-to-br from-primary-600 to-primary-800 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-primary-500/30">C</div>
-                         <div>
+                         <div className="w-10 h-10 bg-gradient-to-br from-primary-600 to-primary-800 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-primary-500/30 shrink-0">C</div>
+                         <div className="block">
                              <h1 className="font-bold text-zinc-900 dark:text-white leading-none tracking-tight text-lg">Conferente</h1>
                              <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-bold uppercase tracking-widest mt-0.5">Pro Assistant</p>
                          </div>
@@ -379,11 +379,14 @@ const App: React.FC = () => {
                     </div>
                     <div className="flex items-center gap-4">
                         <button onClick={() => setIsMenuOpen(true)} className="flex items-center gap-3 group">
-                            <div className="text-right hidden md:block">
-                                <p className="text-xs font-bold text-zinc-800 dark:text-white group-hover:text-primary-600 transition-colors">{userProfile.name}</p>
-                                <p className="text-[10px] text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">{userProfile.role}</p>
+                            <div className="text-right flex flex-col items-end">
+                                <p className="text-xs font-bold text-zinc-800 dark:text-white group-hover:text-primary-600 transition-colors max-w-[120px] truncate leading-tight">{userProfile.name}</p>
+                                <div className="flex flex-col items-end leading-none mt-0.5">
+                                    <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-medium max-w-[100px] truncate">{userProfile.role}</p>
+                                    {userProfile.store && <p className="text-[9px] text-primary-600 dark:text-primary-400 font-bold uppercase tracking-wide max-w-[100px] truncate mt-0.5">{userProfile.store}</p>}
+                                </div>
                             </div>
-                            <div className="relative">
+                            <div className="relative shrink-0">
                                 <div className="w-10 h-10 rounded-full bg-zinc-200 dark:bg-zinc-800 overflow-hidden ring-2 ring-white dark:ring-zinc-700 shadow-md transition-transform group-hover:scale-105">
                                     {userProfile.photo ? <img src={userProfile.photo} alt="Profile" className="w-full h-full object-cover" /> : <span className="material-icons-round text-zinc-400 w-full h-full flex items-center justify-center text-lg">person</span>}
                                 </div>
