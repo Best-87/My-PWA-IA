@@ -12,7 +12,7 @@ export const createChatSession = (): Chat => {
     const ai = new GoogleGenAI({ apiKey });
 
     return ai.chats.create({
-        model: 'gemini-2.0-flash',
+        model: 'gemini-3-flash-preview',
         config: {
             systemInstruction: "Eres 'Conferente', un asistente avanzado de IA especializado en análisis de datos, consultoría estratégica y gestión inteligente de información. Tu tono es profesional, analítico pero accesible. Estás integrado en una PWA diseñada para ayudar a usuarios a tomar decisiones basadas en datos. Cuando presentes datos o conclusiones, usa un formato estructurado y claro.",
         }

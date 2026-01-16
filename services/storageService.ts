@@ -1,4 +1,3 @@
-
 import { KnowledgeBase, WeighingRecord, UserProfile } from "../types";
 
 const KEY_RECORDS = 'conferente_records';
@@ -148,4 +147,44 @@ export const predictData = (supplier: string, product?: string) => {
         }
     }
     return {};
+};
+
+// --- BACKUP & RESTORE ---
+
+export const generateBackupData = () => {
+    const backup = {
+        version: 1,
+        timestamp: Date.now(),
+        app: 'Conferente Pro',
+        data: {
+            records: getRecords(),
+            profile: getUserProfile(),
+            knowledge: getKnowledgeBase(),
+            theme: getTheme()
+        }
+    };
+    return JSON.stringify(backup, null, 2);
+};
+
+export const restoreBackupData = (jsonString: string): boolean => {
+    try {
+        const backup = JSON.parse(jsonString);
+        
+        // Basic Validation
+        if (backup.app !== 'Conferente Pro' || !backup.data) {
+            return false;
+        }
+
+        const { records, profile, knowledge, theme } = backup.data;
+
+        if (records) localStorage.setItem(KEY_RECORDS, JSON.stringify(records));
+        if (profile) localStorage.setItem(KEY_PROFILE, JSON.stringify(profile));
+        if (knowledge) localStorage.setItem(KEY_KNOWLEDGE, JSON.stringify(knowledge));
+        if (theme) localStorage.setItem(KEY_THEME, theme);
+
+        return true;
+    } catch (e) {
+        console.error("Backup Restore Error", e);
+        return false;
+    }
 };

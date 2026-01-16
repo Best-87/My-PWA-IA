@@ -1,10 +1,9 @@
-
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { Language } from '../types';
 
 const translations = {
     pt: {
-        // Header
+        // ... (previous translations kept)
         app_name: 'Conferente',
         app_subtitle: 'Pro Assistant',
         
@@ -46,7 +45,7 @@ const translations = {
         lbl_gross_weight: 'Peso Bruto',
         
         lbl_tara_section: 'Tara e Embalagens',
-        lbl_ai_pattern: 'IA detectó patrón',
+        lbl_ai_pattern: 'IA detectou patrón',
         btn_apply_tara: 'Usar Tara de {supplier}: {weight}g',
         lbl_qty: 'Quantidade',
         lbl_unit_weight: 'Peso Unit (g)',
@@ -100,7 +99,7 @@ const translations = {
         filter_today: 'Hoje',
         filter_week: '7 Dias',
         filter_month: 'Mês',
-        filter_year: 'Ano',
+        filter_year: 'Año',
         btn_export: 'Exportar CSV',
         
         // WhatsApp Report
@@ -127,11 +126,24 @@ const translations = {
         btn_not_now: 'Agora não',
         update_available: 'Nova versão disponível',
         btn_update: 'Atualizar',
+
+        // Backup
+        lbl_backup: 'Google Drive Backup',
+        lbl_client_id: 'Google Client ID (OAuth)',
+        ph_client_id: 'Insira seu Client ID',
+        btn_connect_drive: 'Conectar e Fazer Backup',
+        btn_restore_drive: 'Restaurar do Drive',
+        drive_connected: 'Drive Conectado',
+        drive_syncing: 'Sincronizando...',
+        backup_success: 'Backup salvo no Google Drive!',
+        restore_success: 'Dados restaurados do Drive!',
+        restore_not_found: 'Nenhum backup encontrado no Drive.',
         
         // Logic
         ai_prompt_lang: 'Português'
     },
     es: {
+        // ... (previous translations kept)
         app_name: 'Conferente',
         app_subtitle: 'Pro Assistant',
         
@@ -242,7 +254,7 @@ const translations = {
         rpt_status: '🤖 *Estado:*',
         rpt_valid: 'Validado',
         rpt_review: 'Revisión Necesaria',
-        rpt_ai_obs: '📝 *Obs IA:*',
+        rpt_ai_obs: '📝 *AI Obs:*',
 
         // Install
         install_modal_title: 'Instalar App',
@@ -251,37 +263,50 @@ const translations = {
         btn_not_now: 'Ahora no',
         update_available: 'Nueva versión disponible',
         btn_update: 'Actualizar',
+
+        // Backup
+        lbl_backup: 'Copia de Seguridad (Google Drive)',
+        lbl_client_id: 'Google Client ID (OAuth)',
+        ph_client_id: 'Ingresa tu Client ID',
+        btn_connect_drive: 'Conectar y Guardar',
+        btn_restore_drive: 'Restaurar desde Drive',
+        drive_connected: 'Drive Conectado',
+        drive_syncing: 'Sincronizando...',
+        backup_success: '¡Copia guardada en Google Drive!',
+        restore_success: '¡Datos restaurados desde Drive!',
+        restore_not_found: 'No se encontró copia en Drive.',
         
         // Logic
         ai_prompt_lang: 'Español'
     },
     en: {
+        // ... (previous translations kept)
         app_name: 'Conferente',
         app_subtitle: 'Pro Assistant',
         
         // Profile
         lbl_profile: 'User Profile',
         lbl_name: 'Name',
-        lbl_role: 'Role / Job',
+        lbl_role: 'Role',
         lbl_store: 'Store / Branch',
         btn_change_photo: 'Change Photo',
         ph_name: 'Your Name',
-        ph_role: 'Ex: Lead Checker',
-        ph_store: 'Ex: Branch 01',
+        ph_role: 'Ex: Head Receiver',
+        ph_store: 'Ex: Store 01 - Downtown',
 
         tab_weigh: 'Weigh',
         tab_history: 'History',
-        assistant_default: 'Hi 👋 Select a supplier.',
-        assistant_supplier: '👋 Hello! Start by selecting a supplier.',
+        assistant_default: 'Hello 👋 Select a supplier.',
+        assistant_supplier: '👋 Hi! Start by selecting the supplier.',
         assistant_product: '🧐 Suggestion: Did they bring {product}?',
-        assistant_product_ask: '🚛 What product is being delivered today?',
-        assistant_note: '📄 Enter the weight shown on the Invoice.',
-        assistant_gross: '⚖️ Now enter the scale weight (Gross).',
-        assistant_ok: '✅ Perfect! Weight within range. Ready to save.',
-        assistant_high: '⚠️ {diff}kg over. Did you forget any tara?',
-        assistant_low: '⚠️ {diff}kg under. Check for boxes or shrinkage.',
+        assistant_product_ask: '🚛 What product are they delivering today?',
+        assistant_note: '📄 Enter weight from Invoice.',
+        assistant_gross: '⚖️ Now enter scale weight (Gross).',
+        assistant_ok: '✅ Perfect! Weight within tolerance. Ready to save.',
+        assistant_high: '⚠️ {diff}kg over. Did you miss any tare?',
+        assistant_low: '⚠️ {diff}kg missing. Check for boxes or waste.',
         
-        lbl_identity: 'Identity',
+        lbl_identity: 'Identification',
         ph_supplier: 'Supplier',
         ph_product: 'Product',
         ph_batch: 'Batch',
@@ -293,13 +318,13 @@ const translations = {
         lbl_note_weight: 'Invoice Weight',
         lbl_gross_weight: 'Gross Weight',
         
-        lbl_tara_section: 'Tara & Packaging',
+        lbl_tara_section: 'Tare & Packaging',
         lbl_ai_pattern: 'AI detected pattern',
-        btn_apply_tara: 'Use Tara for {supplier}: {weight}g',
-        lbl_qty: 'Qty',
+        btn_apply_tara: 'Use {supplier} Tare: {weight}g',
+        lbl_qty: 'Quantity',
         lbl_unit_weight: 'Unit Weight (g)',
 
-        lbl_evidence_section: 'Photo / AI Read',
+        lbl_evidence_section: 'Photo / AI Scan',
         btn_add_photo: '📷 Photo / Gallery',
         btn_camera: '📷 Camera',
         btn_gallery: '🖼️ Gallery',
@@ -309,15 +334,15 @@ const translations = {
 
         // Smart Tips
         tip_title_quality: 'Visual Quality',
-        tip_quality_visual: 'Check packaging aspect, color, and smell.',
-        tip_title_date: 'Expiration Check',
-        tip_date_short: 'Perishable item with short date. Verify!',
-        tip_date_ok: 'Expiration OK. {days} days left.',
+        tip_quality_visual: 'Check package condition, color and smell.',
+        tip_title_date: 'Check Expiration',
+        tip_date_short: 'Perishable with short date. Verify!',
+        tip_date_ok: 'Expiration OK. Expires in {days} days.',
         tip_title_history: 'Recent History',
         tip_title_storage: 'Storage',
-        tip_frozen: '❄️ Frozen Product. Verify it is at -18°C.',
-        tip_chilled: '💧 Chilled Product. Verify it is 0-7°C.',
-        tip_dry: '📦 Keep in dry place.',
+        tip_frozen: '❄️ Frozen Product. Check if -18°C.',
+        tip_chilled: '💧 Chilled Product. Check if 0-7°C.',
+        tip_dry: '📦 Keep in dry cool place.',
         tip_title_batch: 'Traceability',
         tip_batch_found: 'Batch {batch} registered.',
         tip_title_alert: 'CRITICAL ALERT',
@@ -327,13 +352,13 @@ const translations = {
         btn_erase: 'Delete',
         btn_delete_all_history: 'Delete All',
         btn_analyzing: 'Analyzing...',
-        btn_consult_ai: 'Consult AI Supervision',
+        btn_consult_ai: 'Ask AI Supervisor',
         
         alert_saved: 'Weighing saved successfully.',
         msg_confirm_clear: 'Clear the entire form?',
         msg_confirm_delete: 'Delete this record?',
-        msg_confirm_delete_all: 'WARNING: Delete ALL history?',
-        msg_validation_error: 'Fill in Supplier, Product, and Weights.',
+        msg_confirm_delete_all: 'WARNING: Delete ENTIRE history?',
+        msg_validation_error: 'Fill Supplier, Product and Weights.',
         msg_form_cleared: 'Form cleared.',
         msg_history_cleared: 'History cleared.',
         msg_profile_saved: 'Profile updated successfully!',
@@ -358,11 +383,11 @@ const translations = {
         rpt_batch: '🔢 *Batch:*',
         rpt_expiration: '📅 *Expiration:*',
         rpt_production: '🏭 *Production:*',
-        rpt_note: '📄 *Inv. Weight:*',
+        rpt_note: '📄 *Invoice Weight:*',
         rpt_gross: '⚖️ *Gross Weight:*',
-        rpt_tara: '📦 *Tara:*',
+        rpt_tara: '📦 *Tare:*',
         rpt_net: '✅ *Net Weight:*',
-        rpt_diff: '📊 *Diff:*',
+        rpt_diff: '📊 *Difference:*',
         rpt_status: '🤖 *Status:*',
         rpt_valid: 'Validated',
         rpt_review: 'Review Needed',
@@ -370,71 +395,56 @@ const translations = {
 
         // Install
         install_modal_title: 'Install App',
-        install_modal_desc: 'Install Conferente Pro for offline access and better performance.',
-        btn_install: 'Install Now',
-        btn_not_now: 'Not Now',
+        install_modal_desc: 'Instala Conferente Pro para acceso offline e mejor rendimiento.',
+        btn_install: 'Instalar Ahora',
+        btn_not_now: 'Ahora no',
         update_available: 'New version available',
         btn_update: 'Update',
+
+        // Backup
+        lbl_backup: 'Google Drive Backup',
+        lbl_client_id: 'Google Client ID (OAuth)',
+        ph_client_id: 'Enter your Client ID',
+        btn_connect_drive: 'Connect & Backup',
+        btn_restore_drive: 'Restore from Drive',
+        drive_connected: 'Drive Connected',
+        drive_syncing: 'Syncing...',
+        backup_success: 'Backup saved to Google Drive!',
+        restore_success: 'Data restored from Drive!',
+        restore_not_found: 'No backup found in Drive.',
         
         // Logic
         ai_prompt_lang: 'English'
     }
 };
 
-type LanguageContextProps = {
-    language: Language;
-    setLanguage: (lang: Language) => void;
-    t: (key: string, params?: Record<string, string>) => string;
-};
-
-const LanguageContext = createContext<LanguageContextProps | undefined>(undefined);
+const LanguageContext = createContext<{ language: Language; setLanguage: (l: Language) => void; t: (key: string, params?: Record<string, string>) => string } | undefined>(undefined);
 
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    // Detect browser language or fallback to 'pt'
-    const getBrowserLang = (): Language => {
-        const lang = navigator.language.split('-')[0];
-        if (lang === 'es') return 'es';
-        if (lang === 'en') return 'en';
-        return 'pt';
-    };
-
-    const [language, setLanguageState] = useState<Language>('es'); // Defaulting to Spanish per request context
+    const [language, setLanguage] = useState<Language>(() => {
+        const saved = localStorage.getItem('conferente_lang');
+        return (saved as Language) || 'pt';
+    });
 
     useEffect(() => {
-        const savedLang = localStorage.getItem('conferente_lang') as Language;
-        if (savedLang) {
-            setLanguageState(savedLang);
-        } else {
-            setLanguageState(getBrowserLang());
-        }
-    }, []);
+        localStorage.setItem('conferente_lang', language);
+    }, [language]);
 
-    const setLanguage = (lang: Language) => {
-        setLanguageState(lang);
-        localStorage.setItem('conferente_lang', lang);
-    };
-
-    const t = (key: string, params?: Record<string, string>): string => {
-        const text = translations[language][key as keyof typeof translations['pt']] || key;
+    const t = (key: string, params?: Record<string, string>) => {
+        let text = (translations[language] as any)[key] || key;
         if (params) {
-            return Object.entries(params).reduce((acc, [k, v]) => {
-                return acc.replace(`{${k}}`, v);
-            }, text);
+            Object.entries(params).forEach(([k, v]) => {
+                text = text.replace(`{${k}}`, v);
+            });
         }
         return text;
     };
 
-    return (
-        <LanguageContext.Provider value={{ language, setLanguage, t }}>
-            {children}
-        </LanguageContext.Provider>
-    );
+    return <LanguageContext.Provider value={{ language, setLanguage, t }}>{children}</LanguageContext.Provider>;
 };
 
 export const useTranslation = () => {
     const context = useContext(LanguageContext);
-    if (!context) {
-        throw new Error('useTranslation must be used within a LanguageProvider');
-    }
+    if (!context) throw new Error("useTranslation must be used within LanguageProvider");
     return context;
 };

@@ -17,7 +17,11 @@ export interface WeighingFormHandle {
     openGallery: () => void;
 }
 
-export const WeighingForm = forwardRef<WeighingFormHandle>((_, ref) => {
+export interface WeighingFormProps {
+    onViewHistory: () => void;
+}
+
+export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({ onViewHistory }, ref) => {
     const { t, language } = useTranslation();
     const { showToast } = useToast();
 
@@ -289,7 +293,15 @@ export const WeighingForm = forwardRef<WeighingFormHandle>((_, ref) => {
         if (currentTipIndex >= tips.length) setCurrentTipIndex(0);
     }, [tips.length]);
 
-    const activeTip = tips[currentTipIndex] || tips[0];
+    // Added safety fallback for activeTip
+    const activeTip = tips[currentTipIndex] || tips[0] || {
+        id: 'fallback',
+        icon: 'error',
+        title: 'Loading',
+        component: <span>...</span>,
+        color: 'text-white',
+        bg: 'bg-white/10'
+    };
 
     const handleTouchStart = (e: React.TouchEvent) => setTouchStart(e.targetTouches[0].clientX);
     const handleTouchMove = (e: React.TouchEvent) => setTouchEnd(e.targetTouches[0].clientX);
@@ -377,7 +389,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle>((_, ref) => {
             );
 
             const apiCall = ai.models.generateContent({
-                model: 'gemini-2.0-flash', 
+                model: 'gemini-3-flash-preview', 
                 contents: {
                     role: 'user',
                     parts: [
@@ -458,9 +470,9 @@ export const WeighingForm = forwardRef<WeighingFormHandle>((_, ref) => {
 
     const getStatusColor = () => {
         if (tips.length > 0 && tips[currentTipIndex]?.id === 'critical_alert') return 'from-red-600 to-orange-700 text-white shadow-lg shadow-red-500/30 animate-pulse-slow';
-        if (!parsedGrossWeight || !noteWeight) return 'from-zinc-700 to-zinc-900 dark:from-zinc-800 dark:to-black text-white';
-        if (Math.abs(difference) <= TOLERANCE_KG) return 'from-emerald-500 to-teal-500 dark:from-emerald-600 dark:to-teal-700 text-white shadow-lg shadow-emerald-500/20';
-        return 'from-orange-500 to-red-500 dark:from-orange-600 dark:to-red-700 text-white shadow-lg shadow-red-500/20';
+        if (!parsedGrossWeight || !noteWeight) return 'from-black/80 to-zinc-900/90 backdrop-blur-xl text-white border-zinc-700';
+        if (Math.abs(difference) <= TOLERANCE_KG) return 'from-emerald-900/90 to-emerald-950/90 backdrop-blur-xl text-white shadow-lg shadow-emerald-500/10 border-emerald-800';
+        return 'from-red-900/90 to-red-950/90 backdrop-blur-xl text-white shadow-lg shadow-red-500/10 border-red-800';
     };
 
     const handleReset = () => {
@@ -513,7 +525,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle>((_, ref) => {
             const ai = new GoogleGenAI({ apiKey });
 
             const prompt = `Act as a logistics supervisor. Context: User Language ${t('ai_prompt_lang')}. Answer in ${t('ai_prompt_lang')}. Info: Supplier: ${supplier}, Product: ${product}, Diff: ${difference.toFixed(2)}. Check weight tolerance (+/- 200g) and Expiration Date vs Current Date. Output: Short action instruction.`;
-            const response = await ai.models.generateContent({ model: 'gemini-2.0-flash', contents: prompt });
+            const response = await ai.models.generateContent({ model: 'gemini-3-flash-preview', contents: prompt });
             setAiAlert(response.text?.trim() || "Revisado.");
         } catch (e: any) { 
             console.error(e);
@@ -537,51 +549,52 @@ export const WeighingForm = forwardRef<WeighingFormHandle>((_, ref) => {
     // Style for suggested fields
     const suggestionClass = "ring-2 ring-purple-500/50 border-purple-500 dark:border-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.15)] animate-pulse";
 
+    const hasDataToSave = !!(supplier && product && grossWeight && noteWeight);
+
     return (
-        <div className="space-y-4 relative pb-24">
+        <div className="space-y-4 relative pb-32">
             
-            {/* AI Assistant Bubble (Small Size) */}
-            <div className={`p-5 rounded-[2rem] shadow-2xl transition-all duration-500 bg-gradient-to-br ${getStatusColor()} relative overflow-hidden group border border-white/10`}>
-                <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-6 -mt-6 blur-2xl"></div>
-                <div className="absolute bottom-0 left-0 w-20 h-20 bg-black/10 rounded-full -ml-5 -mb-5 blur-xl"></div>
+            {/* Top Status Header (Weight/Diff) - Kept as requested in previous turn, but standard nav replaced */}
+            <div className={`sticky top-20 z-40 p-5 rounded-[2.5rem] shadow-2xl transition-all duration-500 bg-gradient-to-br ${getStatusColor()} border border-white/10 backdrop-blur-xl overflow-hidden group mx-1`}>
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-10 -mt-10 blur-3xl pointer-events-none"></div>
 
                 <div className="relative z-10">
-                    <div className="flex items-start gap-3 mb-3 select-none touch-pan-y min-h-[4rem]" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
-                         <div className={`w-10 h-10 rounded-2xl backdrop-blur-md flex items-center justify-center shrink-0 border border-white/30 shadow-inner transition-colors duration-500 ${activeTip.bg || 'bg-white/20'}`}>
-                            <span className="material-icons-round text-xl pointer-events-none text-white transition-all duration-500">{activeTip.icon}</span>
+                    <div className="flex items-start gap-4 mb-3 select-none touch-pan-y min-h-[3.5rem]" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
+                         <div className={`w-12 h-12 rounded-2xl backdrop-blur-md flex items-center justify-center shrink-0 border border-white/20 shadow-inner transition-colors duration-500 ${activeTip.bg || 'bg-white/10'}`}>
+                            <span className="material-icons-round text-2xl pointer-events-none text-white transition-all duration-500">{activeTip.icon}</span>
                          </div>
-                         <div className="flex-1 overflow-hidden relative pt-0.5">
+                         <div className="flex-1 overflow-hidden relative pt-1">
                              <div className={`flex flex-col justify-center relative transition-all duration-300`}>
-                                 {activeTip.id !== 'assistant' && <span className={`text-[9px] uppercase font-black tracking-widest mb-0.5 ${activeTip.color || 'text-white'}`}>{activeTip.title}</span>}
-                                 <div className="text-sm font-medium opacity-95 text-white leading-tight">
+                                 {activeTip.id !== 'assistant' && <span className={`text-[10px] uppercase font-black tracking-widest mb-1 ${activeTip.color || 'text-white/80'}`}>{activeTip.title}</span>}
+                                 <div className="text-sm font-medium opacity-95 text-white leading-snug">
                                     {isReadingImage ? <span className="animate-pulse">{t('lbl_analyzing_img')}</span> : (activeTip.component || activeTip.text)}
                                  </div>
                              </div>
                              {tips.length > 1 && (
-                                 <div className="flex gap-1.5 mt-2">
-                                    {tips.map((_, idx) => ( <div key={idx} className={`h-1 rounded-full transition-all duration-300 ${idx === currentTipIndex ? 'w-4 bg-white' : 'w-1 bg-white/30'}`} /> ))}
+                                 <div className="flex gap-1.5 mt-2.5">
+                                    {tips.map((_, idx) => ( <div key={idx} className={`h-1 rounded-full transition-all duration-300 ${idx === currentTipIndex ? 'w-5 bg-white' : 'w-1.5 bg-white/30'}`} /> ))}
                                  </div>
                              )}
                          </div>
                     </div>
 
-                    <div className="flex justify-between items-end border-t border-white/10 pt-3">
+                    <div className="flex justify-between items-end border-t border-white/10 pt-3 mt-1">
                         <div className="text-white">
-                            <span className="text-[9px] uppercase tracking-widest opacity-60 font-black mb-0.5 block">Líquido</span>
-                            <div className="text-3xl font-black tracking-tighter font-mono leading-none">
-                                {netWeight.toFixed(2)}<span className="text-sm opacity-60 ml-0.5 font-sans font-bold">kg</span>
+                            <span className="text-[10px] uppercase tracking-widest opacity-60 font-black mb-0.5 block">Líquido</span>
+                            <div className="text-3xl font-black tracking-tighter font-mono leading-none flex items-baseline">
+                                {netWeight.toFixed(2)}<span className="text-sm opacity-60 ml-1 font-sans font-bold">kg</span>
                             </div>
                         </div>
                         <div className="text-right text-white">
-                            <span className="text-[9px] uppercase tracking-widest opacity-60 font-black mb-0.5 block">Diferencia</span>
-                            <div className={`text-xl font-bold font-mono bg-white/10 px-3 py-1.5 rounded-xl backdrop-blur-sm inline-block ${Math.abs(difference) > TOLERANCE_KG ? 'animate-pulse' : ''}`}>
+                            <span className="text-[10px] uppercase tracking-widest opacity-60 font-black mb-0.5 block">Diferencia</span>
+                            <div className={`text-xl font-bold font-mono bg-white/10 px-3 py-1.5 rounded-xl backdrop-blur-sm inline-block border border-white/10 ${Math.abs(difference) > TOLERANCE_KG ? 'animate-pulse' : ''}`}>
                                 {difference > 0 ? '+' : ''}{difference.toFixed(2)}
                             </div>
                         </div>
                     </div>
 
                     {!aiAlert && Math.abs(difference) > TOLERANCE_KG && (
-                         <button onClick={analyzeWithAI} disabled={isAnalyzing} className="mt-3 w-full py-2.5 bg-white/90 hover:bg-white text-zinc-900 rounded-2xl text-xs font-bold shadow-lg transition-all flex items-center justify-center gap-2">
+                         <button onClick={analyzeWithAI} disabled={isAnalyzing} className="mt-3 w-full py-3 bg-white hover:bg-zinc-100 text-zinc-900 rounded-2xl text-xs font-bold shadow-lg transition-all flex items-center justify-center gap-2">
                              {isAnalyzing ? <span className="animate-spin material-icons-round text-sm pointer-events-none">refresh</span> : <span className="material-icons-round text-sm pointer-events-none">analytics</span>}
                              {isAnalyzing ? t('btn_analyzing') : t('btn_consult_ai')}
                          </button>
@@ -592,13 +605,10 @@ export const WeighingForm = forwardRef<WeighingFormHandle>((_, ref) => {
             {/* Evidence Section - Compact Thumbnail Row Style */}
             {evidence && (
                 <div className={`rounded-xl relative overflow-hidden group transition-all duration-300 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm flex items-center h-20 pl-2 pr-4 gap-4 ${activeSection === 'evidence' ? 'ring-2 ring-primary-500/20' : ''}`} onClick={() => setActiveSection('evidence')}>
-                    {/* Thumbnail Image */}
                      <div className="relative w-16 h-16 shrink-0 rounded-lg overflow-hidden border border-zinc-100 dark:border-zinc-700">
                          <img src={evidence} alt="Evidence" className="w-full h-full object-cover" />
                          <div className="absolute inset-0 bg-primary-500/10 animate-pulse pointer-events-none"></div>
                      </div>
-                     
-                     {/* Info Text */}
                      <div className="flex-1 min-w-0 flex flex-col justify-center">
                         <div className="flex items-center gap-2 mb-1">
                             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
@@ -608,19 +618,17 @@ export const WeighingForm = forwardRef<WeighingFormHandle>((_, ref) => {
                             {t('lbl_analyzing_img')}
                         </div>
                      </div>
-
-                     {/* Delete Button (Subtle) */}
-                     <button onClick={(e) => { e.stopPropagation(); setEvidence(null); setAiAlert(null); setBatch(''); setExpirationDate(''); setProductionDate(''); setStorageType(null); setRecommendedTemp(''); setCriticalWarning(null); setIsReadingImage(false); }} className="w-8 h-8 flex items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all">
+                     <button onClick={(e) => { e.stopPropagation(); setEvidence(null); setAiAlert(null); setIsReadingImage(false); }} className="w-8 h-8 flex items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all">
                         <span className="material-icons-round text-base">close</span>
                     </button>
                 </div>
             )}
             
-            {/* Hidden Inputs for Camera/Gallery (Controlled via Refs) */}
+            {/* Hidden Inputs */}
             <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleImageUpload} />
             <input ref={galleryInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
 
-            {/* Identity Section */}
+            {/* Form Sections */}
             <div className={`rounded-[2.5rem] border transition-all duration-300 overflow-hidden ${getSectionStyle('identity')}`} onFocus={() => setActiveSection('identity')}>
                 <div className="p-8 space-y-6">
                     <div className="flex items-center gap-3 mb-2">
@@ -634,36 +642,22 @@ export const WeighingForm = forwardRef<WeighingFormHandle>((_, ref) => {
                                 <input list="suppliers" type="text" value={supplier} onChange={e => setSupplier(e.target.value)} placeholder={t('ph_supplier')} className={inputClass + " pl-12 text-sm"} />
                                 <datalist id="suppliers">{suggestions.suppliers.map(s => <option key={s} value={s} />)}</datalist>
                             </div>
-
                             <div className="relative group">
                                 <span className={`absolute left-4 top-4 material-icons-round text-lg transition-colors pointer-events-none ${prediction.suggestedProduct && !product ? 'text-purple-500 animate-pulse' : 'text-zinc-400 dark:text-zinc-500 group-focus-within:text-primary-500'}`}>inventory_2</span>
-                                <input 
-                                    list="products" 
-                                    type="text" 
-                                    value={product} 
-                                    onChange={e => setProduct(e.target.value)} 
-                                    placeholder={t('ph_product')} 
-                                    className={`${inputClass} pl-12 text-sm ${prediction.suggestedProduct && !product ? suggestionClass : ''}`} 
-                                />
+                                <input list="products" type="text" value={product} onChange={e => setProduct(e.target.value)} placeholder={t('ph_product')} className={`${inputClass} pl-12 text-sm ${prediction.suggestedProduct && !product ? suggestionClass : ''}`} />
                                 <datalist id="products">{suggestions.products.map(p => <option key={p} value={p} />)}</datalist>
                             </div>
                         </div>
-
                         {prediction.suggestedProduct && !product && (
                              <button onClick={() => setProduct(prediction.suggestedProduct!)} className="w-full animate-fade-in text-left px-6 py-4 bg-zinc-50 dark:bg-zinc-800/50 border border-dashed border-primary-300 dark:border-primary-700 rounded-2xl flex items-center justify-between group hover:bg-white dark:hover:bg-zinc-800 transition-all">
-                                <span className="text-xs text-primary-700 dark:text-primary-300">
-                                    {t('btn_suggestion', {supplier})}<br/>
-                                    <span className="font-bold text-sm">{prediction.suggestedProduct}</span>
-                                </span>
+                                <span className="text-xs text-primary-700 dark:text-primary-300">{t('btn_suggestion', {supplier})}<br/><span className="font-bold text-sm">{prediction.suggestedProduct}</span></span>
                                 <span className="material-icons-round text-primary-500 group-hover:scale-110 transition-transform pointer-events-none bg-white dark:bg-zinc-900 rounded-full p-1.5 shadow-sm">add</span>
                             </button>
                         )}
-
                         <div className="relative group">
                              <span className="absolute left-5 top-4 text-zinc-400 dark:text-zinc-500 material-icons-round text-xl group-focus-within:text-primary-500 transition-colors pointer-events-none">qr_code_2</span>
                              <input type="text" value={batch} onChange={e => setBatch(e.target.value)} placeholder={t('ph_batch')} className={inputClass + " pl-14"} />
                         </div>
-
                         <div className="grid grid-cols-2 gap-4">
                             <div className="relative group">
                                 <span className="absolute left-4 top-4 text-zinc-400 dark:text-zinc-500 material-icons-round text-lg group-focus-within:text-primary-500 transition-colors pointer-events-none">factory</span>
@@ -678,24 +672,18 @@ export const WeighingForm = forwardRef<WeighingFormHandle>((_, ref) => {
                 </div>
             </div>
 
-            {/* Weights Section (UNIFIED: Exact Match with Dates Grid) */}
             <div className={`rounded-[2rem] border transition-all duration-300 overflow-hidden ${getSectionStyle('weights')}`} onFocus={() => setActiveSection('weights')}>
                 <div className="p-8 space-y-4">
                      <div className="flex items-center gap-3 mb-2">
                         <span className="text-xs font-black uppercase tracking-widest text-zinc-400 dark:text-zinc-500">{t('lbl_weighing')}</span>
                     </div>
-                    
                     <div className="grid grid-cols-2 gap-4">
                         <div className="relative group">
                             <span className="absolute left-4 top-4 text-zinc-400 dark:text-zinc-500 material-icons-round text-lg group-focus-within:text-primary-500 transition-colors pointer-events-none">description</span>
                             <input ref={noteInputRef} type="number" inputMode="decimal" step="0.01" value={noteWeight} onChange={e => setNoteWeight(e.target.value)} placeholder={t('lbl_note_weight')} className={inputClass + " pl-12 text-sm"} />
                         </div>
                         <div className="relative group">
-                            {parsedGrossWeight > 0 && (
-                                <div className="absolute -top-3 right-3 z-20 bg-emerald-500 dark:bg-emerald-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-lg shadow-lg animate-fade-in flex items-center gap-1">
-                                    {parsedGrossWeight.toFixed(2)} kg
-                                </div>
-                            )}
+                            {parsedGrossWeight > 0 && <div className="absolute -top-3 right-3 z-20 bg-emerald-500 dark:bg-emerald-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-lg shadow-lg animate-fade-in flex items-center gap-1">{parsedGrossWeight.toFixed(2)} kg</div>}
                             <span className="absolute left-4 top-4 text-zinc-400 dark:text-zinc-500 material-icons-round text-lg group-focus-within:text-primary-500 transition-colors pointer-events-none">scale</span>
                             <input ref={grossInputRef} type="text" inputMode="decimal" value={grossWeight} onChange={e => setGrossWeight(e.target.value)} placeholder={t('lbl_gross_weight')} className={inputClass + " pl-12 text-sm"} />
                         </div>
@@ -703,103 +691,92 @@ export const WeighingForm = forwardRef<WeighingFormHandle>((_, ref) => {
                 </div>
             </div>
 
-             {/* Tara Section (UNIFIED: Exact Match with Dates Grid) */}
             <div className={`rounded-[2rem] border transition-all duration-300 overflow-hidden ${getSectionStyle('tara')} ${prediction.suggestedTaraBox ? suggestionClass : ''}`} onFocus={() => setActiveSection('tara')}>
                 <div className="px-8 py-4 cursor-pointer flex justify-between items-center" onClick={() => setShowBoxes(!showBoxes)}>
                     <div className="flex items-center gap-2">
                         <span className={`text-xs font-black uppercase tracking-widest ${prediction.suggestedTaraBox ? 'text-purple-600 dark:text-purple-400' : 'text-zinc-400 dark:text-zinc-500'}`}>{t('lbl_tara_section')}</span>
-                        {totalTara > 0 && (
-                            <div className="flex items-center gap-1">
-                                {Number(boxQty) > 0 && parsedBoxTara > 0 && (
-                                    <span className="text-[10px] font-bold text-zinc-500 bg-zinc-100 dark:bg-zinc-800 dark:text-zinc-400 px-1.5 py-0.5 rounded-md flex items-center gap-0.5">
-                                        <span>📦</span>
-                                        {boxQty} x {parsedBoxTara.toFixed(0)}g
-                                    </span>
-                                )}
-                                <span className="text-xs font-bold text-primary-600 bg-primary-100 dark:bg-primary-900/30 dark:text-primary-300 px-2 py-0.5 rounded-md">-{totalTara.toFixed(2)} kg</span>
-                            </div>
-                        )}
+                        {totalTara > 0 && <div className="flex items-center gap-1"><span className="text-[10px] font-bold text-zinc-500 bg-zinc-100 dark:bg-zinc-800 dark:text-zinc-400 px-1.5 py-0.5 rounded-md flex items-center gap-0.5"><span>📦</span>{boxQty} x {parsedBoxTara.toFixed(0)}g</span><span className="text-xs font-bold text-primary-600 bg-primary-100 dark:bg-primary-900/30 dark:text-primary-300 px-2 py-0.5 rounded-md">-{totalTara.toFixed(2)} kg</span></div>}
                         {prediction.suggestedTaraBox && <span className="material-icons-round text-purple-500 text-sm animate-bounce">smart_toy</span>}
                     </div>
                     <span className={`material-icons-round text-zinc-400 transition-transform ${showBoxes ? 'rotate-180' : ''}`}>expand_more</span>
                 </div>
-                
                 {showBoxes && (
                     <div className="px-8 pb-8 pt-0 animate-slide-down">
                         {prediction.suggestedTaraBox && (
                             <div className="mb-6 bg-purple-50 dark:bg-purple-900/10 border border-purple-100 dark:border-purple-800/30 rounded-xl p-3 flex items-center justify-between">
-                                <div className="text-xs text-purple-700 dark:text-purple-300 flex items-center gap-2">
-                                    <span className="material-icons-round text-sm">smart_toy</span>
-                                    {t('lbl_ai_pattern')}
-                                </div>
-                                <button onClick={() => { setBoxTara(Math.round(prediction.suggestedTaraBox! * 1000).toString()); setBoxQty('0'); }} className="text-[10px] font-bold bg-white dark:bg-purple-800/50 px-3 py-1.5 rounded-lg shadow-sm hover:shadow-md transition-all text-purple-700 dark:text-purple-200">
-                                    {t('btn_apply_tara', { supplier, weight: Math.round(prediction.suggestedTaraBox! * 1000).toString() })}
-                                </button>
+                                <div className="text-xs text-purple-700 dark:text-purple-300 flex items-center gap-2"><span className="material-icons-round text-sm">smart_toy</span>{t('lbl_ai_pattern')}</div>
+                                <button onClick={() => { setBoxTara(Math.round(prediction.suggestedTaraBox! * 1000).toString()); setBoxQty('0'); }} className="text-[10px] font-bold bg-white dark:bg-purple-800/50 px-3 py-1.5 rounded-lg shadow-sm hover:shadow-md transition-all text-purple-700 dark:text-purple-200">{t('btn_apply_tara', { supplier, weight: Math.round(prediction.suggestedTaraBox! * 1000).toString() })}</button>
                             </div>
                         )}
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="relative group">
-                                <span className="absolute left-4 top-4 text-zinc-400 dark:text-zinc-500 material-icons-round text-lg group-focus-within:text-primary-500 transition-colors pointer-events-none">fitness_center</span>
-                                <input 
-                                    type="tel" 
-                                    inputMode="numeric"
-                                    pattern="[0-9]*" 
-                                    value={boxTara} 
-                                    onChange={e => setBoxTara(e.target.value.replace(/[^0-9]/g, ''))} 
-                                    className={inputClass + " pl-12 text-sm"} 
-                                    placeholder={t('lbl_unit_weight')} 
-                                />
-                            </div>
-                            <div className="relative group">
-                                <span className="absolute left-4 top-4 text-zinc-400 dark:text-zinc-500 material-icons-round text-lg group-focus-within:text-primary-500 transition-colors pointer-events-none">tag</span>
-                                <input 
-                                    type="tel" 
-                                    inputMode="numeric"
-                                    pattern="[0-9]*" 
-                                    value={boxQty} 
-                                    onChange={e => setBoxQty(e.target.value.replace(/[^0-9]/g, ''))} 
-                                    className={inputClass + " pl-12 text-sm"} 
-                                    placeholder={t('lbl_qty')} 
-                                />
-                            </div>
+                            <div className="relative group"><span className="absolute left-4 top-4 text-zinc-400 dark:text-zinc-500 material-icons-round text-lg group-focus-within:text-primary-500 transition-colors pointer-events-none">fitness_center</span><input type="tel" inputMode="numeric" pattern="[0-9]*" value={boxTara} onChange={e => setBoxTara(e.target.value.replace(/[^0-9]/g, ''))} className={inputClass + " pl-12 text-sm"} placeholder={t('lbl_unit_weight')} /></div>
+                            <div className="relative group"><span className="absolute left-4 top-4 text-zinc-400 dark:text-zinc-500 material-icons-round text-lg group-focus-within:text-primary-500 transition-colors pointer-events-none">tag</span><input type="tel" inputMode="numeric" pattern="[0-9]*" value={boxQty} onChange={e => setBoxQty(e.target.value.replace(/[^0-9]/g, ''))} className={inputClass + " pl-12 text-sm"} placeholder={t('lbl_qty')} /></div>
                         </div>
                     </div>
                 )}
+            </div>
+
+            {/* OPTIMIZED DYNAMIC ISLAND (Bottom Bar) */}
+            <div className="fixed bottom-6 left-0 right-0 z-50 flex justify-center pointer-events-none">
+                <div className="flex items-center gap-2 p-2.5 bg-[#1C1C1E] rounded-[3rem] shadow-2xl shadow-black/50 ring-1 ring-white/10 animate-slide-up select-none pointer-events-auto">
+                    
+                    {/* 1. Main Action: Weigh */}
+                    <div className="bg-white text-black px-6 py-4 rounded-full flex items-center gap-2.5 shadow-xl hover:scale-105 active:scale-95 transition-all cursor-pointer group" onClick={() => setActiveSection('weights')}>
+                        <span className="material-icons-round text-xl group-hover:rotate-12 transition-transform">scale</span>
+                        <span className="font-bold text-sm tracking-tight">{t('tab_weigh')}</span>
+                    </div>
+
+                    {/* 2. History */}
+                    <button onClick={onViewHistory} className="w-12 h-12 rounded-full flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 transition-all active:scale-90">
+                        <span className="material-icons-round text-xl">history</span>
+                    </button>
+
+                    {/* Vertical Separator */}
+                    <div className="w-[1px] h-6 bg-white/10 mx-0.5"></div>
+
+                    {/* 3. Camera */}
+                    <button onClick={() => cameraInputRef.current?.click()} className="w-12 h-12 rounded-full bg-[#2C2C2E] flex items-center justify-center text-white hover:bg-white/20 hover:scale-110 transition-all active:scale-90 shadow-inner group">
+                        <span className="material-icons-round text-xl group-hover:text-blue-400 transition-colors">photo_camera</span>
+                    </button>
+
+                    {/* 4. Gallery */}
+                    <button onClick={() => galleryInputRef.current?.click()} className="w-12 h-12 rounded-full bg-[#2C2C2E] flex items-center justify-center text-white hover:bg-white/20 hover:scale-110 transition-all active:scale-90 shadow-inner group">
+                        <span className="material-icons-round text-xl group-hover:text-purple-400 transition-colors">collections</span>
+                    </button>
+
+                    {/* Vertical Separator */}
+                    <div className="w-[1px] h-6 bg-white/10 mx-0.5"></div>
+
+                    {/* 5. Trash / Clear */}
+                    <button onClick={() => setShowConfirmReset(true)} className="w-12 h-12 rounded-full flex items-center justify-center text-zinc-400 hover:text-red-500 hover:bg-red-500/10 transition-all active:scale-90">
+                        <span className="material-icons-round text-xl">delete</span>
+                    </button>
+
+                    {/* 6. Save */}
+                    <button 
+                        onClick={handleSave} 
+                        className={`w-16 h-16 ml-1 rounded-full flex items-center justify-center text-white shadow-lg transition-all active:scale-90
+                            ${hasDataToSave ? 'bg-[#10B981] shadow-emerald-500/30 animate-pulse-slow hover:scale-105' : 'bg-[#10B981]/80 shadow-[#10B981]/10'}`}
+                    >
+                        <span className="material-icons-round text-2xl">save</span>
+                    </button>
+                </div>
             </div>
 
             {/* Custom Confirmation Modal */}
             {showConfirmReset && createPortal(
                 <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in" style={{ touchAction: 'none' }}>
                     <div className="bg-white dark:bg-zinc-900 rounded-[2rem] w-full max-w-sm p-6 shadow-2xl animate-slide-up ring-1 ring-white/10 relative overflow-hidden" onClick={e => e.stopPropagation()}>
-                         {/* Decorative */}
                          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-red-500 to-transparent opacity-50"></div>
-                         
                          <div className="flex flex-col items-center text-center pt-2">
                             <div className="w-16 h-16 bg-red-50 dark:bg-red-900/10 rounded-full flex items-center justify-center mb-5 text-red-500 shadow-inner">
                                 <span className="material-icons-round text-3xl">delete_forever</span>
                             </div>
-                            
-                            <h3 className="text-xl font-black text-zinc-900 dark:text-white mb-2 leading-tight">
-                                {t('msg_confirm_clear')}
-                            </h3>
-                            
-                            <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-8 leading-relaxed px-4">
-                                Esta acción no se puede deshacer. Se borrarán todos los datos del formulario actual.
-                            </p>
-                            
+                            <h3 className="text-xl font-black text-zinc-900 dark:text-white mb-2 leading-tight">{t('msg_confirm_clear')}</h3>
+                            <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-8 leading-relaxed px-4">Esta acción no se puede deshacer. Se borrarán todos los datos del formulario actual.</p>
                             <div className="grid grid-cols-2 gap-3 w-full">
-                                <button 
-                                    onClick={() => setShowConfirmReset(false)}
-                                    className="py-4 rounded-2xl font-bold text-sm bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
-                                >
-                                    {t('btn_not_now')}
-                                </button>
-                                <button 
-                                    onClick={() => { handleReset(); setShowConfirmReset(false); }}
-                                    className="py-4 rounded-2xl font-bold text-sm bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/30 transition-all active:scale-95"
-                                >
-                                    {t('btn_erase')}
-                                </button>
+                                <button onClick={() => setShowConfirmReset(false)} className="py-4 rounded-2xl font-bold text-sm bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors">{t('btn_not_now')}</button>
+                                <button onClick={() => { handleReset(); setShowConfirmReset(false); }} className="py-4 rounded-2xl font-bold text-sm bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/30 transition-all active:scale-95">{t('btn_erase')}</button>
                             </div>
                         </div>
                     </div>
