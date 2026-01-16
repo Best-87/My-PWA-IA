@@ -1,6 +1,6 @@
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.4.1/workbox-sw.js');
 
-const CACHE_NAME = 'conferente-pro-v7'; // Incremented version
+const CACHE_NAME = 'conferente-pro-v10'; // Incremented version for new icon
 const OFFLINE_PAGE = './offline.html';
 
 // 1. Precache Offline Page
@@ -9,24 +9,27 @@ self.addEventListener('install', (event) => {
     OFFLINE_PAGE,
     './index.html',
     './manifest.json',
+    './icon.svg', // New SVG Icon
     './', // Alias for index
     // Precache Critical CDNs for UI
     'https://cdn.tailwindcss.com',
     'https://fonts.googleapis.com/icon?family=Material+Icons+Round',
-    'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap'
+    'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap',
+    // Kept placehold.co logic below for dynamic images if needed, but removed fixed icons from precache to save space
   ];
 
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(urlsToCache))
   );
-  // REMOVED self.skipWaiting() to allow manual update flow controlled by UI
+  // FORCE SKIP WAITING: Essential for PWA Builder/Bots to see updates immediately
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
 });
 
-// Listener for SKIP_WAITING message from the UI
+// Listener for SKIP_WAITING message from the UI (kept for compatibility)
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
@@ -58,7 +61,8 @@ workbox.routing.registerRoute(
                url.origin === 'https://fonts.googleapis.com' ||
                url.origin === 'https://fonts.gstatic.com' ||
                url.origin === 'https://cdn.jsdelivr.net' || 
-               url.origin === 'https://tessdata.projectnaptha.com',
+               url.origin === 'https://tessdata.projectnaptha.com' ||
+               url.origin === 'https://placehold.co', // Cache placeholder images if used elsewhere
   new workbox.strategies.StaleWhileRevalidate({
     cacheName: 'cdn-resources',
     plugins: [
@@ -105,8 +109,8 @@ self.addEventListener('push', (event) => {
   
   const options = {
     body: data.body,
-    icon: 'https://picsum.photos/192/192', // Replace with your actual icon path
-    badge: 'https://picsum.photos/96/96', // Small monochrome icon for status bar
+    icon: './icon.svg', // Updated to use local icon
+    badge: './icon.svg', // Updated badge
     vibrate: [100, 50, 100],
     data: {
       url: data.url || self.registration.scope

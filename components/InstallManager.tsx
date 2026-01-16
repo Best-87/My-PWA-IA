@@ -27,29 +27,34 @@ export const InstallManager: React.FC = () => {
 
         // 2. Handle Service Worker Updates
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistration().then((reg) => {
-                if (!reg) return;
+            navigator.serviceWorker.getRegistration()
+                .then((reg) => {
+                    if (!reg) return;
 
-                // Case A: SW is already waiting (update was downloaded in background)
-                if (reg.waiting) {
-                    setWaitingWorker(reg.waiting);
-                    setUpdateAvailable(true);
-                }
-
-                // Case B: Update is found now
-                reg.addEventListener('updatefound', () => {
-                    const newWorker = reg.installing;
-                    if (newWorker) {
-                        newWorker.addEventListener('statechange', () => {
-                            // Only notify if there is an existing controller (meaning it's an update, not first load)
-                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                setWaitingWorker(newWorker);
-                                setUpdateAvailable(true);
-                            }
-                        });
+                    // Case A: SW is already waiting (update was downloaded in background)
+                    if (reg.waiting) {
+                        setWaitingWorker(reg.waiting);
+                        setUpdateAvailable(true);
                     }
+
+                    // Case B: Update is found now
+                    reg.addEventListener('updatefound', () => {
+                        const newWorker = reg.installing;
+                        if (newWorker) {
+                            newWorker.addEventListener('statechange', () => {
+                                // Only notify if there is an existing controller (meaning it's an update, not first load)
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    setWaitingWorker(newWorker);
+                                    setUpdateAvailable(true);
+                                }
+                            });
+                        }
+                    });
+                })
+                .catch((error) => {
+                    // Swallow errors in environments where SW is restricted (e.g. iframes, some preview environments)
+                    console.log('SW registration check skipped:', error.message);
                 });
-            });
 
             // 3. Listen for controller change (when SKIP_WAITING is called)
             let refreshing = false;
