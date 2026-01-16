@@ -2,11 +2,10 @@
   "name": "Conferente Pro",
   "short_name": "Conferente",
   "description": "Control de pesaje inteligente y gestión de conferencias con IA para logística.",
-  "id": "/",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#eff6ff",
-  "theme_color": "#2563eb",
+  "background_color": "#09090b",
+  "theme_color": "#09090b",
   "orientation": "portrait",
   "scope": "./",
   "lang": "es",
@@ -28,13 +27,7 @@
       "src": "./icon.svg",
       "sizes": "512x512",
       "type": "image/svg+xml",
-      "purpose": "any"
-    },
-    {
-      "src": "./icon.svg",
-      "sizes": "512x512",
-      "type": "image/svg+xml",
-      "purpose": "maskable"
+      "purpose": "any maskable"
     }
   ],
   "screenshots": [
@@ -67,16 +60,6 @@
       "description": "Iniciar una nueva sesión de pesaje",
       "url": "./index.html?action=weigh",
       "icons": [{ "src": "./icon.svg", "sizes": "96x96", "type": "image/svg+xml" }]
-    },
-    {
-      "name": "Ver Historial",
-      "short_name": "Historial",
-      "description": "Ver registros anteriores",
-      "url": "./index.html?action=history",
-      "icons": [{ "src": "./icon.svg", "sizes": "96x96", "type": "image/svg+xml" }]
     }
-  ],
-  "launch_handler": {
-    "client_mode": "navigate-existing"
-  }
+  ]
 }

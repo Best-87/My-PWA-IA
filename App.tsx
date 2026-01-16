@@ -5,11 +5,11 @@ import { getRecords, deleteRecord, clearAllRecords, getUserProfile, saveUserProf
 import { WeighingRecord, UserProfile } from './types';
 import { LanguageProvider, useTranslation } from './services/i18n';
 import { ToastProvider, useToast } from './components/Toast';
-import { InstallPrompt } from './components/InstallPrompt';
 import { AnalyticsDashboard } from './components/AnalyticsDashboard';
 import { initAnalytics, trackEvent } from './services/analyticsService';
 import { ChatInterface } from './components/ChatInterface';
 import { initGoogleDrive, uploadBackupToDrive, restoreBackupFromDrive } from './services/googleDriveService';
+import { SplashScreen } from './components/SplashScreen';
 
 // Tolerance limit 200g
 const TOLERANCE_KG = 0.2;
@@ -42,6 +42,7 @@ const checkExpirationRisk = (dateStr?: string): string | null => {
 const AppContent = () => {
     const { t, language, setLanguage } = useTranslation();
     const { showToast } = useToast();
+    const [isLoading, setIsLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'weigh' | 'history'>('weigh');
     const [records, setRecords] = useState<WeighingRecord[]>([]);
     const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
@@ -51,6 +52,9 @@ const AppContent = () => {
     const [showChat, setShowChat] = useState(false);
     const [theme, setThemeState] = useState(getTheme());
     
+    // Search State
+    const [searchTerm, setSearchTerm] = useState('');
+
     // Image Viewer State
     const [viewImage, setViewImage] = useState<string | null>(null);
 
@@ -171,6 +175,32 @@ const AppContent = () => {
         document.body.removeChild(link);
         trackEvent('data_exported', { count: records.length });
     };
+    
+    const handleShareWhatsapp = (rec: WeighingRecord, e?: React.MouseEvent) => {
+        e?.stopPropagation();
+        const diff = rec.netWeight - rec.noteWeight;
+        const isSurplus = diff >= 0;
+        
+        const text = `*${t('rpt_title')}*
+---------------------------
+${t('rpt_supplier')} ${rec.supplier}
+${t('rpt_product')} ${rec.product}
+${rec.batch ? `${t('rpt_batch')} ${rec.batch}` : ''}
+${rec.expirationDate ? `${t('rpt_expiration')} ${rec.expirationDate}` : ''}
+---------------------------
+${t('rpt_gross')} ${rec.grossWeight.toFixed(3)} kg
+${t('rpt_tara')} ${rec.taraTotal.toFixed(3)} kg (x${rec.boxes.qty})
+${t('rpt_net')} *${rec.netWeight.toFixed(3)} kg*
+---------------------------
+${t('rpt_diff')} *${isSurplus ? '+' : ''}${diff.toFixed(3)} kg*
+${t('rpt_status')} ${Math.abs(diff) > TOLERANCE_KG ? '⚠️ ' + t('rpt_review') : '✅ ' + t('rpt_valid')}
+
+${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
+`;
+        const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+        window.open(url, '_blank');
+        trackEvent('share_whatsapp');
+    };
 
     // --- BACKUP HANDLERS ---
     const handleSaveClientId = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -247,6 +277,21 @@ const AppContent = () => {
         };
         reader.readAsText(file);
     };
+    
+    // Filter logic
+    const filteredRecords = records.filter(rec => {
+        if (!searchTerm) return true;
+        const lowerSearch = searchTerm.toLowerCase();
+        return (
+            rec.supplier.toLowerCase().includes(lowerSearch) ||
+            rec.product.toLowerCase().includes(lowerSearch) ||
+            (rec.batch && rec.batch.toLowerCase().includes(lowerSearch))
+        );
+    });
+
+    if (isLoading) {
+        return <SplashScreen onFinish={() => setIsLoading(false)} />;
+    }
 
     return (
         <div className="min-h-screen bg-[#F0F2F5] dark:bg-black transition-colors duration-300 pb-20 font-sans selection:bg-primary-500/30">
@@ -254,7 +299,7 @@ const AppContent = () => {
             <input ref={backupInputRef} type="file" accept=".json" className="hidden" onChange={handleRestore} />
             
             {/* Header */}
-            <header className="fixed top-0 w-full z-50 bg-white/80 dark:bg-black/80 backdrop-blur-xl border-b border-zinc-200 dark:border-zinc-800 transition-colors">
+            <header className="fixed top-0 w-full z-50 bg-white/80 dark:bg-black/80 backdrop-blur-xl border-b border-zinc-200 dark:border-zinc-800 transition-colors animate-slide-down">
                 <div className="max-w-3xl mx-auto px-4 h-16 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="bg-gradient-to-br from-primary-500 to-primary-700 w-9 h-9 rounded-xl flex items-center justify-center shadow-lg shadow-primary-500/30">
@@ -298,7 +343,7 @@ const AppContent = () => {
                     </div>
                 ) : (
                     <div className="animate-fade-in pb-24">
-                        <div className="mb-6 flex items-center justify-between">
+                        <div className="mb-4 flex items-center justify-between">
                             <h2 className="text-2xl font-black text-zinc-900 dark:text-white">{t('hist_recent')}</h2>
                             <div className="flex gap-2">
                                 <button onClick={handleExportCSV} className="p-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400">
@@ -310,14 +355,30 @@ const AppContent = () => {
                             </div>
                         </div>
 
+                        {/* Search Bar */}
+                        <div className="relative mb-6">
+                            <span className="absolute left-4 top-3.5 text-zinc-400 dark:text-zinc-500 material-icons-round text-xl">search</span>
+                            <input 
+                                type="text"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                placeholder={t('ph_search')}
+                                className="w-full pl-12 pr-4 py-3 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white outline-none focus:ring-2 focus:ring-primary-500/50 transition-all shadow-sm"
+                            />
+                        </div>
+
                         {records.length === 0 ? (
                             <div className="flex flex-col items-center justify-center py-20 opacity-50">
                                 <span className="material-icons-round text-6xl text-zinc-300 dark:text-zinc-700 mb-4">history_toggle_off</span>
                                 <p className="text-zinc-500 dark:text-zinc-400">{t('hist_empty')}</p>
                             </div>
+                        ) : filteredRecords.length === 0 ? (
+                            <div className="text-center py-10 text-zinc-500 dark:text-zinc-400">
+                                No se encontraron resultados.
+                            </div>
                         ) : (
                             <div className="space-y-4">
-                                {records.map((rec) => {
+                                {filteredRecords.map((rec) => {
                                     const diff = rec.netWeight - rec.noteWeight;
                                     const isError = Math.abs(diff) > TOLERANCE_KG;
                                     const risk = checkExpirationRisk(rec.expirationDate);
@@ -442,17 +503,24 @@ const AppContent = () => {
                                                     {rec.evidence && (
                                                         <div className="mb-6">
                                                              <span className="text-[10px] font-bold text-zinc-400 uppercase block mb-2">{t('lbl_evidence_section')}</span>
-                                                             <div className="rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-700 max-h-80 bg-black/5 cursor-pointer hover:opacity-90 transition-opacity" onClick={(e) => { e.stopPropagation(); setViewImage(rec.evidence!); }}>
-                                                                <img src={rec.evidence} alt="Evidencia" className="w-full h-full object-contain" />
+                                                             <div className="rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-700 h-48 bg-zinc-100 dark:bg-zinc-900 cursor-pointer hover:opacity-90 transition-opacity flex items-center justify-center relative" onClick={(e) => { e.stopPropagation(); setViewImage(rec.evidence!); }}>
+                                                                <img src={rec.evidence} alt="Evidencia" className="h-full w-auto object-contain" />
+                                                                <div className="absolute top-2 right-2 bg-black/50 p-1 rounded-full text-white">
+                                                                    <span className="material-icons-round text-sm">open_in_full</span>
+                                                                </div>
                                                              </div>
                                                         </div>
                                                     )}
 
                                                     {/* Actions */}
-                                                    <div className="flex justify-end gap-3 pt-2">
-                                                        <button onClick={(e) => handleDelete(rec.id, e)} className="flex items-center gap-2 px-4 py-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl text-xs font-bold hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors active:scale-95 w-full justify-center sm:w-auto">
+                                                    <div className="flex gap-3 pt-2">
+                                                        <button onClick={(e) => handleShareWhatsapp(rec, e)} className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-xl text-xs font-bold hover:bg-green-100 dark:hover:bg-green-900/40 transition-colors active:scale-95">
+                                                            <span className="text-lg">💬</span>
+                                                            WhatsApp
+                                                        </button>
+                                                        
+                                                        <button onClick={(e) => handleDelete(rec.id, e)} className="flex items-center justify-center gap-2 px-4 py-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl text-xs font-bold hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors active:scale-95">
                                                             <span className="material-icons-round text-lg">delete</span>
-                                                            {t('btn_erase')}
                                                         </button>
                                                     </div>
                                                 </div>
@@ -627,7 +695,6 @@ const AppContent = () => {
             )}
 
             <AnalyticsDashboard isOpen={showAnalytics} onClose={() => setShowAnalytics(false)} />
-            <InstallPrompt className="fixed bottom-28 left-4 right-4 z-30" />
         </div>
     );
 };
