@@ -4,6 +4,7 @@ export type Language = 'pt' | 'es' | 'en';
 export interface UserProfile {
     name: string;
     role: string;
+    store?: string; // Tienda / Sucursal
     photo?: string; // Base64 string
 }
 
@@ -24,6 +25,7 @@ export interface WeighingRecord {
     expirationDate?: string; // Data de validade
     productionDate?: string; // Data de fabricação
     recommendedTemperature?: string; // Temperatura recomendada de almacenamiento
+    store?: string; // Tienda donde se realizó el registro
 }
 
 export interface KnowledgeBase {

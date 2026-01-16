@@ -4,6 +4,7 @@ import { saveRecord, predictData, getKnowledgeBase, getLastRecordBySupplier } fr
 import { trackEvent } from '../services/analyticsService';
 import { useTranslation } from '../services/i18n';
 import { useToast } from './Toast';
+import { sendLocalNotification } from '../services/notificationService';
 
 // Stable tolerance
 const TOLERANCE_KG = 0.2;
@@ -468,6 +469,12 @@ export const WeighingForm = forwardRef<WeighingFormHandle>((_, ref) => {
         const kb = getKnowledgeBase();
         setSuggestions({ products: kb.products, suppliers: kb.suppliers });
         showToast(t('alert_saved'), 'success');
+        
+        // Trigger local notification for confirmation
+        sendLocalNotification(
+            'Registro Guardado', 
+            `${supplier} - ${product}: ${netWeight.toFixed(2)}kg (Dif: ${difference > 0 ? '+' : ''}${difference.toFixed(2)})`
+        );
     };
 
     useImperativeHandle(ref, () => ({

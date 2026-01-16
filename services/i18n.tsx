@@ -12,9 +12,11 @@ const translations = {
         lbl_profile: 'Perfil do Usuário',
         lbl_name: 'Nome',
         lbl_role: 'Cargo / Função',
+        lbl_store: 'Loja / Filial',
         btn_change_photo: 'Alterar Foto',
         ph_name: 'Seu Nome',
         ph_role: 'Ex: Conferente Líder',
+        ph_store: 'Ex: Loja 01 - Centro',
         
         // Tabs
         tab_weigh: 'Pesar',
@@ -137,9 +139,11 @@ const translations = {
         lbl_profile: 'Perfil de Usuario',
         lbl_name: 'Nombre',
         lbl_role: 'Cargo / Función',
+        lbl_store: 'Tienda / Sucursal',
         btn_change_photo: 'Cambiar Foto',
         ph_name: 'Tu Nombre',
         ph_role: 'Ej: Conferente Líder',
+        ph_store: 'Ej: Tienda 01 - Centro',
 
         tab_weigh: 'Pesar',
         tab_history: 'Historial',
@@ -259,9 +263,11 @@ const translations = {
         lbl_profile: 'User Profile',
         lbl_name: 'Name',
         lbl_role: 'Role / Job',
+        lbl_store: 'Store / Branch',
         btn_change_photo: 'Change Photo',
         ph_name: 'Your Name',
         ph_role: 'Ex: Lead Checker',
+        ph_store: 'Ex: Branch 01',
 
         tab_weigh: 'Weigh',
         tab_history: 'History',

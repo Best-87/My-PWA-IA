@@ -14,7 +14,8 @@ const defaultKnowledge: KnowledgeBase = {
 
 const defaultProfile: UserProfile = {
     name: 'Usuario',
-    role: 'Conferente'
+    role: 'Conferente',
+    store: ''
 };
 
 // --- Theme Functions ---
@@ -49,9 +50,17 @@ export const getUserProfile = (): UserProfile => {
 
 export const saveRecord = (record: WeighingRecord) => {
     const records = getRecords();
-    records.unshift(record);
+    
+    // Automatically attach the store from the current profile to the record
+    const profile = getUserProfile();
+    const enrichedRecord = {
+        ...record,
+        store: profile.store
+    };
+    
+    records.unshift(enrichedRecord);
     localStorage.setItem(KEY_RECORDS, JSON.stringify(records));
-    learnFromRecord(record);
+    learnFromRecord(enrichedRecord);
 };
 
 export const deleteRecord = (id: string) => {

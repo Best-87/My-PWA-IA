@@ -8,6 +8,7 @@ import { ToastProvider, useToast } from './components/Toast';
 import { InstallPrompt } from './components/InstallPrompt';
 import { AnalyticsDashboard } from './components/AnalyticsDashboard';
 import { initAnalytics, trackEvent } from './services/analyticsService';
+import { getNotificationPermission, requestNotificationPermission, isNotificationSupported } from './services/notificationService';
 
 // Tolerance limit 200g
 const TOLERANCE_KG = 0.2;
@@ -99,6 +100,24 @@ const HistoryItem: React.FC<{
 
                 {/* Badges Row */}
                 <div className="flex flex-wrap gap-2 mt-4 items-center">
+                    {/* NEW: Peso Nota Badge */}
+                    <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-50 dark:bg-purple-900/10 border border-purple-100 dark:border-purple-800/30">
+                        <span className="material-icons-round text-[10px] text-purple-400">description</span>
+                        <span className="text-[9px] font-bold text-purple-700 dark:text-purple-300">
+                            Nota: {noteWeight.toFixed(2)}
+                        </span>
+                    </div>
+
+                    {/* NEW: Store Badge */}
+                    {record.store && (
+                        <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-orange-50 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-800/30">
+                            <span className="material-icons-round text-[10px] text-orange-400">store</span>
+                            <span className="text-[9px] font-bold text-orange-700 dark:text-orange-300 max-w-[120px] truncate">
+                                {record.store}
+                            </span>
+                        </div>
+                    )}
+
                     {record.productionDate && (
                          <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-700/50">
                              <span className="material-icons-round text-[10px] text-zinc-400">factory</span>
@@ -130,10 +149,6 @@ const HistoryItem: React.FC<{
             {isExpanded && (
                 <div className="bg-zinc-50/50 dark:bg-black/20 px-5 pb-5 pt-2 border-t border-zinc-100 dark:border-zinc-800 animate-slide-down">
                     <div className="grid grid-cols-2 gap-x-6 gap-y-2 mt-2 text-xs">
-                        <div className="flex justify-between items-center py-1.5 border-b border-zinc-200/50 dark:border-zinc-800 border-dashed">
-                            <span className="text-zinc-400 font-medium">Peso Nota</span>
-                            <span className="font-mono font-bold text-zinc-700 dark:text-zinc-300">{noteWeight}</span>
-                        </div>
                          <div className="flex justify-between items-center py-1.5 border-b border-zinc-200/50 dark:border-zinc-800 border-dashed">
                             <span className="text-zinc-400 font-medium">Diferencia</span>
                             <span className={`font-mono font-bold ${diff > 0 ? 'text-emerald-600' : diff < 0 ? 'text-red-600' : 'text-zinc-500'}`}>
@@ -148,6 +163,13 @@ const HistoryItem: React.FC<{
                             <div className="flex justify-between items-center col-span-2 py-1.5 border-b border-zinc-200/50 dark:border-zinc-800 border-dashed">
                                 <span className="text-zinc-400 font-medium">Lote</span>
                                 <span className="font-mono font-bold text-zinc-700 dark:text-zinc-300">{record.batch}</span>
+                            </div>
+                        )}
+                        {/* Store is now visible in preview, but kept here for completeness in expanded view */}
+                        {record.store && (
+                            <div className="flex justify-between items-center col-span-2 py-1.5 border-b border-zinc-200/50 dark:border-zinc-800 border-dashed">
+                                <span className="text-zinc-400 font-medium">Loja/Tienda</span>
+                                <span className="font-bold text-zinc-700 dark:text-zinc-300">{record.store}</span>
                             </div>
                         )}
                         {record.aiAnalysis && (
@@ -193,6 +215,7 @@ const App: React.FC = () => {
     const [viewImage, setViewImage] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [filterPeriod, setFilterPeriod] = useState<'all' | 'today' | 'week' | 'month' | 'year'>('all');
+    const [notificationStatus, setNotificationStatus] = useState<NotificationPermission>('default');
 
     // WAKE LOCK LOGIC
     useEffect(() => {
@@ -232,6 +255,9 @@ const App: React.FC = () => {
         document.addEventListener('click', handleInteraction);
         document.addEventListener('touchstart', handleInteraction);
 
+        // Check Notification Permission
+        setNotificationStatus(getNotificationPermission());
+
         return () => {
             document.removeEventListener('visibilitychange', handleVisibilityChange);
             document.removeEventListener('click', handleInteraction);
@@ -257,6 +283,16 @@ const App: React.FC = () => {
         const newTheme = theme === 'light' ? 'dark' : 'light';
         setThemeState(newTheme);
         saveTheme(newTheme);
+    };
+
+    const handleEnableNotifications = async () => {
+        const result = await requestNotificationPermission();
+        setNotificationStatus(result);
+        if (result === 'granted') {
+            showToast('Notificaciones activadas', 'success');
+        } else {
+            showToast('Permiso denegado', 'error');
+        }
     };
 
     const handleDeleteRecord = (id: string) => {
@@ -389,6 +425,7 @@ const App: React.FC = () => {
                                 <div className="space-y-3 w-full">
                                     <input type="text" value={userProfile.name} onChange={e => setUserProfileState(p => ({...p, name: e.target.value}))} className="w-full bg-transparent text-center font-bold text-lg dark:text-white outline-none border-b border-dashed border-zinc-300 dark:border-zinc-700 focus:border-primary-500 pb-1" placeholder={t('ph_name')} />
                                     <input type="text" value={userProfile.role} onChange={e => setUserProfileState(p => ({...p, role: e.target.value}))} className="w-full bg-transparent text-center text-sm font-medium text-zinc-500 dark:text-zinc-400 outline-none border-b border-dashed border-zinc-300 dark:border-zinc-700 focus:border-primary-500 pb-1" placeholder={t('ph_role')} />
+                                    <input type="text" value={userProfile.store || ''} onChange={e => setUserProfileState(p => ({...p, store: e.target.value}))} className="w-full bg-transparent text-center text-sm font-medium text-zinc-500 dark:text-zinc-400 outline-none border-b border-dashed border-zinc-300 dark:border-zinc-700 focus:border-primary-500 pb-1" placeholder={t('ph_store')} />
                                 </div>
                             </div>
 
@@ -402,6 +439,21 @@ const App: React.FC = () => {
                                     <span className="material-icons-round text-2xl text-purple-500 bg-purple-100 dark:bg-purple-900/30 p-2 rounded-xl">{theme === 'light' ? 'dark_mode' : 'light_mode'}</span>
                                     <span className="text-xs font-bold dark:text-white">{theme === 'light' ? 'Modo Oscuro' : 'Modo Claro'}</span>
                                 </button>
+                                
+                                {isNotificationSupported() && (
+                                    <button onClick={handleEnableNotifications} className="col-span-2 bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-2xl border border-zinc-100 dark:border-zinc-800 flex items-center justify-between gap-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
+                                        <div className="flex items-center gap-3">
+                                            <span className={`material-icons-round text-2xl p-2 rounded-xl ${notificationStatus === 'granted' ? 'text-emerald-500 bg-emerald-100 dark:bg-emerald-900/30' : 'text-zinc-400 bg-zinc-200 dark:bg-zinc-700'}`}>
+                                                {notificationStatus === 'granted' ? 'notifications_active' : 'notifications_off'}
+                                            </span>
+                                            <div className="text-left">
+                                                <span className="text-xs font-bold dark:text-white block">Notificaciones</span>
+                                                <span className="text-[10px] text-zinc-500">{notificationStatus === 'granted' ? 'Activadas' : 'Desactivadas'}</span>
+                                            </div>
+                                        </div>
+                                        {notificationStatus !== 'granted' && <span className="text-xs font-bold text-primary-500">Activar</span>}
+                                    </button>
+                                )}
                             </div>
 
                             {/* Language */}
