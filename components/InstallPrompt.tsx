@@ -65,7 +65,7 @@ export const InstallPrompt: React.FC<InstallPromptProps> = ({ className }) => {
         return null;
     }
 
-    if (isIOS && status !== AppStatus.INSTALLED) {
+    if (isIOS) {
          return (
              <div className={`bg-white/5 backdrop-blur-md border border-white/10 p-5 rounded-2xl text-white text-left ${className}`}>
                 <h3 className="font-bold text-white mb-2 flex items-center gap-2 font-display">

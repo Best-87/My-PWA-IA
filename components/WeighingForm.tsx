@@ -499,7 +499,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
         // Trigger local notification for confirmation
         sendLocalNotification(
             'Registro Guardado', 
-            `${supplier} - ${product}: ${netWeight.toFixed(2)}kg (Dif: ${difference > 0 ? '+' : ''}${difference.toFixed(2)})`
+            `${supplier} - ${product}: ${netWeight.toFixed(3)}kg (Dif: ${difference > 0 ? '+' : ''}${difference.toFixed(3)})`
         );
     };
 
@@ -582,13 +582,13 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                         <div className="text-white">
                             <span className="text-[10px] uppercase tracking-widest opacity-60 font-black mb-0.5 block">Líquido</span>
                             <div className="text-3xl font-black tracking-tighter font-mono leading-none flex items-baseline">
-                                {netWeight.toFixed(2)}<span className="text-sm opacity-60 ml-1 font-sans font-bold">kg</span>
+                                {netWeight.toFixed(3)}<span className="text-sm opacity-60 ml-1 font-sans font-bold">kg</span>
                             </div>
                         </div>
                         <div className="text-right text-white">
                             <span className="text-[10px] uppercase tracking-widest opacity-60 font-black mb-0.5 block">Diferencia</span>
                             <div className={`text-xl font-bold font-mono bg-white/10 px-3 py-1.5 rounded-xl backdrop-blur-sm inline-block border border-white/10 ${Math.abs(difference) > TOLERANCE_KG ? 'animate-pulse' : ''}`}>
-                                {difference > 0 ? '+' : ''}{difference.toFixed(2)}
+                                {difference > 0 ? '+' : ''}{difference.toFixed(3)}
                             </div>
                         </div>
                     </div>
@@ -695,7 +695,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                 <div className="px-8 py-4 cursor-pointer flex justify-between items-center" onClick={() => setShowBoxes(!showBoxes)}>
                     <div className="flex items-center gap-2">
                         <span className={`text-xs font-black uppercase tracking-widest ${prediction.suggestedTaraBox ? 'text-purple-600 dark:text-purple-400' : 'text-zinc-400 dark:text-zinc-500'}`}>{t('lbl_tara_section')}</span>
-                        {totalTara > 0 && <div className="flex items-center gap-1"><span className="text-[10px] font-bold text-zinc-500 bg-zinc-100 dark:bg-zinc-800 dark:text-zinc-400 px-1.5 py-0.5 rounded-md flex items-center gap-0.5"><span>📦</span>{boxQty} x {parsedBoxTara.toFixed(0)}g</span><span className="text-xs font-bold text-primary-600 bg-primary-100 dark:bg-primary-900/30 dark:text-primary-300 px-2 py-0.5 rounded-md">-{totalTara.toFixed(2)} kg</span></div>}
+                        {totalTara > 0 && <div className="flex items-center gap-1"><span className="text-[10px] font-bold text-zinc-500 bg-zinc-100 dark:bg-zinc-800 dark:text-zinc-400 px-1.5 py-0.5 rounded-md flex items-center gap-0.5"><span>📦</span>{boxQty} x {parsedBoxTara.toFixed(0)}g</span><span className="text-xs font-bold text-primary-600 bg-primary-100 dark:bg-primary-900/30 dark:text-primary-300 px-2 py-0.5 rounded-md">-{totalTara.toFixed(3)} kg</span></div>}
                         {prediction.suggestedTaraBox && <span className="material-icons-round text-purple-500 text-sm animate-bounce">smart_toy</span>}
                     </div>
                     <span className={`material-icons-round text-zinc-400 transition-transform ${showBoxes ? 'rotate-180' : ''}`}>expand_more</span>

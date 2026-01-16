@@ -44,12 +44,16 @@ const AppContent = () => {
     const { showToast } = useToast();
     const [activeTab, setActiveTab] = useState<'weigh' | 'history'>('weigh');
     const [records, setRecords] = useState<WeighingRecord[]>([]);
+    const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
     const [profile, setProfile] = useState<UserProfile>(getUserProfile());
     const [showProfileModal, setShowProfileModal] = useState(false);
     const [showAnalytics, setShowAnalytics] = useState(false);
     const [showChat, setShowChat] = useState(false);
     const [theme, setThemeState] = useState(getTheme());
     
+    // Image Viewer State
+    const [viewImage, setViewImage] = useState<string | null>(null);
+
     // Backup State
     const [googleClientId, setGoogleClientId] = useState(() => localStorage.getItem('google_client_id') || '');
     const [isDriveSyncing, setIsDriveSyncing] = useState(false);
@@ -103,7 +107,17 @@ const AppContent = () => {
         trackEvent('tab_changed', { tab });
     };
 
-    const handleDelete = (id: string) => {
+    const toggleExpand = (id: string) => {
+        setExpandedIds(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+        });
+    };
+
+    const handleDelete = (id: string, e?: React.MouseEvent) => {
+        e?.stopPropagation();
         if (confirm(t('msg_confirm_delete'))) {
             deleteRecord(id);
             setRecords(getRecords());
@@ -136,11 +150,11 @@ const AppContent = () => {
             r.product,
             r.batch || '',
             r.expirationDate || '',
-            r.noteWeight.toFixed(2),
-            r.grossWeight.toFixed(2),
-            r.taraTotal.toFixed(2),
-            r.netWeight.toFixed(2),
-            (r.netWeight - r.noteWeight).toFixed(2),
+            r.noteWeight.toFixed(3),
+            r.grossWeight.toFixed(3),
+            r.taraTotal.toFixed(3),
+            r.netWeight.toFixed(3),
+            (r.netWeight - r.noteWeight).toFixed(3),
             r.status
         ]);
         
@@ -307,55 +321,142 @@ const AppContent = () => {
                                     const diff = rec.netWeight - rec.noteWeight;
                                     const isError = Math.abs(diff) > TOLERANCE_KG;
                                     const risk = checkExpirationRisk(rec.expirationDate);
+                                    const isExpanded = expandedIds.has(rec.id);
                                     
                                     return (
-                                        <div key={rec.id} className="bg-white dark:bg-zinc-900 rounded-2xl p-5 shadow-sm border border-zinc-100 dark:border-zinc-800 relative group overflow-hidden">
-                                            {/* Status Bar */}
-                                            <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${isError ? 'bg-red-500' : 'bg-emerald-500'}`}></div>
-                                            
-                                            <div className="pl-3">
-                                                <div className="flex justify-between items-start mb-2">
+                                        <div key={rec.id} className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-zinc-100 dark:border-zinc-800 relative overflow-hidden transition-all duration-300">
+                                            {/* Main Clickable Header */}
+                                            <div onClick={() => toggleExpand(rec.id)} className="p-5 relative cursor-pointer select-none">
+                                                {/* Status Bar */}
+                                                <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${isError ? 'bg-red-500' : 'bg-emerald-500'}`}></div>
+                                                
+                                                <div className="pl-3 flex justify-between items-start">
+                                                    {/* Left: Info */}
                                                     <div>
                                                         <h3 className="font-bold text-zinc-900 dark:text-white text-lg leading-tight">{rec.product}</h3>
                                                         <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wide mt-0.5">{rec.supplier}</p>
                                                     </div>
-                                                    <span className="text-[10px] font-mono text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded-md">
-                                                        {new Date(rec.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                                                    </span>
-                                                </div>
-                                                
-                                                <div className="flex items-center gap-4 mt-3">
-                                                    <div className="flex flex-col">
-                                                        <span className="text-[10px] text-zinc-400 uppercase font-black">{t('hist_liquid')}</span>
-                                                        <span className="font-mono text-lg font-bold text-zinc-800 dark:text-zinc-200">{rec.netWeight.toFixed(2)}</span>
+                                                    
+                                                    {/* Right: Toggle Icon & Time */}
+                                                    <div className="flex flex-col items-end gap-1">
+                                                         <span className="text-[10px] font-mono text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded-md">
+                                                            {new Date(rec.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                                        </span>
+                                                        <span className={`material-icons-round text-zinc-400 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>expand_more</span>
                                                     </div>
+                                                </div>
+
+                                                {/* GRID: 6 Metrics for Unexpanded View */}
+                                                <div className="pl-3 mt-4 grid grid-cols-3 gap-y-3 gap-x-2">
+                                                    {/* 1. Gross */}
                                                     <div className="flex flex-col">
-                                                        <span className="text-[10px] text-zinc-400 uppercase font-black">{t('hist_diff')}</span>
-                                                        <span className={`font-mono text-lg font-bold ${isError ? 'text-red-500' : 'text-emerald-500'}`}>
-                                                            {diff > 0 ? '+' : ''}{diff.toFixed(2)}
+                                                        <span className="text-[9px] text-zinc-400 uppercase font-black truncate">{t('lbl_gross_weight')}</span>
+                                                        <span className="font-mono text-sm font-bold text-zinc-800 dark:text-zinc-200">{rec.grossWeight.toFixed(3)}</span>
+                                                    </div>
+                                                    {/* 2. Note */}
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[9px] text-zinc-400 uppercase font-black truncate">{t('lbl_note_weight')}</span>
+                                                        <span className="font-mono text-sm font-bold text-zinc-800 dark:text-zinc-200">{rec.noteWeight.toFixed(3)}</span>
+                                                    </div>
+                                                    {/* 3. Net (Liquid) */}
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[9px] text-zinc-400 uppercase font-black truncate">{t('hist_liquid')}</span>
+                                                        <span className="font-mono text-sm font-bold text-zinc-800 dark:text-zinc-200">{rec.netWeight.toFixed(3)}</span>
+                                                    </div>
+                                                    {/* 4. Tara */}
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[9px] text-zinc-400 uppercase font-black truncate">Tara</span>
+                                                        <span className="font-mono text-sm font-bold text-zinc-800 dark:text-zinc-200">{rec.taraTotal.toFixed(3)}</span>
+                                                    </div>
+                                                    {/* 5. Boxes */}
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[9px] text-zinc-400 uppercase font-black truncate">{t('lbl_qty')}</span>
+                                                        <span className="font-mono text-sm font-bold text-zinc-800 dark:text-zinc-200">{rec.boxes.qty}</span>
+                                                    </div>
+                                                    {/* 6. Diff */}
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[9px] text-zinc-400 uppercase font-black truncate">{t('hist_diff')}</span>
+                                                        <span className={`font-mono text-sm font-bold ${diff >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                                                            {diff > 0 ? '+' : ''}{diff.toFixed(3)}
                                                         </span>
                                                     </div>
-                                                    {rec.evidence && (
-                                                         <div className="ml-auto w-10 h-10 rounded-lg bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 overflow-hidden">
-                                                             <img src={rec.evidence} className="w-full h-full object-cover" alt="Evidence" />
-                                                         </div>
-                                                    )}
                                                 </div>
 
-                                                {(risk || rec.aiAnalysis) && (
-                                                    <div className="mt-3 pt-3 border-t border-zinc-100 dark:border-zinc-800 flex gap-2 flex-wrap">
-                                                        {risk && <span className="text-[10px] font-bold bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 px-2 py-1 rounded-md flex items-center gap-1"><span className="material-icons-round text-xs">warning</span> {risk}</span>}
-                                                        {rec.aiAnalysis && <span className="text-[10px] font-bold bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 px-2 py-1 rounded-md flex items-center gap-1"><span className="material-icons-round text-xs">smart_toy</span> {rec.aiAnalysis}</span>}
+                                                {/* Collapsed indicators (below grid if present) */}
+                                                {!isExpanded && (risk || rec.aiAnalysis || rec.evidence) && (
+                                                    <div className="pl-3 mt-3 flex items-center gap-2 pt-2 border-t border-zinc-50 dark:border-zinc-800/50">
+                                                        {(risk || rec.aiAnalysis) && (
+                                                            <div className="flex gap-1.5">
+                                                                {risk && <span className="material-icons-round text-red-500 text-sm" title="Riesgo">warning</span>}
+                                                                {rec.aiAnalysis && <span className="material-icons-round text-purple-500 text-sm" title="IA">smart_toy</span>}
+                                                            </div>
+                                                        )}
+                                                        {rec.evidence && (
+                                                            <div className="w-6 h-6 rounded-md bg-zinc-100 dark:bg-zinc-800 overflow-hidden border border-zinc-200 dark:border-zinc-700 cursor-pointer hover:opacity-80 transition-opacity" onClick={(e) => { e.stopPropagation(); setViewImage(rec.evidence!); }}>
+                                                                <img src={rec.evidence} className="w-full h-full object-cover" alt="Thumb" />
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 )}
-
-                                                <button 
-                                                    onClick={() => handleDelete(rec.id)}
-                                                    className="absolute top-4 right-4 text-zinc-300 hover:text-red-500 transition-colors p-2"
-                                                >
-                                                    <span className="material-icons-round">delete</span>
-                                                </button>
                                             </div>
+
+                                            {/* Expanded Content */}
+                                            {isExpanded && (
+                                                <div className="border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/30 p-5 pl-8 animate-slide-down">
+                                                     {/* Expanded Details: Logistics */}
+                                                     {(rec.batch || rec.productionDate || rec.expirationDate || rec.recommendedTemperature) && (
+                                                        <div className="mb-6">
+                                                            <span className="text-[10px] font-bold text-zinc-400 uppercase block mb-2">Datos Logísticos</span>
+                                                            <div className="grid grid-cols-2 gap-3 text-xs bg-white dark:bg-zinc-900/50 p-3 rounded-xl border border-zinc-100 dark:border-zinc-800">
+                                                                 {rec.batch && <div><span className="text-zinc-500 block mb-0.5">Lote</span> <span className="font-mono font-bold text-zinc-800 dark:text-zinc-200">{rec.batch}</span></div>}
+                                                                 {rec.recommendedTemperature && <div><span className="text-zinc-500 block mb-0.5">Temp</span> <span className="font-mono font-bold text-zinc-800 dark:text-zinc-200">{rec.recommendedTemperature}</span></div>}
+                                                                 {rec.productionDate && <div><span className="text-zinc-500 block mb-0.5">Fabricación</span> <span className="font-mono font-bold text-zinc-800 dark:text-zinc-200">{rec.productionDate}</span></div>}
+                                                                 {rec.expirationDate && <div><span className="text-zinc-500 block mb-0.5">Vencimiento</span> <span className="font-mono font-bold text-zinc-800 dark:text-zinc-200">{rec.expirationDate}</span></div>}
+                                                            </div>
+                                                        </div>
+                                                     )}
+
+                                                    {/* AI & Risk Alerts */}
+                                                    <div className="space-y-3 mb-6">
+                                                        {risk && (
+                                                            <div className="bg-red-50 dark:bg-red-900/20 p-3 rounded-xl border border-red-100 dark:border-red-900/30 flex gap-3">
+                                                                <span className="material-icons-round text-red-500">warning</span>
+                                                                <div>
+                                                                    <h4 className="text-xs font-bold text-red-700 dark:text-red-300 uppercase mb-0.5">Alerta de Vencimiento</h4>
+                                                                    <p className="text-xs text-red-600 dark:text-red-400">{risk}</p>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                         {rec.aiAnalysis && (
+                                                            <div className="bg-purple-50 dark:bg-purple-900/20 p-3 rounded-xl border border-purple-100 dark:border-purple-900/30 flex gap-3">
+                                                                <span className="material-icons-round text-purple-500">smart_toy</span>
+                                                                <div>
+                                                                    <h4 className="text-xs font-bold text-purple-700 dark:text-purple-300 uppercase mb-0.5">Análisis IA</h4>
+                                                                    <p className="text-xs text-purple-600 dark:text-purple-400">{rec.aiAnalysis}</p>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Evidence Image */}
+                                                    {rec.evidence && (
+                                                        <div className="mb-6">
+                                                             <span className="text-[10px] font-bold text-zinc-400 uppercase block mb-2">{t('lbl_evidence_section')}</span>
+                                                             <div className="rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-700 max-h-80 bg-black/5 cursor-pointer hover:opacity-90 transition-opacity" onClick={(e) => { e.stopPropagation(); setViewImage(rec.evidence!); }}>
+                                                                <img src={rec.evidence} alt="Evidencia" className="w-full h-full object-contain" />
+                                                             </div>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Actions */}
+                                                    <div className="flex justify-end gap-3 pt-2">
+                                                        <button onClick={(e) => handleDelete(rec.id, e)} className="flex items-center gap-2 px-4 py-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl text-xs font-bold hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors active:scale-95 w-full justify-center sm:w-auto">
+                                                            <span className="material-icons-round text-lg">delete</span>
+                                                            {t('btn_erase')}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     );
                                 })}
@@ -375,6 +476,18 @@ const AppContent = () => {
                     </div>
                 )}
             </main>
+
+            {/* Image Viewer Modal */}
+            {viewImage && (
+                <div className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4 animate-fade-in" onClick={() => setViewImage(null)}>
+                    <div className="relative max-w-full max-h-full" onClick={e => e.stopPropagation()}>
+                        <img src={viewImage} alt="Evidencia Full" className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl" />
+                        <button onClick={() => setViewImage(null)} className="absolute top-4 right-4 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 transition-colors">
+                            <span className="material-icons-round text-2xl">close</span>
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* Profile & Settings Modal */}
             {showProfileModal && (
