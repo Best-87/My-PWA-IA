@@ -1,6 +1,13 @@
 
 // Check if notifications are supported
 export const isNotificationSupported = (): boolean => {
+    // Skip in preview environments to prevent origin mismatch errors
+    const isPreview = window.location.hostname.includes('scf.usercontent.goog') || 
+                      window.location.hostname.includes('webcontainer') ||
+                      window.location.hostname.includes('ai.studio');
+    
+    if (isPreview) return false;
+
     return 'Notification' in window && 'serviceWorker' in navigator;
 };
 

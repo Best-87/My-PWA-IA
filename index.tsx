@@ -22,13 +22,23 @@ root.render(
 // Service Worker Registration
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    // Use relative path './sw.js' instead of absolute '/sw.js' for GitHub Pages compatibility
-    navigator.serviceWorker.register('./sw.js')
-      .then(registration => {
-        console.log('SW registered: ', registration.scope);
-      })
-      .catch(registrationError => {
-        console.log('SW registration failed: ', registrationError);
-      });
+    // Skip SW in preview environments (like AI Studio/IDX) where origin mismatches occur
+    // The error "origin ... does not match" happens because the iframe origin differs from the documentURL in these environments
+    const isPreviewEnv = window.location.hostname.includes('scf.usercontent.goog') || 
+                         window.location.hostname.includes('webcontainer') ||
+                         window.location.hostname.includes('ai.studio');
+
+    if (!isPreviewEnv) {
+        // Use relative path './sw.js' instead of absolute '/sw.js' for GitHub Pages compatibility
+        navigator.serviceWorker.register('./sw.js')
+          .then(registration => {
+            console.log('SW registered: ', registration.scope);
+          })
+          .catch(registrationError => {
+            console.log('SW registration failed: ', registrationError);
+          });
+    } else {
+        console.log('Service Worker registration skipped in preview environment.');
+    }
   });
 }

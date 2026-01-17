@@ -43,8 +43,12 @@ export const InstallManager: React.FC = () => {
         window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
         window.addEventListener('appinstalled', handleAppInstalled);
 
-        // Service Worker Updates
-        if ('serviceWorker' in navigator) {
+        // Service Worker Updates - SKIP in Preview Envs to avoid Origin Errors
+        const isPreviewEnv = window.location.hostname.includes('scf.usercontent.goog') || 
+                             window.location.hostname.includes('webcontainer') ||
+                             window.location.hostname.includes('ai.studio');
+
+        if ('serviceWorker' in navigator && !isPreviewEnv) {
             navigator.serviceWorker.getRegistration().then((reg) => {
                 if (!reg) return;
                 if (reg.waiting) {
@@ -62,7 +66,10 @@ export const InstallManager: React.FC = () => {
                         });
                     }
                 });
+            }).catch(err => {
+                console.log('SW update check failed (likely preview env):', err);
             });
+
             let refreshing = false;
             navigator.serviceWorker.addEventListener('controllerchange', () => {
                 if (!refreshing) {

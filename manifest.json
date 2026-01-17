@@ -1,16 +1,41 @@
 {
+  "id": "conferente-pro-app",
   "name": "Conferente Pro",
   "short_name": "Conferente",
   "description": "Control de pesaje inteligente y gestión de conferencias con IA para logística.",
   "start_url": "./index.html",
   "display": "standalone",
+  "display_override": [
+    "window-controls-overlay",
+    "tabbed",
+    "standalone",
+    "minimal-ui"
+  ],
   "background_color": "#09090b",
   "theme_color": "#09090b",
-  "orientation": "portrait",
+  "orientation": "portrait-primary",
   "scope": "./",
   "lang": "es",
   "dir": "ltr",
+  "iarc_rating_id": "e84b072d-71b3-4d3e-86ae-31a8ce4e53b7",
   "prefer_related_applications": false,
+  "related_applications": [
+    {
+      "platform": "play",
+      "url": "https://play.google.com/store/apps/details?id=com.conferentepro.twa",
+      "id": "com.conferentepro.twa"
+    },
+    {
+      "platform": "windows",
+      "url": "https://www.microsoft.com/store/apps/9NBLGGH4NNS1",
+      "id": "9NBLGGH4NNS1"
+    }
+  ],
+  "scope_extensions": [
+    {
+      "origin": "https://conferente-pro-593915476590.us-west1.run.app"
+    }
+  ],
   "categories": [
     "productivity",
     "business",
@@ -19,15 +44,21 @@
   "icons": [
     {
       "src": "./icon.svg",
-      "sizes": "192x192",
+      "sizes": "192x192 512x512 any",
       "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://placehold.co/192x192/2563eb/ffffff.png?text=CP",
+      "sizes": "192x192",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "./icon.svg",
+      "src": "https://placehold.co/512x512/2563eb/ffffff.png?text=Conferente",
       "sizes": "512x512",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "type": "image/png",
+      "purpose": "any"
     }
   ],
   "screenshots": [
@@ -37,13 +68,6 @@
       "type": "image/png",
       "form_factor": "narrow",
       "label": "Pantalla de Pesaje"
-    },
-    {
-      "src": "https://placehold.co/1080x1920/1e293b/ffffff.png?text=Historial+y+Reportes",
-      "sizes": "1080x1920",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Historial de Registros"
     },
     {
       "src": "https://placehold.co/1920x1080/4f46e5/ffffff.png?text=Analisis+con+IA",
@@ -59,7 +83,72 @@
       "short_name": "Pesar",
       "description": "Iniciar una nueva sesión de pesaje",
       "url": "./index.html?action=weigh",
-      "icons": [{ "src": "./icon.svg", "sizes": "96x96", "type": "image/svg+xml" }]
+      "icons": [
+        { 
+          "src": "https://placehold.co/96x96/2563eb/white.png?text=+", 
+          "sizes": "96x96", 
+          "type": "image/png" 
+        }
+      ]
     }
-  ]
+  ],
+  "widgets": [
+    {
+      "name": "Acceso Rápido",
+      "short_name": "Pesar",
+      "description": "Iniciar conferencia rápida",
+      "tag": "weighing-widget",
+      "template": "weighing-template",
+      "ms_ac_template": "widgets/weighing_template.json",
+      "data": "widgets/weighing_data.json",
+      "type": "application/json",
+      "screenshots": [
+        {
+          "src": "https://placehold.co/600x400/2563eb/white.png?text=Widget",
+          "sizes": "600x400",
+          "label": "Widget Preview"
+        }
+      ]
+    }
+  ],
+  "note_taking": {
+    "new_note_url": "./index.html?action=new_note"
+  },
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  },
+  "protocol_handlers": [
+    {
+      "protocol": "web+conferente",
+      "url": "./index.html?type=%s"
+    }
+  ],
+  "file_handlers": [
+    {
+      "action": "./index.html",
+      "accept": {
+        "application/json": [".json"]
+      },
+      "icons": [
+        {
+          "src": "https://placehold.co/192x192/2563eb/white.png?text=JSON",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
+  "share_target": {
+    "action": "./index.html",
+    "method": "GET",
+    "enctype": "application/x-www-form-urlencoded",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
+  "edge_side_panel": {
+    "preferred_width": 400
+  }
 }

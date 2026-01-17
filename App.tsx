@@ -62,6 +62,7 @@ const AppContent = () => {
     const [googleClientId, setGoogleClientId] = useState(() => localStorage.getItem('google_client_id') || '');
     const [isDriveSyncing, setIsDriveSyncing] = useState(false);
     const backupInputRef = useRef<HTMLInputElement>(null);
+    const profileInputRef = useRef<HTMLInputElement>(null); // New ref for profile photo
     
     const formRef = useRef<WeighingFormHandle>(null);
 
@@ -79,6 +80,40 @@ const AppContent = () => {
         const handleFocus = () => setRecords(getRecords());
         window.addEventListener('focus', handleFocus);
         return () => window.removeEventListener('focus', handleFocus);
+    }, []);
+
+    // Screen Wake Lock
+    useEffect(() => {
+        let wakeLock: any = null;
+
+        const requestWakeLock = async () => {
+            if ('wakeLock' in navigator) {
+                try {
+                    wakeLock = await (navigator as any).wakeLock.request('screen');
+                    console.log('Screen Wake Lock is active');
+                } catch (err) {
+                    console.warn('Wake Lock request failed:', err);
+                }
+            }
+        };
+
+        requestWakeLock();
+
+        const handleVisibilityChange = async () => {
+            if (wakeLock !== null && document.visibilityState === 'visible') {
+                await requestWakeLock();
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+            if (wakeLock !== null) {
+                wakeLock.release().catch((e: any) => console.error(e));
+                wakeLock = null;
+            }
+        };
     }, []);
 
     // Initialize Drive if client ID exists
@@ -143,6 +178,18 @@ const AppContent = () => {
         setShowProfileModal(false);
         showToast(t('msg_profile_saved'), 'success');
         trackEvent('profile_updated');
+    };
+
+    const handleProfilePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const result = event.target?.result as string;
+                setProfile(prev => ({ ...prev, photo: result }));
+            };
+            reader.readAsDataURL(file);
+        }
     };
 
     const handleExportCSV = () => {
@@ -297,6 +344,7 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
         <div className="min-h-screen bg-[#F0F2F5] dark:bg-black transition-colors duration-300 pb-20 font-sans selection:bg-primary-500/30">
             <InstallManager />
             <input ref={backupInputRef} type="file" accept=".json" className="hidden" onChange={handleRestore} />
+            <input ref={profileInputRef} type="file" accept="image/*" className="hidden" onChange={handleProfilePhotoUpload} />
             
             {/* Header */}
             <header className="fixed top-0 w-full z-50 bg-white/80 dark:bg-black/80 backdrop-blur-xl border-b border-zinc-200 dark:border-zinc-800 transition-colors animate-slide-down">
@@ -315,15 +363,28 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                         <button onClick={() => setShowAnalytics(true)} className="w-9 h-9 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 flex items-center justify-center hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors">
                             <span className="material-icons-round text-lg">bar_chart</span>
                         </button>
-                         <button onClick={() => setShowProfileModal(true)} className="w-9 h-9 rounded-full overflow-hidden border border-zinc-200 dark:border-zinc-700 shadow-sm relative">
-                            {profile.photo ? (
-                                <img src={profile.photo} alt="Profile" className="w-full h-full object-cover" />
-                            ) : (
-                                <div className="w-full h-full bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center text-zinc-400">
-                                    <span className="material-icons-round text-lg">person</span>
+
+                        {/* Profile Section in Header */}
+                        <div className="flex items-center gap-3 pl-2 ml-1 border-l border-zinc-200 dark:border-zinc-800 cursor-pointer group" onClick={() => setShowProfileModal(true)}>
+                            {/* Text Info - Hidden on very small screens to maintain layout */}
+                            <div className="hidden sm:flex flex-col items-end text-right">
+                                <span className="text-xs font-bold text-zinc-900 dark:text-white leading-none mb-0.5">{profile.name}</span>
+                                <div className="flex items-center gap-1.5">
+                                    <span className="text-[10px] text-zinc-500 dark:text-zinc-400 leading-none">{profile.role}</span>
+                                    {profile.store && <span className="text-[9px] font-black text-primary-500 uppercase tracking-wider bg-primary-50 dark:bg-primary-900/20 px-1 rounded">{profile.store}</span>}
                                 </div>
-                            )}
-                        </button>
+                            </div>
+
+                            <button className="w-9 h-9 rounded-full overflow-hidden border border-zinc-200 dark:border-zinc-700 shadow-sm relative group-hover:ring-2 group-hover:ring-primary-500/30 transition-all">
+                                {profile.photo ? (
+                                    <img src={profile.photo} alt="Profile" className="w-full h-full object-cover" />
+                                ) : (
+                                    <div className="w-full h-full bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center text-zinc-400">
+                                        <span className="material-icons-round text-lg">person</span>
+                                    </div>
+                                )}
+                            </button>
+                        </div>
                     </div>
                 </div>
             </header>
@@ -570,7 +631,7 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                         
                         <div className="space-y-5">
                             <div className="flex justify-center mb-4">
-                                <div className="relative group cursor-pointer" onClick={() => { /* Photo upload logic could go here */ }}>
+                                <div className="relative group cursor-pointer" onClick={() => profileInputRef.current?.click()}>
                                     <div className="w-24 h-24 rounded-full overflow-hidden bg-zinc-100 dark:bg-zinc-800 border-4 border-white dark:border-zinc-800 shadow-xl">
                                         {profile.photo ? (
                                             <img src={profile.photo} alt="Profile" className="w-full h-full object-cover" />
@@ -582,6 +643,9 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                                     </div>
                                     <div className="absolute inset-0 bg-black/30 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                         <span className="material-icons-round text-white">edit</span>
+                                    </div>
+                                    <div className="absolute bottom-0 right-0 bg-primary-500 rounded-full p-1.5 border-2 border-white dark:border-zinc-900 shadow-md">
+                                        <span className="material-icons-round text-white text-xs block">photo_camera</span>
                                     </div>
                                 </div>
                             </div>

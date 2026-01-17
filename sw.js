@@ -1,10 +1,12 @@
-
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.4.1/workbox-sw.js');
 
-const CACHE_NAME = 'conferente-pro-v14'; // Incremented to v14
+const CACHE_NAME = 'conferente-pro-v22';
 const OFFLINE_PAGE = './offline.html';
 
-// 1. Precache Offline Page
+const bgSyncPlugin = new workbox.backgroundSync.BackgroundSyncPlugin('conferente-queue', {
+  maxRetentionTime: 24 * 60,
+});
+
 self.addEventListener('install', (event) => {
   const urlsToCache = [
     OFFLINE_PAGE,
@@ -37,12 +39,6 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
-});
-
 const navigationRoute = new workbox.routing.NavigationRoute(async ({ event }) => {
   try {
     const networkResp = await fetch(event.request);
@@ -51,7 +47,10 @@ const navigationRoute = new workbox.routing.NavigationRoute(async ({ event }) =>
     const cache = await caches.open(CACHE_NAME);
     const cachedIndex = await cache.match('./index.html');
     if (cachedIndex) return cachedIndex;
-    return await cache.match(OFFLINE_PAGE);
+    
+    const offlineCache = await caches.match(OFFLINE_PAGE);
+    if (offlineCache) return offlineCache;
+    return new Response("Offline - Conferente Pro", { headers: {"Content-Type": "text/html"} });
   }
 });
 workbox.routing.registerRoute(navigationRoute);
@@ -61,7 +60,6 @@ workbox.routing.registerRoute(
                url.origin === 'https://fonts.googleapis.com' ||
                url.origin === 'https://fonts.gstatic.com' ||
                url.origin === 'https://cdn.jsdelivr.net' || 
-               url.origin === 'https://tessdata.projectnaptha.com' ||
                url.origin === 'https://placehold.co',
   new workbox.strategies.StaleWhileRevalidate({
     cacheName: 'cdn-resources',
@@ -88,6 +86,14 @@ workbox.routing.registerRoute(
 );
 
 workbox.routing.registerRoute(
+  ({ url }) => url.href.includes('/api/sync') || url.href.includes('/api/analytics'),
+  new workbox.strategies.NetworkOnly({
+    plugins: [bgSyncPlugin]
+  }),
+  'POST'
+);
+
+workbox.routing.registerRoute(
   ({ request }) => request.destination === 'script' || request.destination === 'style',
   new workbox.strategies.StaleWhileRevalidate({
     cacheName: 'static-resources',
@@ -99,26 +105,46 @@ workbox.routing.registerRoute(
   new workbox.strategies.NetworkOnly()
 );
 
+self.addEventListener('periodicsync', (event) => {
+  if (event.tag === 'content-sync') {
+    event.waitUntil(
+        console.log('[SW] Periodic Sync: Content Update'),
+        Promise.resolve() 
+    );
+  }
+});
+
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'conferente-sync') {
+    event.waitUntil(
+        console.log('[SW] Background Sync triggered'),
+        Promise.resolve()
+    );
+  }
+});
+
 self.addEventListener('push', (event) => {
-  const data = event.data ? event.data.json() : { title: 'Conferente Pro', body: 'Nueva actualización disponible.' };
+  const data = event.data ? event.data.json() : { title: 'Conferente Pro', body: 'Nueva actualización.', url: './' };
   
   const options = {
     body: data.body,
     icon: './icon.svg',
     badge: './icon.svg',
     vibrate: [100, 50, 100],
-    data: {
-      url: data.url || self.registration.scope
-    }
+    data: { url: data.url || self.registration.scope },
+    actions: [
+        { action: 'open', title: 'Ver' },
+        { action: 'close', title: 'Cerrar' }
+    ]
   };
-
-  event.waitUntil(
-    self.registration.showNotification(data.title, options)
-  );
+  
+  event.waitUntil(self.registration.showNotification(data.title, options));
 });
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
+  if (event.action === 'close') return;
+
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
       for (let i = 0; i < windowClients.length; i++) {
@@ -132,4 +158,10 @@ self.addEventListener('notificationclick', (event) => {
       }
     })
   );
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
