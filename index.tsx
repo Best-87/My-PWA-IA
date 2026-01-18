@@ -1,35 +1,46 @@
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.tsx';
 
-// Failsafe for environment variables in the browser
-if (typeof window !== 'undefined') {
-    (window as any).process = (window as any).process || { env: {} };
-    (window as any).process.env = (window as any).process.env || {};
-    (window as any).process.env.API_KEY = (window as any).process.env.API_KEY || '';
+// Safety check for process.env in browser environments without build step replacement
+// Crucial for GitHub Pages where process is not defined
+// @ts-ignore - process is not standard on window but we inject it for compatibility
+if (typeof window !== 'undefined' && !(window as any).process) {
+    (window as any).process = { env: { API_KEY: '' } };
 }
 
 const rootElement = document.getElementById('root');
-if (rootElement) {
-    const root = ReactDOM.createRoot(rootElement);
-    root.render(
-        <React.StrictMode>
-            <App />
-        </React.StrictMode>
-    );
+if (!rootElement) {
+  throw new Error("Could not find root element to mount to");
 }
 
-// Robust Service Worker registration for GitHub Pages
+const root = ReactDOM.createRoot(rootElement);
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+
+// Service Worker Registration
 if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        const hostname = window.location.hostname;
-        const isLocal = hostname === 'localhost' || hostname === '127.0.0.1';
-        
-        // En GitHub Pages usamos la ruta absoluta del repositorio
-        const swPath = isLocal ? './sw.js' : '/My-PWA-IA/sw.js';
-        
-        navigator.serviceWorker.register(swPath)
-            .then(reg => console.log('SW Registered on scope:', reg.scope))
-            .catch(err => console.warn('SW Registration failed:', err));
-    });
+  window.addEventListener('load', () => {
+    // Skip SW in preview environments (like AI Studio/IDX) where origin mismatches occur
+    const isPreviewEnv = window.location.hostname.includes('scf.usercontent.goog') || 
+                         window.location.hostname.includes('webcontainer') ||
+                         window.location.hostname.includes('ai.studio');
+
+    if (!isPreviewEnv) {
+        // Use relative path './sw.js' instead of absolute '/sw.js' for GitHub Pages compatibility
+        navigator.serviceWorker.register('./sw.js')
+          .then(registration => {
+            console.log('SW registered: ', registration.scope);
+          })
+          .catch(registrationError => {
+            console.log('SW registration failed: ', registrationError);
+          });
+    } else {
+        console.log('Service Worker registration skipped in preview environment.');
+    }
+  });
 }
