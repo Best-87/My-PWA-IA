@@ -1,12 +1,20 @@
 const CACHE_NAME = 'conferente-v1';
 
-self.addEventListener('install', (e) => {
-  self.skipWaiting();
+self.addEventListener('install', (event) => {
+  event.waitUntil(self.skipWaiting());
 });
 
-self.addEventListener('fetch', (e) => {
-  // Estrategia simple: Red primero, si falla cache.
-  e.respondWith(
-    fetch(e.request).catch(() => caches.match(e.request))
+self.addEventListener('activate', (event) => {
+  event.waitUntil(self.clients.claim());
+});
+
+self.addEventListener('fetch', (event) => {
+  // Ignorar peticiones de chrome-extension o esquemas no soportados
+  if (!event.request.url.startsWith('http')) return;
+
+  event.respondWith(
+    fetch(event.request).catch(() => {
+      return caches.match(event.request);
+    })
   );
 });

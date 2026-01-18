@@ -27,7 +27,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     
     <style>
-        body { background-color: #09090b; margin: 0; color: white; overflow-x: hidden; font-family: sans-serif; }
+        body { background-color: #09090b; margin: 0; color: white; overflow-x: hidden; font-family: 'Plus Jakarta Sans', sans-serif; }
         #root:empty {
             position: fixed; inset: 0;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
@@ -44,7 +44,7 @@
         }
     </style>
 
-    <!-- Import Map para dependencias externas -->
+    <!-- Import Map Simplificado -->
     <script type="importmap">
 {
   "imports": {
@@ -59,52 +59,49 @@
   }
 }
 </script>
-
-    <script>
-      // Configuración de Babel para que procese archivos remotos y locales
-      // Esto permite "import App from './App.tsx'" funcione en el navegador
-      babel.registerPreset("my-preset", {
-        presets: [
-          [babel.availablePresets["typescript"], { allExtensions: true, isTSX: true }],
-          [babel.availablePresets["react"], { runtime: "automatic" }]
-        ]
-      });
-    </script>
 </head>
 <body>
     <div id="root"><div class="loader"></div></div>
     
     <div id="error-screen" class="error-overlay">
-        <h2 style="color: #ef4444;">Error de Carga</h2>
-        <p id="error-desc" style="color: #9ca3af; margin-top: 10px; font-size: 14px;"></p>
-        <button onclick="location.reload()" style="margin-top: 20px; background: #3b82f6; color: white; padding: 10px 20px; border-radius: 8px; border: none;">Reintentar</button>
+        <h2 style="color: #ef4444; font-weight: 800; font-size: 1.5rem;">Error de Carga</h2>
+        <p id="error-desc" style="color: #9ca3af; margin-top: 10px; font-size: 14px; max-width: 300px;"></p>
+        <button onclick="location.reload()" style="margin-top: 20px; background: #3b82f6; color: white; padding: 12px 24px; border-radius: 12px; border: none; font-weight: 600;">Reintentar</button>
     </div>
 
-    <!-- 
-      IMPORTANTE: Usamos data-presets y data-type="module" 
-      Babel buscará automáticamente las etiquetas <script type="text/babel">
-    -->
-    <script type="text/babel" data-presets="typescript,react" data-type="module">
+    <!-- Script de Configuración y Carga -->
+    <script type="text/babel" data-presets="react,typescript" data-type="module">
         import React from 'react';
         import ReactDOM from 'react-dom/client';
-        // Forzamos el uso de .tsx pero Babel se encargará de buscar el archivo
         import App from './App.tsx';
 
+        // Definir process.env para que no rompa las librerías que lo buscan
         window.process = { env: { API_KEY: '' } };
 
-        try {
-            console.log("Iniciando renderizado con Babel...");
-            const root = ReactDOM.createRoot(document.getElementById('root'));
-            root.render(<App />);
-        } catch (err) {
-            console.error("Error durante el renderizado:", err);
-            document.getElementById('error-screen').style.display = 'flex';
-            document.getElementById('error-desc').innerText = err.message;
+        const startApp = () => {
+            try {
+                console.log("Iniciando aplicación...");
+                const container = document.getElementById('root');
+                const root = ReactDOM.createRoot(container);
+                root.render(<App />);
+                console.log("Renderizado inicial completado.");
+            } catch (err) {
+                console.error("Fallo crítico en el arranque:", err);
+                document.getElementById('error-screen').style.display = 'flex';
+                document.getElementById('error-desc').innerText = err.message;
+            }
+        };
+
+        // Pequeño delay para asegurar que el DOM y estilos estén listos
+        if (document.readyState === 'complete') {
+            startApp();
+        } else {
+            window.addEventListener('load', startApp);
         }
 
-        // Service Worker solo en prod
-        if ('serviceWorker' in navigator && !window.location.hostname.includes('ai.studio')) {
-            navigator.serviceWorker.register('./sw.js').catch(() => {});
+        // Service Worker (solo en producción)
+        if ('serviceWorker' in navigator && !window.location.hostname.includes('ai.studio') && !window.location.hostname.includes('localhost')) {
+            navigator.serviceWorker.register('./sw.js').catch(err => console.warn("SW no registrado:", err));
         }
     </script>
 </body>
