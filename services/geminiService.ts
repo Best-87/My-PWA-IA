@@ -1,16 +1,24 @@
 
 import { GoogleGenAI, Chat, GenerateContentResponse } from "@google/genai";
 
-// Helper to create a chat session
-export const createChatSession = (): Chat => {
-    // Get key from injected window.process or local process.env
-    const apiKey = (window as any).process?.env?.API_KEY || process.env.API_KEY;
+// Función centralizada para obtener la API KEY de cualquier entorno posible
+const getApiKey = (): string => {
+    // 1. Intento por reemplazo de Vite (process.env.API_KEY)
+    // 2. Intento por objeto global (window.process)
+    const key = process.env.API_KEY || (window as any).process?.env?.API_KEY;
     
-    if (!apiKey) {
-        console.error("Gemini API Key missing in runtime environment");
-        throw new Error("Configuración de IA incompleta");
+    if (!key || key === 'undefined' || key === '') {
+        console.error("ERUDA DEBUG: API_KEY is missing in current environment");
+        return "";
     }
+    return key;
+};
+
+export const createChatSession = (): Chat => {
+    const apiKey = getApiKey();
+    if (!apiKey) throw new Error("Configuración de IA incompleta: Falta API Key");
     
+    // Inicialización siguiendo estrictamente la documentación de @google/genai
     const ai = new GoogleGenAI({ apiKey });
 
     return ai.chats.create({
@@ -21,7 +29,6 @@ export const createChatSession = (): Chat => {
     });
 };
 
-// Function to send message and get stream
 export const sendMessageStream = async (chat: Chat, message: string) => {
     try {
         const result = await chat.sendMessageStream({ message });
