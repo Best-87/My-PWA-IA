@@ -3,11 +3,14 @@ import { GoogleGenAI, Chat, GenerateContentResponse } from "@google/genai";
 
 // Helper to create a chat session
 export const createChatSession = (): Chat => {
-    // Obtenemos la key directamente del entorno (inyectado en index.tsx)
-    const apiKey = process.env.API_KEY;
-    if (!apiKey) throw new Error("API Key not found");
+    // Get key from injected window.process or local process.env
+    const apiKey = (window as any).process?.env?.API_KEY || process.env.API_KEY;
     
-    // Inicialización correcta con objeto de configuración
+    if (!apiKey) {
+        console.error("Gemini API Key missing in runtime environment");
+        throw new Error("Configuración de IA incompleta");
+    }
+    
     const ai = new GoogleGenAI({ apiKey });
 
     return ai.chats.create({
