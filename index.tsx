@@ -2,10 +2,11 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.tsx';
 
-// Failsafe for environment variables in the browser
+// Failsafe para entorno de navegador
 if (typeof window !== 'undefined') {
     (window as any).process = (window as any).process || { env: {} };
     (window as any).process.env = (window as any).process.env || {};
+    // La API_KEY se inyecta externamente, pero aseguramos que no sea undefined
     (window as any).process.env.API_KEY = (window as any).process.env.API_KEY || '';
 }
 
@@ -19,26 +20,25 @@ if (rootElement) {
     );
 }
 
-// Robust Service Worker registration
+// Registro de Service Worker optimizado para GitHub Pages
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         const hostname = window.location.hostname;
         
-        // Skip SW if we are in an AI Studio / WebContainer preview to avoid Origin errors
-        const isPreview = 
+        // Evitamos el Service Worker en entornos de desarrollo/previsualización
+        const isDevelopment = 
             hostname.includes('scf.usercontent.goog') || 
             hostname.includes('webcontainer') || 
             hostname.includes('ai.studio') ||
-            hostname.includes('localhost') ||
-            hostname.includes('127.0.0.1');
+            hostname.includes('localhost');
         
-        if (!isPreview) {
-            // Register using a relative path to handle subfolders in GitHub Pages
+        if (!isDevelopment) {
+            // Usamos ./sw.js para que sea relativo a la subcarpeta del repositorio
             navigator.serviceWorker.register('./sw.js')
-                .then(reg => console.log('SW Registered on scope:', reg.scope))
-                .catch(err => console.warn('SW Registration failed (this is normal in some preview envs):', err));
+                .then(reg => console.log('PWA: Ready', reg.scope))
+                .catch(err => console.warn('PWA: SW registration skipped', err));
         } else {
-            console.log('Service Worker skipped for preview environment compatibility.');
+            console.log('PWA: Service Worker disabled for dev/preview.');
         }
     });
 }

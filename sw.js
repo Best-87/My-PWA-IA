@@ -1,7 +1,8 @@
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.4.1/workbox-sw.js');
 
-const CACHE_NAME = 'conferente-pro-v24';
+const CACHE_NAME = 'conferente-pro-v25';
 
+// Forzar instalación y activación inmediata
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll([
@@ -23,15 +24,21 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
+// Estrategia: Network First para la página principal, StaleWhileRevalidate para assets
 workbox.routing.registerRoute(
   ({ request }) => request.mode === 'navigate',
   new workbox.strategies.NetworkFirst({
     cacheName: 'pages',
-    plugins: [new workbox.expiration.ExpirationPlugin({ maxEntries: 10 })]
+    plugins: [new workbox.expiration.ExpirationPlugin({ maxEntries: 5 })]
   })
 );
 
 workbox.routing.registerRoute(
-  ({ request }) => request.destination === 'script' || request.destination === 'style' || request.destination === 'image',
-  new workbox.strategies.StaleWhileRevalidate({ cacheName: 'assets' })
+  ({ request }) => 
+    request.destination === 'script' || 
+    request.destination === 'style' || 
+    request.destination === 'image',
+  new workbox.strategies.StaleWhileRevalidate({
+    cacheName: 'assets'
+  })
 );
