@@ -1,3 +1,4 @@
+
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
@@ -10,7 +11,7 @@ export default defineConfig({
     sourcemap: false
   },
   define: {
-    // Inject the API KEY from the build environment
-    'process.env.API_KEY': JSON.stringify(process.env.API_KEY || '')
+    // Inyección de la API Key proporcionada para el funcionamiento de la IA
+    'process.env.API_KEY': JSON.stringify('AIzaSyDe6gJT04mdDwaQu9az58nzZQQyx5PX7Y0')
   }
 });

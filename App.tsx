@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { InstallManager } from './components/InstallManager';
 import { WeighingForm, WeighingFormHandle } from './components/WeighingForm';
@@ -52,8 +53,9 @@ const AppContent = () => {
     const [showChat, setShowChat] = useState(false);
     const [theme, setThemeState] = useState(getTheme());
     
-    // Search State
+    // Filter States
     const [searchTerm, setSearchTerm] = useState('');
+    const [timeFilter, setTimeFilter] = useState<'all' | 'today' | 'week' | 'month' | 'year'>('all');
 
     // Image Viewer State
     const [viewImage, setViewImage] = useState<string | null>(null);
@@ -327,13 +329,37 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
     
     // Filter logic
     const filteredRecords = records.filter(rec => {
-        if (!searchTerm) return true;
+        // Search Filter
         const lowerSearch = searchTerm.toLowerCase();
-        return (
+        const matchesSearch = !searchTerm || (
             rec.supplier.toLowerCase().includes(lowerSearch) ||
             rec.product.toLowerCase().includes(lowerSearch) ||
             (rec.batch && rec.batch.toLowerCase().includes(lowerSearch))
         );
+
+        // Time Filter
+        const recDate = new Date(rec.timestamp);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        let matchesTime = true;
+        if (timeFilter === 'today') {
+            matchesTime = recDate.toDateString() === today.toDateString();
+        } else if (timeFilter === 'week') {
+            const lastWeek = new Date();
+            lastWeek.setDate(today.getDate() - 7);
+            matchesTime = recDate >= lastWeek;
+        } else if (timeFilter === 'month') {
+            const lastMonth = new Date();
+            lastMonth.setMonth(today.getMonth() - 1);
+            matchesTime = recDate >= lastMonth;
+        } else if (timeFilter === 'year') {
+            const lastYear = new Date();
+            lastYear.setFullYear(today.getFullYear() - 1);
+            matchesTime = recDate >= lastYear;
+        }
+
+        return matchesSearch && matchesTime;
     });
 
     if (isLoading) {
@@ -414,6 +440,29 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                                     <span className="material-icons-round">delete_sweep</span>
                                 </button>
                             </div>
+                        </div>
+
+                        {/* Time Filters */}
+                        <div className="flex gap-2 overflow-x-auto pb-4 no-scrollbar">
+                            {[
+                                { id: 'all', label: t('filter_all') },
+                                { id: 'today', label: t('filter_today') },
+                                { id: 'week', label: t('filter_week') },
+                                { id: 'month', label: t('filter_month') },
+                                { id: 'year', label: t('filter_year') }
+                            ].map(filter => (
+                                <button
+                                    key={filter.id}
+                                    onClick={() => setTimeFilter(filter.id as any)}
+                                    className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
+                                        timeFilter === filter.id
+                                            ? 'bg-primary-500 text-white shadow-lg'
+                                            : 'bg-white dark:bg-zinc-900 text-zinc-500 border border-zinc-200 dark:border-zinc-800'
+                                    }`}
+                                >
+                                    {filter.label}
+                                </button>
+                            ))}
                         </div>
 
                         {/* Search Bar */}
