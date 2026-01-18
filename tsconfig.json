@@ -22,7 +22,8 @@
     "App.tsx",
     "types.ts",
     "services/**/*.ts",
-    "components/**/*.tsx"
+    "components/**/*.tsx",
+    "vite-env.d.ts"
   ],
   "exclude": [
     "node_modules",
