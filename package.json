@@ -1,11 +1,13 @@
+
 {
   "name": "conferente-pro",
   "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --project tsconfig.json && vite build",
-    "preview": "vite preview"
+    "build": "vite build",
+    "preview": "vite preview",
+    "type-check": "tsc --project tsconfig.json --noEmit"
   },
   "dependencies": {
     "@google/genai": "^1.37.0",
