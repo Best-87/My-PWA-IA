@@ -12,6 +12,6 @@ export default defineConfig({
   },
   define: {
     // Inyección de la API Key proporcionada para el funcionamiento de la IA
-    'process.env.API_KEY': JSON.stringify('AIzaSyDe6gJT04mdDwaQu9az58nzZQQyx5PX7Y0')
+    'process.env.API_KEY': JSON.stringify('AIzaSyBMwekt7M3WsNMT5E4rEKADKuVaMXU2NiA')
   }
 });
