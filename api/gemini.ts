@@ -2,7 +2,7 @@
 import { GoogleGenAI } from "@google/genai";
 
 export const config = {
-  runtime: 'edge', // Usamos Edge Runtime para máxima velocidad
+  runtime: 'edge',
 };
 
 export default async function handler(req: Request) {
@@ -15,17 +15,17 @@ export default async function handler(req: Request) {
     const apiKey = process.env.GEMINI_API_KEY;
 
     if (!apiKey) {
-      return new Response(JSON.stringify({ error: 'API Key missing in server' }), { status: 500 });
+      return new Response(JSON.stringify({ error: 'Configuración del servidor incompleta (API Key)' }), { status: 500 });
     }
 
     const ai = new GoogleGenAI({ apiKey });
-    const model = 'gemini-3-flash-preview';
-
+    
+    // Ejecutamos la generación de contenido en el servidor
     const response = await ai.models.generateContent({
-      model,
-      contents: prompt,
+      model: 'gemini-3-flash-preview',
+      contents: typeof prompt === 'string' ? prompt : prompt, // Maneja strings o estructuras complejas
       config: {
-        systemInstruction: systemInstruction || "Eres un asistente profesional.",
+        systemInstruction: systemInstruction || "Eres un asistente profesional de logística.",
       },
     });
 
@@ -34,6 +34,7 @@ export default async function handler(req: Request) {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (error: any) {
-    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+    console.error("Gemini API Server Error:", error);
+    return new Response(JSON.stringify({ error: 'Error procesando la solicitud en el servidor' }), { status: 500 });
   }
 }

@@ -9,9 +9,5 @@ export default defineConfig({
     outDir: 'dist',
     assetsDir: 'assets',
     sourcemap: false
-  },
-  define: {
-    // Ya no inyectamos la clave en el frontend por seguridad
-    'process.env.API_KEY': JSON.stringify('') 
   }
 });

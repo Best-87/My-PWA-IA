@@ -1,46 +1,50 @@
 
-import { GoogleGenAI, Chat } from "@google/genai";
-
 /**
- * Servicio frontend para interactuar con Gemini.
- * Se utiliza el SDK @google/genai directamente ya que se inyectó process.env.API_KEY en el cliente.
+ * Servicio frontend para interactuar con Gemini a través del Proxy de Vercel.
+ * La comunicación es segura ya que la API Key reside únicamente en el servidor.
  */
 
-// Initialize the GoogleGenAI instance using the direct API key from environment variables.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
-
-export const generateGeminiContent = async (prompt: string, systemInstruction?: string) => {
+export const generateGeminiContent = async (prompt: any, systemInstruction?: string) => {
     try {
-        const response = await ai.models.generateContent({
-            model: 'gemini-3-flash-preview',
-            contents: prompt,
-            config: {
-                systemInstruction: systemInstruction || "Eres un asistente profesional.",
+        const response = await fetch('/api/gemini', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
             },
+            body: JSON.stringify({ prompt, systemInstruction }),
         });
 
-        return response.text;
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Error en el servidor proxy');
+        }
+
+        const data = await response.json();
+        return data.text;
     } catch (error) {
-        console.error("Gemini Service Error:", error);
+        console.error("Gemini Frontend Service Error:", error);
         throw error;
     }
 };
 
 /**
- * Creates a new chat session using the gemini-3-flash-preview model.
+ * Mantiene compatibilidad con la interfaz de chat actual.
+ * Crea una sesión virtual que guarda las instrucciones del sistema.
  */
-export const createChatSession = (systemInstruction?: string): Chat => {
-    return ai.chats.create({
-        model: 'gemini-3-flash-preview',
-        config: {
-            systemInstruction: systemInstruction || "Eres un asistente profesional de logística.",
-        },
-    });
+export const createChatSession = (systemInstruction?: string) => {
+    return { systemInstruction };
 };
 
 /**
- * Sends a message stream to an existing chat session.
+ * Envía el mensaje al servidor. 
+ * Nota: El streaming se simplifica a una respuesta única para asegurar compatibilidad total con Edge Functions.
  */
-export const sendMessageStream = async (session: Chat, message: string) => {
-    return await session.sendMessageStream({ message });
+export const sendMessageStream = async (session: any, message: string) => {
+    const text = await generateGeminiContent(message, session.systemInstruction);
+    
+    // Generador asíncrono para mantener compatibilidad con el bucle 'for await' en ChatInterface.tsx
+    async function* generator() {
+        yield { text };
+    }
+    return generator();
 };
