@@ -19,26 +19,17 @@ if (rootElement) {
     );
 }
 
-// Robust Service Worker registration
+// Robust Service Worker registration for GitHub Pages
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         const hostname = window.location.hostname;
+        const isLocal = hostname === 'localhost' || hostname === '127.0.0.1';
         
-        // Skip SW if we are in an AI Studio / WebContainer preview to avoid Origin errors
-        const isPreview = 
-            hostname.includes('scf.usercontent.goog') || 
-            hostname.includes('webcontainer') || 
-            hostname.includes('ai.studio') ||
-            hostname.includes('localhost') ||
-            hostname.includes('127.0.0.1');
+        // En GitHub Pages usamos la ruta absoluta del repositorio
+        const swPath = isLocal ? './sw.js' : '/My-PWA-IA/sw.js';
         
-        if (!isPreview) {
-            // Register using a relative path to handle subfolders in GitHub Pages
-            navigator.serviceWorker.register('./sw.js')
-                .then(reg => console.log('SW Registered on scope:', reg.scope))
-                .catch(err => console.warn('SW Registration failed (this is normal in some preview envs):', err));
-        } else {
-            console.log('Service Worker skipped for preview environment compatibility.');
-        }
+        navigator.serviceWorker.register(swPath)
+            .then(reg => console.log('SW Registered on scope:', reg.scope))
+            .catch(err => console.warn('SW Registration failed:', err));
     });
 }

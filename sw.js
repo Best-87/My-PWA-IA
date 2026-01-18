@@ -1,37 +1,41 @@
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.4.1/workbox-sw.js');
 
-const CACHE_NAME = 'conferente-pro-v24';
+if (workbox) {
+  const CACHE_NAME = 'conferente-pro-v26';
 
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll([
-      './',
-      './index.html',
-      './manifest.json',
-      './icon.svg'
-    ]))
+  // Forzar actualización inmediata
+  self.addEventListener('install', () => self.skipWaiting());
+  self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
+
+  // Precache de archivos críticos con rutas absolutas
+  workbox.precaching.precacheAndRoute([
+    { url: '/My-PWA-IA/index.html', revision: '26' },
+    { url: '/My-PWA-IA/manifest.json', revision: '26' },
+    { url: '/My-PWA-IA/icon.svg', revision: '26' }
+  ]);
+
+  // Estrategia para navegación: Red primero con timeout de 3s antes de ir a Cache
+  workbox.routing.registerRoute(
+    ({ request }) => request.mode === 'navigate',
+    new workbox.strategies.NetworkFirst({
+      cacheName: 'pages',
+      networkTimeoutSeconds: 3,
+      plugins: [
+        new workbox.expiration.ExpirationPlugin({ maxEntries: 10 })
+      ]
+    })
   );
-  self.skipWaiting();
-});
 
-self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then((keys) => Promise.all(
-      keys.map((k) => k !== CACHE_NAME && caches.delete(k))
-    ))
+  // Estrategia para assets (Scripts, Estilos, Imágenes): StaleWhileRevalidate
+  workbox.routing.registerRoute(
+    ({ request }) =>
+      request.destination === 'script' ||
+      request.destination === 'style' ||
+      request.destination === 'image',
+    new workbox.strategies.StaleWhileRevalidate({
+      cacheName: 'assets'
+    })
   );
-  self.clients.claim();
-});
-
-workbox.routing.registerRoute(
-  ({ request }) => request.mode === 'navigate',
-  new workbox.strategies.NetworkFirst({
-    cacheName: 'pages',
-    plugins: [new workbox.expiration.ExpirationPlugin({ maxEntries: 10 })]
-  })
-);
-
-workbox.routing.registerRoute(
-  ({ request }) => request.destination === 'script' || request.destination === 'style' || request.destination === 'image',
-  new workbox.strategies.StaleWhileRevalidate({ cacheName: 'assets' })
-);
+} else {
+  console.error('Workbox no pudo cargarse.');
+}
