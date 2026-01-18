@@ -593,14 +593,19 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
             {showConfirmReset && createPortal(
                 <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in" style={{ touchAction: 'none' }} role="dialog" aria-modal="true" aria-labelledby="modal-title">
                     <div className="bg-white dark:bg-zinc-900 rounded-[2rem] w-full max-w-sm p-6 shadow-2xl animate-slide-up ring-1 ring-white/10 relative overflow-hidden" onClick={e => e.stopPropagation()}>
-                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-red-500 to-transparent opacity-50"></div>
-                         <div className="flex flex-col items-center text-center pt-2">
-                            <div className="w-16 h-16 bg-red-50 dark:bg-red-900/10 rounded-full flex items-center justify-center mb-5 text-red-500 shadow-inner"><span className="material-icons-round text-3xl">delete_forever</span></div>
+                         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-red-500/10 blur-[60px] pointer-events-none"></div>
+                         <div className="flex flex-col items-center text-center relative z-10">
+                            <div className="relative mb-5">
+                                <div className="absolute inset-0 bg-red-500 blur-xl opacity-20 rounded-full"></div>
+                                <div className="w-20 h-20 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center relative shadow-sm border border-red-100 dark:border-red-900/30">
+                                    <span className="material-icons-round text-3xl text-red-500">delete_forever</span>
+                                </div>
+                            </div>
                             <h3 id="modal-title" className="text-xl font-black text-zinc-900 dark:text-white mb-2 leading-tight">{t('msg_confirm_clear')}</h3>
                             <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-8 leading-relaxed px-4">Esta acción no se puede deshacer. Se borrarán todos los datos del formulario actual.</p>
                             <div className="grid grid-cols-2 gap-3 w-full">
-                                <button onClick={() => setShowConfirmReset(false)} className="py-4 rounded-2xl font-bold text-sm bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors">{t('btn_not_now')}</button>
-                                <button onClick={() => { handleReset(); setShowConfirmReset(false); }} className="py-4 rounded-2xl font-bold text-sm bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/30 transition-all active:scale-95">{t('btn_erase')}</button>
+                                <button onClick={() => setShowConfirmReset(false)} className="py-3.5 rounded-xl font-bold text-sm bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors">{t('btn_not_now')}</button>
+                                <button onClick={() => { handleReset(); setShowConfirmReset(false); }} className="py-3.5 rounded-xl font-bold text-sm bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/30 transition-all active:scale-95">{t('btn_erase')}</button>
                             </div>
                         </div>
                     </div>
