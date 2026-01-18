@@ -3,13 +3,14 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.tsx';
 
-// Safety check for process.env in browser environments without build step replacement
-// Crucial for GitHub Pages and Vercel client-side execution
-// @ts-ignore
+// Inyección forzada de variables de entorno para el cliente
+// Esto permite que el SDK de Google lea process.env.API_KEY en Vercel
 if (typeof window !== 'undefined') {
-    (window as any).process = (window as any).process || { env: {} };
-    (window as any).process.env = {
-        ...(window as any).process.env,
+    // @ts-ignore
+    window.process = window.process || { env: {} };
+    // @ts-ignore
+    window.process.env = {
+        ...((window as any).process?.env || {}),
         API_KEY: process.env.API_KEY || ''
     };
 }

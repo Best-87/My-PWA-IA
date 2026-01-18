@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Chat, GenerateContentResponse } from "@google/genai";
 import { createChatSession, sendMessageStream } from '../services/geminiService';
@@ -84,6 +85,7 @@ export const ChatInterface: React.FC = () => {
             let fullText = '';
             for await (const chunk of streamResult) {
                  const content = chunk as GenerateContentResponse;
+                 // Acceso correcto a la propiedad .text
                  const textChunk = content.text || '';
                  fullText += textChunk;
                  
