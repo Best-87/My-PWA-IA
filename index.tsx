@@ -35,7 +35,8 @@ if ('serviceWorker' in navigator) {
                          window.location.hostname.includes('ai.studio');
 
     if (!isPreviewEnv) {
-        navigator.serviceWorker.register('./sw.js')
+        // Use absolute path for SW to avoid 404s in subdirectories or nested routes
+        navigator.serviceWorker.register('/sw.js')
           .then(registration => {
             console.log('SW registered: ', registration.scope);
           })

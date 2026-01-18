@@ -1,7 +1,8 @@
+
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.4.1/workbox-sw.js');
 
 const CACHE_NAME = 'conferente-pro-v22';
-const OFFLINE_PAGE = './offline.html';
+const OFFLINE_PAGE = '/offline.html';
 
 const bgSyncPlugin = new workbox.backgroundSync.BackgroundSyncPlugin('conferente-queue', {
   maxRetentionTime: 24 * 60,
@@ -10,10 +11,10 @@ const bgSyncPlugin = new workbox.backgroundSync.BackgroundSyncPlugin('conferente
 self.addEventListener('install', (event) => {
   const urlsToCache = [
     OFFLINE_PAGE,
-    './index.html',
-    './manifest.json',
-    './icon.svg',
-    './', 
+    '/index.html',
+    '/manifest.json',
+    '/icon.svg',
+    '/', 
     'https://cdn.tailwindcss.com',
     'https://fonts.googleapis.com/icon?family=Material+Icons+Round',
     'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap',
@@ -45,7 +46,7 @@ const navigationRoute = new workbox.routing.NavigationRoute(async ({ event }) =>
     return networkResp;
   } catch (error) {
     const cache = await caches.open(CACHE_NAME);
-    const cachedIndex = await cache.match('./index.html');
+    const cachedIndex = await cache.match('/index.html');
     if (cachedIndex) return cachedIndex;
     
     const offlineCache = await caches.match(OFFLINE_PAGE);
@@ -124,12 +125,12 @@ self.addEventListener('sync', (event) => {
 });
 
 self.addEventListener('push', (event) => {
-  const data = event.data ? event.data.json() : { title: 'Conferente Pro', body: 'Nueva actualización.', url: './' };
+  const data = event.data ? event.data.json() : { title: 'Conferente Pro', body: 'Nueva actualización.', url: '/' };
   
   const options = {
     body: data.body,
-    icon: './icon.svg',
-    badge: './icon.svg',
+    icon: '/icon.svg',
+    badge: '/icon.svg',
     vibrate: [100, 50, 100],
     data: { url: data.url || self.registration.scope },
     actions: [

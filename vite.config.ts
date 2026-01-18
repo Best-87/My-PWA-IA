@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
-  base: './', // Ensures relative paths for assets (critical for GitHub Pages)
+  base: '/', // Changed from './' to '/' for better PWA support on Vercel
   build: {
     outDir: 'dist',
     assetsDir: 'assets',

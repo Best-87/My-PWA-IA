@@ -1,9 +1,10 @@
+
 {
   "id": "conferente-pro-app",
   "name": "Conferente Pro",
   "short_name": "Conferente",
   "description": "Control de pesaje inteligente y gestión de conferencias con IA para logística.",
-  "start_url": "./index.html",
+  "start_url": "/index.html",
   "display": "standalone",
   "display_override": [
     "window-controls-overlay",
@@ -14,7 +15,7 @@
   "background_color": "#09090b",
   "theme_color": "#09090b",
   "orientation": "portrait-primary",
-  "scope": "./",
+  "scope": "/",
   "lang": "es",
   "dir": "ltr",
   "iarc_rating_id": "e84b072d-71b3-4d3e-86ae-31a8ce4e53b7",
@@ -33,7 +34,8 @@
   ],
   "scope_extensions": [
     {
-      "origin": "https://conferente-pro-593915476590.us-west1.run.app"
+      "origin": "https://conferente-pro-593915476590.us-west1.run.app",
+      "type": "web"
     }
   ],
   "categories": [
@@ -43,7 +45,7 @@
   ],
   "icons": [
     {
-      "src": "./icon.svg",
+      "src": "/icon.svg",
       "sizes": "192x192 512x512 any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
@@ -82,7 +84,7 @@
       "name": "Nueva Conferencia",
       "short_name": "Pesar",
       "description": "Iniciar una nueva sesión de pesaje",
-      "url": "./index.html?action=weigh",
+      "url": "/index.html?action=weigh",
       "icons": [
         { 
           "src": "https://placehold.co/96x96/2563eb/white.png?text=+", 
@@ -112,7 +114,7 @@
     }
   ],
   "note_taking": {
-    "new_note_url": "./index.html?action=new_note"
+    "new_note_url": "/index.html?action=new_note"
   },
   "launch_handler": {
     "client_mode": "navigate-existing"
@@ -120,12 +122,12 @@
   "protocol_handlers": [
     {
       "protocol": "web+conferente",
-      "url": "./index.html?type=%s"
+      "url": "/index.html?type=%s"
     }
   ],
   "file_handlers": [
     {
-      "action": "./index.html",
+      "action": "/index.html",
       "accept": {
         "application/json": [".json"]
       },
@@ -139,7 +141,7 @@
     }
   ],
   "share_target": {
-    "action": "./index.html",
+    "action": "/index.html",
     "method": "GET",
     "enctype": "application/x-www-form-urlencoded",
     "params": {
