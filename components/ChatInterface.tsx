@@ -1,8 +1,8 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Chat, GenerateContentResponse } from "@google/genai";
+import { GenerateContentResponse } from "@google/genai";
 import { createChatSession, sendMessageStream } from '../services/geminiService';
-import { Message } from '../types';
+import { Message, CustomChatSession } from '../types';
 import { trackEvent } from '../services/analyticsService';
 
 export const ChatInterface: React.FC = () => {
@@ -11,14 +11,14 @@ export const ChatInterface: React.FC = () => {
     ]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const [chatSession, setChatSession] = useState<Chat | null>(null);
+    const [chatSession, setChatSession] = useState<CustomChatSession | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     // Initialize Chat Session
     useEffect(() => {
         if (!navigator.onLine) return; // Skip if offline
         try {
-            const session = createChatSession();
+            const session = createChatSession("Eres un consultor experto en logística y pesaje para Conferente Pro.");
             setChatSession(session);
         } catch (error) {
             console.error("Failed to init chat session", error);
@@ -85,7 +85,6 @@ export const ChatInterface: React.FC = () => {
             let fullText = '';
             for await (const chunk of streamResult) {
                  const content = chunk as GenerateContentResponse;
-                 // Acceso correcto a la propiedad .text
                  const textChunk = content.text || '';
                  fullText += textChunk;
                  

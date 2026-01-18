@@ -8,6 +8,10 @@ export interface UserProfile {
     photo?: string; // Base64 string
 }
 
+export interface CustomChatSession {
+    systemInstruction?: string;
+}
+
 export interface WeighingRecord {
     id: string;
     timestamp: number;
