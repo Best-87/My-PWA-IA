@@ -48,27 +48,42 @@ export const InstallManager: React.FC = () => {
                              window.location.hostname.includes('webcontainer') ||
                              window.location.hostname.includes('ai.studio');
 
+        let updateInterval: any;
+
         if ('serviceWorker' in navigator && !isPreviewEnv) {
-            navigator.serviceWorker.getRegistration().then((reg) => {
-                if (!reg) return;
-                if (reg.waiting) {
-                    setWaitingWorker(reg.waiting);
-                    setUpdateAvailable(true);
-                }
-                reg.addEventListener('updatefound', () => {
-                    const newWorker = reg.installing;
-                    if (newWorker) {
-                        newWorker.addEventListener('statechange', () => {
-                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                setWaitingWorker(newWorker);
-                                setUpdateAvailable(true);
-                            }
-                        });
+            const checkUpdate = () => {
+                navigator.serviceWorker.getRegistration().then((reg) => {
+                    if (!reg) return;
+                    
+                    // Force update check
+                    reg.update();
+
+                    if (reg.waiting) {
+                        setWaitingWorker(reg.waiting);
+                        setUpdateAvailable(true);
                     }
+                    
+                    reg.addEventListener('updatefound', () => {
+                        const newWorker = reg.installing;
+                        if (newWorker) {
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    setWaitingWorker(newWorker);
+                                    setUpdateAvailable(true);
+                                }
+                            });
+                        }
+                    });
+                }).catch(err => {
+                    console.log('SW update check failed:', err);
                 });
-            }).catch(err => {
-                console.log('SW update check failed (likely preview env):', err);
-            });
+            };
+
+            // Initial check
+            checkUpdate();
+
+            // Periodic check every 60 seconds to detect Vercel deploys
+            updateInterval = setInterval(checkUpdate, 60000);
 
             let refreshing = false;
             navigator.serviceWorker.addEventListener('controllerchange', () => {
@@ -87,6 +102,7 @@ export const InstallManager: React.FC = () => {
         return () => {
             window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
             window.removeEventListener('appinstalled', handleAppInstalled);
+            if (updateInterval) clearInterval(updateInterval);
         };
     }, []);
 
