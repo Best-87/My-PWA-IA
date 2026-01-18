@@ -18,6 +18,18 @@
     "jsx": "react-jsx",
     "types": ["vite/client"]
   },
-  "include": ["src", "**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules", "dist", "api"]
+  "include": [
+    "index.tsx",
+    "App.tsx",
+    "types.ts",
+    "services/**/*.ts",
+    "components/**/*.tsx",
+    "vite-env.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "api",
+    "sw.js"
+  ]
 }
