@@ -1,5 +1,4 @@
 
-// ... (mantenemos todos los imports actuales)
 import React, { useState, useEffect, useRef, useMemo, forwardRef, useImperativeHandle } from 'react';
 import { createPortal } from 'react-dom';
 import { GoogleGenAI } from "@google/genai";
@@ -9,6 +8,7 @@ import { useTranslation } from '../services/i18n';
 import { useToast } from './Toast';
 import { sendLocalNotification } from '../services/notificationService';
 
+// Stable tolerance
 const TOLERANCE_KG = 0.2;
 
 export interface WeighingFormHandle {
@@ -23,10 +23,10 @@ export interface WeighingFormProps {
 }
 
 export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({ onViewHistory }, ref) => {
-    // ... (mantenemos todos los estados y efectos actuales sin cambios)
     const { t, language } = useTranslation();
     const { showToast } = useToast();
 
+    // Form State
     const [supplier, setSupplier] = useState('');
     const [product, setProduct] = useState('');
     const [batch, setBatch] = useState('');
@@ -304,7 +304,6 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
         }
     };
     
-    // ANALYZE IMAGE - CORREGIDO PARA VERCEL
     const analyzeImageContent = async (base64Image: string) => {
         if (!navigator.onLine) {
             setAiAlert("Modo Offline: IA no disponible.");
@@ -317,25 +316,21 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
         setStorageType(null);
         setRecommendedTemp('');
         try {
-            const apiKey = process.env.API_KEY || (window as any).process?.env?.API_KEY;
-            if (!apiKey) throw new Error("API Key missing in WeighingForm");
-            
+            const apiKey = process.env.API_KEY;
+            if (!apiKey) throw new Error("API Key missing");
             const ai = new GoogleGenAI({ apiKey });
             const prompt = `Analyze this product label image for logistics. Extract readable text and return strictly valid JSON.
             Fields: supplier, product, expiration (DD/MM/YYYY), production (DD/MM/YYYY), batch, tara (grams as integer), storage (frozen, refrigerated, dry), temperature_range, warning.
             Return ONLY the JSON object.`;
             const base64Data = base64Image.includes(',') ? base64Image.split(',')[1] : base64Image;
-            
             const response = await ai.models.generateContent({
                 model: 'gemini-3-flash-preview', 
                 contents: { parts: [{ inlineData: { mimeType: 'image/jpeg', data: base64Data } }, { text: prompt }] },
                 config: { responseMimeType: 'application/json' }
             });
-            
             const text = response.text;
-            if (!text) throw new Error("Empty response from Gemini");
+            if (!text) throw new Error("Empty response");
             const data = JSON.parse(text);
-            
             if (data.supplier && !supplier) setSupplier(data.supplier);
             if (data.product && !product) setProduct(data.product);
             if (data.batch && !batch) setBatch(data.batch);
@@ -355,7 +350,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
             }
         } catch (error: any) {
             console.error("AI Analysis Error:", error);
-            setAiAlert("Error IA: " + (error.message || "desconocido"));
+            setAiAlert("Error al leer imagen.");
         } finally {
             setIsReadingImage(false);
             setTimeout(() => { isAiPopulating.current = false; }, 1500);
@@ -399,20 +394,19 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
         openGallery: () => galleryInputRef.current?.click()
     }));
 
-    // ANALYZE WITH AI - CORREGIDO PARA VERCEL
     const analyzeWithAI = async () => {
         if (!navigator.onLine) { setAiAlert("Modo Offline: IA no disponible."); return; }
         setIsAnalyzing(true);
         try {
-            const apiKey = process.env.API_KEY || (window as any).process?.env?.API_KEY;
-            if (!apiKey) throw new Error("Missing API Key in analyzeWithAI");
+            const apiKey = process.env.API_KEY;
+            if (!apiKey) throw new Error("Missing API Key");
             const ai = new GoogleGenAI({ apiKey });
             const prompt = `Act as a logistics supervisor. Context: User Language ${t('ai_prompt_lang')}. Info: Supplier: ${supplier}, Product: ${product}, Diff: ${difference.toFixed(2)}. Suggest action.`;
             const response = await ai.models.generateContent({ model: 'gemini-3-flash-preview', contents: prompt });
             setAiAlert(response.text?.trim() || "Revisado.");
         } catch (e: any) { 
             console.error(e);
-            setAiAlert("Error IA: " + e.message); 
+            setAiAlert("Error IA."); 
         } finally { setIsAnalyzing(false); }
     };
 
