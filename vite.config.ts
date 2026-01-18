@@ -4,14 +4,14 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
-  base: '/', // Changed from './' to '/' for better PWA support on Vercel
+  base: '/',
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
     sourcemap: false
   },
   define: {
-    // Inyección de la API Key proporcionada para el funcionamiento de la IA
-    'process.env.API_KEY': JSON.stringify('AIzaSyD8F8yCROgHXKGmTI7QRKbb14seyfKX7hw')
+    // Ya no inyectamos la clave en el frontend por seguridad
+    'process.env.API_KEY': JSON.stringify('') 
   }
 });
