@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { InstallPromptEvent } from '../types';
 import { useTranslation } from '../services/i18n';
@@ -141,7 +142,7 @@ export const InstallManager: React.FC = () => {
 
     return (
         <>
-            {/* TOAST INSTALL PROMPT (Based on requested strategy) */}
+            {/* TOAST INSTALL PROMPT */}
             {showToast && (
                 <div className="fixed bottom-5 right-5 z-[100] bg-white dark:bg-zinc-800 rounded-2xl shadow-2xl p-4 max-w-sm w-[90%] border border-zinc-100 dark:border-zinc-700 animate-slide-up flex flex-col gap-3">
                     <div className="flex items-start gap-3">
@@ -180,22 +181,20 @@ export const InstallManager: React.FC = () => {
                 </div>
             )}
 
-            {/* Update Available Notification */}
+            {/* Update Available Notification - Toast Style */}
             {updateAvailable && (
-                <div className="fixed top-6 left-0 right-0 z-[150] flex justify-center px-4 animate-slide-down pointer-events-none">
-                    <div className="pointer-events-auto bg-white/90 dark:bg-zinc-800/90 backdrop-blur-md border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-4">
-                        <div className="flex items-center gap-3">
-                             <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 animate-pulse">
-                                <span className="material-icons-round text-lg">system_update</span>
-                             </div>
-                             <div className="flex flex-col">
-                                 <span className="text-xs font-bold">Nueva versión disponible</span>
-                                 <span className="text-[10px] text-zinc-500 dark:text-zinc-400 leading-none">Actualización lista</span>
-                             </div>
+                <div className="fixed bottom-6 left-4 right-4 z-[150] flex justify-center animate-slide-up pointer-events-none">
+                    <div className="pointer-events-auto bg-[#1C1C1E] dark:bg-white text-white dark:text-black p-4 rounded-2xl shadow-2xl border border-white/10 dark:border-zinc-200 max-w-sm w-full flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-full bg-emerald-600 flex items-center justify-center shrink-0 animate-pulse shadow-lg shadow-emerald-500/30">
+                             <span className="material-icons-round text-white text-xl">system_update_alt</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                             <h4 className="font-bold text-sm leading-tight">Actualización disponible</h4>
+                             <p className="text-xs opacity-70 truncate">Nueva versión lista para instalar.</p>
                         </div>
                         <button 
                             onClick={updateApp} 
-                            className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wide shadow-lg shadow-emerald-500/20 transition-all active:scale-95"
+                            className="bg-white dark:bg-black text-black dark:text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg transition-transform active:scale-95"
                         >
                             Actualizar
                         </button>
