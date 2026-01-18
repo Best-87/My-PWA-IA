@@ -444,6 +444,12 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                                  </div>
                              )}
                          </div>
+                         <button 
+                             onClick={(e) => { e.stopPropagation(); setShowConfirmReset(true); }} 
+                             className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/60 hover:text-red-200 hover:bg-red-500/20 transition-all active:scale-90 border border-white/5"
+                         >
+                             <span className="material-icons-round text-base">delete</span>
+                         </button>
                     </div>
                     <div className="flex justify-between items-end border-t border-white/10 pt-3 mt-1">
                         <div className="text-white">
@@ -585,7 +591,6 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                     <button onClick={() => cameraInputRef.current?.click()} className="w-12 h-12 rounded-full bg-[#2C2C2E] flex items-center justify-center text-white hover:bg-white/20 hover:scale-110 transition-all active:scale-90 shadow-inner group"><span className="material-icons-round text-xl group-hover:text-blue-400 transition-colors">photo_camera</span></button>
                     <button onClick={() => galleryInputRef.current?.click()} className="w-12 h-12 rounded-full bg-[#2C2C2E] flex items-center justify-center text-white hover:bg-white/20 hover:scale-110 transition-all active:scale-90 shadow-inner group"><span className="material-icons-round text-xl group-hover:text-purple-400 transition-colors">collections</span></button>
                     <div className="w-[1px] h-6 bg-white/10 mx-0.5"></div>
-                    <button onClick={() => setShowConfirmReset(true)} className="w-12 h-12 rounded-full flex items-center justify-center text-zinc-400 hover:text-red-500 hover:bg-red-500/10 transition-all active:scale-90"><span className="material-icons-round text-xl">delete</span></button>
                     <button onClick={handleSave} className={`w-16 h-16 ml-1 rounded-full flex items-center justify-center text-white shadow-lg transition-all active:scale-90 ${hasDataToSave ? 'bg-[#10B981] shadow-emerald-500/30 animate-pulse-slow hover:scale-105' : 'bg-[#10B981]/80 shadow-[#10B981]/10'}`}><span className="material-icons-round text-2xl">save</span></button>
                 </div>
             </div>
