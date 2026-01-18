@@ -1,46 +1,35 @@
-
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.tsx';
 
-// Safety check for process.env in browser environments without build step replacement
-// Crucial for GitHub Pages where process is not defined
-// @ts-ignore - process is not standard on window but we inject it for compatibility
-if (typeof window !== 'undefined' && !(window as any).process) {
-    (window as any).process = { env: { API_KEY: '' } };
+// Essential for production environments where process.env might be undefined at runtime
+if (typeof window !== 'undefined') {
+    (window as any).process = (window as any).process || { env: {} };
+    (window as any).process.env = (window as any).process.env || {};
+    // Ensure API_KEY is defined even if empty to prevent crashes in services
+    (window as any).process.env.API_KEY = (window as any).process.env.API_KEY || '';
 }
 
 const rootElement = document.getElementById('root');
-if (!rootElement) {
-  throw new Error("Could not find root element to mount to");
+if (rootElement) {
+    const root = ReactDOM.createRoot(rootElement);
+    root.render(
+        <React.StrictMode>
+            <App />
+        </React.StrictMode>
+    );
 }
 
-const root = ReactDOM.createRoot(rootElement);
-root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
-
-// Service Worker Registration
+// Minimal Service Worker registration for GitHub Pages
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    // Skip SW in preview environments (like AI Studio/IDX) where origin mismatches occur
-    const isPreviewEnv = window.location.hostname.includes('scf.usercontent.goog') || 
-                         window.location.hostname.includes('webcontainer') ||
-                         window.location.hostname.includes('ai.studio');
-
-    if (!isPreviewEnv) {
-        // Use relative path './sw.js' instead of absolute '/sw.js' for GitHub Pages compatibility
-        navigator.serviceWorker.register('./sw.js')
-          .then(registration => {
-            console.log('SW registered: ', registration.scope);
-          })
-          .catch(registrationError => {
-            console.log('SW registration failed: ', registrationError);
-          });
-    } else {
-        console.log('Service Worker registration skipped in preview environment.');
-    }
-  });
+    window.addEventListener('load', () => {
+        const isPreview = window.location.hostname.includes('scf.usercontent.goog') || 
+                          window.location.hostname.includes('webcontainer');
+        
+        if (!isPreview) {
+            navigator.serviceWorker.register('sw.js')
+                .then(reg => console.log('SW OK:', reg.scope))
+                .catch(err => console.error('SW Error:', err));
+        }
+    });
 }
