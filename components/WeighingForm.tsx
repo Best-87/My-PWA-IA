@@ -22,28 +22,31 @@ export interface WeighingFormProps {
     onViewHistory: () => void;
 }
 
+// Persistent state outside component to survive tab switches
+let persistentFormState: any = null;
+
 export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({ onViewHistory }, ref) => {
     const { t, language } = useTranslation();
     const { showToast } = useToast();
 
-    // Form State
-    const [supplier, setSupplier] = useState('');
-    const [product, setProduct] = useState('');
-    const [batch, setBatch] = useState('');
-    const [expirationDate, setExpirationDate] = useState('');
-    const [productionDate, setProductionDate] = useState('');
-    const [grossWeight, setGrossWeight] = useState<string>(''); 
-    const [noteWeight, setNoteWeight] = useState<string>('');
-    const [evidence, setEvidence] = useState<string | null>(null); 
+    // Form State initialized from persistent object if exists
+    const [supplier, setSupplier] = useState(persistentFormState?.supplier || '');
+    const [product, setProduct] = useState(persistentFormState?.product || '');
+    const [batch, setBatch] = useState(persistentFormState?.batch || '');
+    const [expirationDate, setExpirationDate] = useState(persistentFormState?.expirationDate || '');
+    const [productionDate, setProductionDate] = useState(persistentFormState?.productionDate || '');
+    const [grossWeight, setGrossWeight] = useState<string>(persistentFormState?.grossWeight || ''); 
+    const [noteWeight, setNoteWeight] = useState<string>(persistentFormState?.noteWeight || '');
+    const [evidence, setEvidence] = useState<string | null>(persistentFormState?.evidence || null); 
     
-    const [showBoxes, setShowBoxes] = useState(false);
-    const [boxQty, setBoxQty] = useState<string>('');
-    const [boxTara, setBoxTara] = useState<string>(''); 
+    const [showBoxes, setShowBoxes] = useState(persistentFormState?.showBoxes || false);
+    const [boxQty, setBoxQty] = useState<string>(persistentFormState?.boxQty || '');
+    const [boxTara, setBoxTara] = useState<string>(persistentFormState?.boxTara || ''); 
     
     const [showConfirmReset, setShowConfirmReset] = useState(false);
-    const [storageType, setStorageType] = useState<'frozen' | 'refrigerated' | 'dry' | null>(null);
-    const [recommendedTemp, setRecommendedTemp] = useState<string>('');
-    const [criticalWarning, setCriticalWarning] = useState<string | null>(null);
+    const [storageType, setStorageType] = useState<'frozen' | 'refrigerated' | 'dry' | null>(persistentFormState?.storageType || null);
+    const [recommendedTemp, setRecommendedTemp] = useState<string>(persistentFormState?.recommendedTemp || '');
+    const [criticalWarning, setCriticalWarning] = useState<string | null>(persistentFormState?.criticalWarning || null);
     
     const noteInputRef = useRef<HTMLInputElement>(null);
     const grossInputRef = useRef<HTMLInputElement>(null);
@@ -64,6 +67,15 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
     const [touchStart, setTouchStart] = useState<number | null>(null);
     const [touchEnd, setTouchEnd] = useState<number | null>(null);
     const [activeSection, setActiveSection] = useState<'identity' | 'weights' | 'tara' | 'evidence' | null>(null);
+
+    // Save state to persistent object on every change
+    useEffect(() => {
+        persistentFormState = {
+            supplier, product, batch, expirationDate, productionDate,
+            grossWeight, noteWeight, evidence, showBoxes, boxQty, boxTara,
+            storageType, recommendedTemp, criticalWarning
+        };
+    }, [supplier, product, batch, expirationDate, productionDate, grossWeight, noteWeight, evidence, showBoxes, boxQty, boxTara, storageType, recommendedTemp, criticalWarning]);
 
     useEffect(() => {
         if (!assistantMessage) setAssistantMessage(t('assistant_default'));
@@ -368,6 +380,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
         setSupplier(''); setProduct(''); setBatch(''); setExpirationDate(''); setProductionDate('');
         setGrossWeight(''); setNoteWeight(''); setBoxQty(''); setBoxTara(''); setEvidence(null);
         setAiAlert(null); setStorageType(null); setRecommendedTemp(''); setCriticalWarning(null);
+        persistentFormState = null;
     };
 
     const handleSave = () => {
@@ -444,12 +457,6 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                                  </div>
                              )}
                          </div>
-                         <button 
-                             onClick={(e) => { e.stopPropagation(); setShowConfirmReset(true); }} 
-                             className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/60 hover:text-red-200 hover:bg-red-500/20 transition-all active:scale-90 border border-white/5"
-                         >
-                             <span className="material-icons-round text-base">delete</span>
-                         </button>
                     </div>
                     <div className="flex justify-between items-end border-t border-white/10 pt-3 mt-1">
                         <div className="text-white">
@@ -536,7 +543,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                 </div>
             </div>
 
-            <div className={`rounded-[2rem] border transition-all duration-300 overflow-hidden ${getSectionStyle('weights')}`} onFocus={() => setActiveSection('weights')}>
+            <div className={`rounded-[2.5rem] border transition-all duration-300 overflow-hidden ${getSectionStyle('weights')}`} onFocus={() => setActiveSection('weights')}>
                 <div className="p-8 space-y-4">
                      <div className="flex items-center gap-3 mb-2">
                         <span className="text-xs font-black uppercase tracking-widest text-zinc-400 dark:text-zinc-500">{t('lbl_weighing')}</span>
@@ -591,6 +598,20 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                     <button onClick={() => cameraInputRef.current?.click()} className="w-12 h-12 rounded-full bg-[#2C2C2E] flex items-center justify-center text-white hover:bg-white/20 hover:scale-110 transition-all active:scale-90 shadow-inner group"><span className="material-icons-round text-xl group-hover:text-blue-400 transition-colors">photo_camera</span></button>
                     <button onClick={() => galleryInputRef.current?.click()} className="w-12 h-12 rounded-full bg-[#2C2C2E] flex items-center justify-center text-white hover:bg-white/20 hover:scale-110 transition-all active:scale-90 shadow-inner group"><span className="material-icons-round text-xl group-hover:text-purple-400 transition-colors">collections</span></button>
                     <div className="w-[1px] h-6 bg-white/10 mx-0.5"></div>
+                    
+                    {/* Redesigned Minimalist Modern Trash Icon */}
+                    <button 
+                        onClick={() => setShowConfirmReset(true)} 
+                        className="w-12 h-12 rounded-full flex items-center justify-center transition-all active:scale-75 group relative overflow-hidden"
+                        title={t('btn_clear')}
+                    >
+                        <div className="absolute inset-0 bg-gradient-to-tr from-red-500/20 to-orange-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <div className="relative flex flex-col items-center justify-center">
+                            <span className="material-icons-round text-[22px] text-[#FF453A] drop-shadow-[0_0_8px_rgba(255,69,58,0.3)] transition-transform group-hover:scale-110 group-hover:-rotate-12">delete_sweep</span>
+                            <div className="w-4 h-0.5 bg-[#FF453A] rounded-full mt-[-2px] opacity-0 group-hover:opacity-40 transition-all duration-300 scale-x-0 group-hover:scale-x-100"></div>
+                        </div>
+                    </button>
+
                     <button onClick={handleSave} className={`w-16 h-16 ml-1 rounded-full flex items-center justify-center text-white shadow-lg transition-all active:scale-90 ${hasDataToSave ? 'bg-[#10B981] shadow-emerald-500/30 animate-pulse-slow hover:scale-105' : 'bg-[#10B981]/80 shadow-[#10B981]/10'}`}><span className="material-icons-round text-2xl">save</span></button>
                 </div>
             </div>

@@ -1,7 +1,9 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App.tsx';
+import AppContent from './App.tsx';
+import { LanguageProvider } from './services/i18n';
+import { ToastProvider } from './components/Toast';
 
 // Inyección forzada de variables de entorno para el cliente
 // Esto permite que el SDK de Google lea process.env.API_KEY en Vercel
@@ -23,7 +25,11 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <App />
+    <LanguageProvider>
+      <ToastProvider>
+        <AppContent />
+      </ToastProvider>
+    </LanguageProvider>
   </React.StrictMode>
 );
 
