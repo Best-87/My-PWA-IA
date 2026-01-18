@@ -1,11 +1,10 @@
-
 {
   "name": "conferente-pro",
   "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -p tsconfig.json && vite build",
+    "build": "tsc --project tsconfig.json && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
