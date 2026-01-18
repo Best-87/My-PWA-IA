@@ -450,9 +450,6 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                                 <button onClick={handleExportCSV} className="p-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400">
                                     <span className="material-icons-round">download</span>
                                 </button>
-                                <button onClick={handleClearAll} className="p-2 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/40">
-                                    <span className="material-icons-round">delete_sweep</span>
-                                </button>
                             </div>
                         </div>
 
@@ -657,13 +654,22 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                         
                         {/* Floating Action Button to Return to Weighing */}
                         <div className="fixed bottom-6 left-0 right-0 z-50 flex justify-center pointer-events-none">
-                            <button 
-                                onClick={() => handleTabChange('weigh')}
-                                className="bg-[#1C1C1E] text-white px-6 py-3 rounded-full flex items-center gap-2 shadow-2xl ring-1 ring-white/10 hover:scale-105 transition-all animate-slide-up pointer-events-auto"
-                            >
-                                <span className="material-icons-round">scale</span>
-                                <span className="font-bold text-sm">Volver a Pesar</span>
-                            </button>
+                            <div className="flex items-center gap-2 p-2.5 bg-[#1C1C1E] rounded-[3rem] shadow-2xl shadow-black/50 ring-1 ring-white/10 animate-slide-up select-none pointer-events-auto">
+                                <button 
+                                    onClick={() => handleTabChange('weigh')}
+                                    className="bg-white text-black px-6 py-3 rounded-full flex items-center gap-2 shadow-xl hover:scale-105 active:scale-95 transition-all group"
+                                >
+                                    <span className="material-icons-round group-hover:rotate-12 transition-transform">scale</span>
+                                    <span className="font-bold text-sm tracking-tight">Volver a Pesar</span>
+                                </button>
+                                <div className="w-[1px] h-6 bg-white/10 mx-0.5"></div>
+                                <button 
+                                    onClick={handleClearAll} 
+                                    className="w-12 h-12 rounded-full flex items-center justify-center text-red-500 hover:bg-white/10 transition-all active:scale-90"
+                                >
+                                    <span className="material-icons-round text-xl">delete_sweep</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 )}
