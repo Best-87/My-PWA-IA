@@ -7,30 +7,62 @@
     
     <title>Conferente Pro</title>
     
-    <!-- Debugging Tool -->
-    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-    <script>eruda.init();</script>
-
-    <!-- Babel Standalone -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
+    <script>
+        // Early capture for PWA Install
+        window.deferredPrompt = null;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            window.deferredPrompt = e;
+        });
+    </script>
+    
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Conferente">
+    
     <link rel="icon" type="image/svg+xml" href="./icon.svg">
+    <link rel="apple-touch-icon" href="./icon.svg">
     <link rel="manifest" href="./manifest.json">
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
 
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+              mono: ['"JetBrains Mono"', 'monospace'],
+            },
+            colors: {
+              zinc: { 950: '#09090b' },
+              primary: { 500: '#3b82f6', 600: '#2563eb' },
+            },
+            animation: {
+                'fade-in': 'fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+                'slide-up': 'slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
+                'slide-down': 'slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+            },
+            keyframes: {
+                fadeIn: { '0%': { opacity: '0', transform: 'scale(0.98)' }, '100%': { opacity: '1', transform: 'scale(1)' } },
+                slideUp: { '0%': { transform: 'translateY(30px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } },
+            }
+          }
+        }
+      }
+    </script>
     
     <style>
-        body { background-color: #09090b; margin: 0; color: white; overflow-x: hidden; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background-color: #09090b; margin: 0; overflow: hidden; }
         #root:empty {
             position: fixed; inset: 0;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            display: flex; justify-content: center; align-items: center;
+            background-color: #09090b;
         }
         .loader {
             width: 40px; height: 40px;
@@ -38,13 +70,8 @@
             border-radius: 50%; animation: spin 0.8s linear infinite;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .error-overlay {
-            display: none; position: fixed; inset: 0; background: #000; z-index: 9999;
-            flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px;
-        }
     </style>
 
-    <!-- Import Map Simplificado -->
     <script type="importmap">
 {
   "imports": {
@@ -52,9 +79,9 @@
     "react-dom": "https://esm.sh/react-dom@19.0.0",
     "react-dom/client": "https://esm.sh/react-dom@19.0.0/client",
     "@google/genai": "https://esm.sh/@google/genai@1.3.0",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
     "react/": "https://esm.sh/react@^19.2.3/",
     "vite": "https://esm.sh/vite@^7.3.1",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
     "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2"
   }
 }
@@ -62,47 +89,7 @@
 </head>
 <body>
     <div id="root"><div class="loader"></div></div>
-    
-    <div id="error-screen" class="error-overlay">
-        <h2 style="color: #ef4444; font-weight: 800; font-size: 1.5rem;">Error de Carga</h2>
-        <p id="error-desc" style="color: #9ca3af; margin-top: 10px; font-size: 14px; max-width: 300px;"></p>
-        <button onclick="location.reload()" style="margin-top: 20px; background: #3b82f6; color: white; padding: 12px 24px; border-radius: 12px; border: none; font-weight: 600;">Reintentar</button>
-    </div>
-
-    <!-- Script de Configuración y Carga -->
-    <script type="text/babel" data-presets="react,typescript" data-type="module">
-        import React from 'react';
-        import ReactDOM from 'react-dom/client';
-        import App from './App.tsx';
-
-        // Definir process.env para que no rompa las librerías que lo buscan
-        window.process = { env: { API_KEY: '' } };
-
-        const startApp = () => {
-            try {
-                console.log("Iniciando aplicación...");
-                const container = document.getElementById('root');
-                const root = ReactDOM.createRoot(container);
-                root.render(<App />);
-                console.log("Renderizado inicial completado.");
-            } catch (err) {
-                console.error("Fallo crítico en el arranque:", err);
-                document.getElementById('error-screen').style.display = 'flex';
-                document.getElementById('error-desc').innerText = err.message;
-            }
-        };
-
-        // Pequeño delay para asegurar que el DOM y estilos estén listos
-        if (document.readyState === 'complete') {
-            startApp();
-        } else {
-            window.addEventListener('load', startApp);
-        }
-
-        // Service Worker (solo en producción)
-        if ('serviceWorker' in navigator && !window.location.hostname.includes('ai.studio') && !window.location.hostname.includes('localhost')) {
-            navigator.serviceWorker.register('./sw.js').catch(err => console.warn("SW no registrado:", err));
-        }
-    </script>
+    <!-- Crucial: Use ./ for relative path in GitHub Pages -->
+    <script type="module" src="./index.tsx"></script>
 </body>
 </html>

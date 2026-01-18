@@ -1,20 +1,37 @@
-const CACHE_NAME = 'conferente-v1';
+importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.4.1/workbox-sw.js');
+
+const CACHE_NAME = 'conferente-pro-v24';
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(self.skipWaiting());
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll([
+      './',
+      './index.html',
+      './manifest.json',
+      './icon.svg'
+    ]))
+  );
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(self.clients.claim());
-});
-
-self.addEventListener('fetch', (event) => {
-  // Ignorar peticiones de chrome-extension o esquemas no soportados
-  if (!event.request.url.startsWith('http')) return;
-
-  event.respondWith(
-    fetch(event.request).catch(() => {
-      return caches.match(event.request);
-    })
+  event.waitUntil(
+    caches.keys().then((keys) => Promise.all(
+      keys.map((k) => k !== CACHE_NAME && caches.delete(k))
+    ))
   );
+  self.clients.claim();
 });
+
+workbox.routing.registerRoute(
+  ({ request }) => request.mode === 'navigate',
+  new workbox.strategies.NetworkFirst({
+    cacheName: 'pages',
+    plugins: [new workbox.expiration.ExpirationPlugin({ maxEntries: 10 })]
+  })
+);
+
+workbox.routing.registerRoute(
+  ({ request }) => request.destination === 'script' || request.destination === 'style' || request.destination === 'image',
+  new workbox.strategies.StaleWhileRevalidate({ cacheName: 'assets' })
+);
