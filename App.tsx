@@ -392,8 +392,8 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
 
                         {/* Profile Section in Header */}
                         <div className="flex items-center gap-3 pl-2 ml-1 border-l border-zinc-200 dark:border-zinc-800 cursor-pointer group" onClick={() => setShowProfileModal(true)}>
-                            {/* Text Info - Hidden on very small screens to maintain layout */}
-                            <div className="hidden sm:flex flex-col items-end text-right">
+                            {/* Text Info - Visible on all screens now */}
+                            <div className="flex flex-col items-end text-right">
                                 <span className="text-xs font-bold text-zinc-900 dark:text-white leading-none mb-0.5">{profile.name}</span>
                                 <div className="flex items-center gap-1.5">
                                     <span className="text-[10px] text-zinc-500 dark:text-zinc-400 leading-none">{profile.role}</span>
