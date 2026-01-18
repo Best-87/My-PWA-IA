@@ -1,9 +1,12 @@
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App';
+import App from './App.tsx';
 
 // Safety check for process.env in browser environments without build step replacement
-if (typeof process === 'undefined') {
+// Crucial for GitHub Pages where process is not defined
+// @ts-ignore - process is not standard on window but we inject it for compatibility
+if (typeof window !== 'undefined' && !(window as any).process) {
     (window as any).process = { env: { API_KEY: '' } };
 }
 
@@ -23,7 +26,6 @@ root.render(
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     // Skip SW in preview environments (like AI Studio/IDX) where origin mismatches occur
-    // The error "origin ... does not match" happens because the iframe origin differs from the documentURL in these environments
     const isPreviewEnv = window.location.hostname.includes('scf.usercontent.goog') || 
                          window.location.hostname.includes('webcontainer') ||
                          window.location.hostname.includes('ai.studio');
