@@ -1,14 +1,12 @@
-import { GoogleGenAI, Chat, GenerateContentResponse } from "@google/genai";
 
-// Initialize Gemini Client inside function to ensure env vars are ready
-// const apiKey = process.env.API_KEY || '';
-// const ai = new GoogleGenAI({ apiKey });
+import { GoogleGenAI, Chat, GenerateContentResponse } from "@google/genai";
 
 // Helper to create a chat session
 export const createChatSession = (): Chat => {
     const apiKey = process.env.API_KEY;
     if (!apiKey) throw new Error("API Key not found in environment (geminiService)");
     
+    // Correct initialization: MUST use named parameter { apiKey: string }
     const ai = new GoogleGenAI({ apiKey });
 
     return ai.chats.create({

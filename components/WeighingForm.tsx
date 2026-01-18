@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useMemo, forwardRef, useImperativeHandle } from 'react';
 import { createPortal } from 'react-dom';
 import { GoogleGenAI } from "@google/genai";
@@ -31,33 +32,25 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
     const [batch, setBatch] = useState('');
     const [expirationDate, setExpirationDate] = useState('');
     const [productionDate, setProductionDate] = useState('');
-    const [grossWeight, setGrossWeight] = useState<string>(''); // Stores raw string like "100, 200"
+    const [grossWeight, setGrossWeight] = useState<string>(''); 
     const [noteWeight, setNoteWeight] = useState<string>('');
-    const [evidence, setEvidence] = useState<string | null>(null); // Base64 image
+    const [evidence, setEvidence] = useState<string | null>(null); 
     
-    // Collapsible sections
     const [showBoxes, setShowBoxes] = useState(false);
     const [boxQty, setBoxQty] = useState<string>('');
-    const [boxTara, setBoxTara] = useState<string>(''); // Stores strictly integer string (grams)
+    const [boxTara, setBoxTara] = useState<string>(''); 
     
-    // UI State for Modal
     const [showConfirmReset, setShowConfirmReset] = useState(false);
-
-    // Additional extracted metadata for smart tips
     const [storageType, setStorageType] = useState<'frozen' | 'refrigerated' | 'dry' | null>(null);
     const [recommendedTemp, setRecommendedTemp] = useState<string>('');
     const [criticalWarning, setCriticalWarning] = useState<string | null>(null);
     
-    // Refs for auto-focus and file inputs
     const noteInputRef = useRef<HTMLInputElement>(null);
     const grossInputRef = useRef<HTMLInputElement>(null);
     const cameraInputRef = useRef<HTMLInputElement>(null);
     const galleryInputRef = useRef<HTMLInputElement>(null);
-    
-    // Ref to block history auto-fill when AI is populating data
     const isAiPopulating = useRef(false);
 
-    // Suggestions & AI Context
     const [suggestions, setSuggestions] = useState<{products: string[], suppliers: string[]}>({products: [], suppliers: []});
     const [prediction, setPrediction] = useState<{suggestedProduct?: string; suggestedTaraBox?: number;}>({});
     const [historyContext, setHistoryContext] = useState<string | null>(null);
@@ -67,40 +60,31 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
     const [isReadingImage, setIsReadingImage] = useState(false);
     const [aiAlert, setAiAlert] = useState<string | null>(null);
 
-    // Smart Tips Carousel State
     const [currentTipIndex, setCurrentTipIndex] = useState(0);
     const [touchStart, setTouchStart] = useState<number | null>(null);
     const [touchEnd, setTouchEnd] = useState<number | null>(null);
-
-    // Track active sections for styling
     const [activeSection, setActiveSection] = useState<'identity' | 'weights' | 'tara' | 'evidence' | null>(null);
 
-    // Initialize Assistant Message
     useEffect(() => {
         if (!assistantMessage) setAssistantMessage(t('assistant_default'));
     }, [t]);
 
-    // Load Knowledge Base
     useEffect(() => {
         const kb = getKnowledgeBase();
         setSuggestions({ products: kb.products, suppliers: kb.suppliers });
     }, []);
 
-    // Auto-collapse Tara section logic
     useEffect(() => {
-        // Trigger only if showBoxes is true AND boxQty has a value different from '0' (meaning user started digitizing)
         if (!showBoxes || !boxQty || boxQty === '0') return;
-        
         const timer = setTimeout(() => {
             setShowBoxes(false);
             setActiveSection('weights');
             if (!noteWeight) noteInputRef.current?.focus();
             else grossInputRef.current?.focus();
-        }, 5000); // 5 seconds timeout
+        }, 5000);
         return () => clearTimeout(timer);
     }, [boxQty, showBoxes, noteWeight]);
 
-    // Helper function to sum comma separated strings
     const parseSum = (val: string) => {
         if (!val) return 0;
         return val.split(',').reduce((acc, curr) => {
@@ -111,36 +95,25 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
         }, 0);
     };
 
-    // Calculate totals from comma-separated strings
     const parsedGrossWeight = useMemo(() => parseSum(grossWeight), [grossWeight]);
-    // Box Tara is now a single Integer field
     const parsedBoxTara = useMemo(() => {
         const val = parseInt(boxTara, 10);
         return isNaN(val) ? 0 : val;
     }, [boxTara]);
 
-    // Reactive Assistant & Prediction Logic
     useEffect(() => {
-        // PREVENT History from overwriting AI extracted data
         if (isAiPopulating.current) return;
-
         if (supplier) {
             const pred = predictData(supplier, product);
             setPrediction(pred);
-            
-            // Auto-fill logic when prediction exists
             if (product && pred.suggestedTaraBox) {
                 setShowBoxes(true);
-                // Convert stored Kg to Grams for input (Important fix: * 1000)
                 const suggestedGrams = Math.round(pred.suggestedTaraBox * 1000);
-                
-                // Only fill if empty or 0 to avoid overwriting user edits
                 if (!boxTara || boxTara === '0') {
                     setBoxTara(suggestedGrams.toString());
-                    setBoxQty('0'); // Reset qty to force user input but keep tara ready
+                    setBoxQty('0'); 
                 }
             }
-            
             const lastRecord = getLastRecordBySupplier(supplier);
             if (lastRecord) {
                 const diff = lastRecord.netWeight - lastRecord.noteWeight;
@@ -154,9 +127,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
         }
         updateAssistantVoice();
     }, [supplier, product]); 
-    // Removed other dependencies from this specific effect to prevent loop/overwrites on typing
 
-    // Effect for voice updates dependent on all fields
     useEffect(() => {
         updateAssistantVoice();
     }, [parsedGrossWeight, noteWeight, boxQty, parsedBoxTara, language]);
@@ -192,14 +163,11 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
         let year = parseInt(parts[2], 10);
         if (year < 100) year += 2000; 
         if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
-
         const expDate = new Date(year, month, day);
         const today = new Date();
         today.setHours(0,0,0,0);
-        
         const diffTime = expDate.getTime() - today.getTime();
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
         if (diffDays < 0) return `⚠️ VENCIDO hace ${Math.abs(diffDays)} días`;
         if (diffDays <= 7) return `⚠️ CRÍTICO: Vence en ${diffDays} días`;
         return null;
@@ -209,7 +177,6 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
         const list = [];
         let riskMsg = expirationDate ? checkExpirationRisk(expirationDate) : null;
         if (criticalWarning) riskMsg = criticalWarning; 
-
         if (riskMsg) {
             list.push({
                 id: 'critical_alert',
@@ -293,7 +260,6 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
         if (currentTipIndex >= tips.length) setCurrentTipIndex(0);
     }, [tips.length]);
 
-    // Added safety fallback for activeTip
     const activeTip = tips[currentTipIndex] || tips[0] || {
         id: 'fallback',
         icon: 'error',
@@ -339,89 +305,32 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
     };
     
     const analyzeImageContent = async (base64Image: string) => {
-        // OFFLINE CHECK
         if (!navigator.onLine) {
             setAiAlert("Modo Offline: IA no disponible.");
             return;
         }
-
         setIsReadingImage(true);
-        // LOCK AI Populating to prevent useEffect history overwrite
         isAiPopulating.current = true;
-        
         setAiAlert(null);
         setCriticalWarning(null);
         setStorageType(null);
         setRecommendedTemp('');
-        
         try {
-            // INITIALIZE HERE to ensure process.env is read at execution time
             const apiKey = process.env.API_KEY;
-            if (!apiKey) throw new Error("API Key faltante. Verifique configuración.");
-            
+            if (!apiKey) throw new Error("API Key missing");
             const ai = new GoogleGenAI({ apiKey });
-
             const prompt = `Analyze this product label image for logistics. Extract readable text and return strictly valid JSON.
-            Fields:
-            - supplier (string)
-            - product (string)
-            - expiration (DD/MM/YYYY)
-            - production (DD/MM/YYYY)
-            - batch (string)
-            - tara: Weight of the empty packaging/box in GRAMS (Integer).
-              LOGIC TO FIND TARA (Priority Order):
-              1. Calculation: If "Peso Bruto" (Gross) and "Peso Líquido/Neto" (Net) exist, SUBTRACT: Tara = Gross - Net.
-              2. Explicit Label: Look for "Tara", "T.", "Peso Emb.", "Caja", "Descarte".
-              3. Inference: If a small weight (e.g., 50g, 400g, 1.2kg) is listed separately from the main net weight, it is likely the tara.
-              4. Standardize: Convert ALL results to GRAMS (e.g. 1.2kg -> 1200).
-            - storage (frozen, refrigerated, dry)
-            - temperature_range (string)
-            - warning (string)
-            
+            Fields: supplier, product, expiration (DD/MM/YYYY), production (DD/MM/YYYY), batch, tara (grams as integer), storage (frozen, refrigerated, dry), temperature_range, warning.
             Return ONLY the JSON object.`;
-
-            // Clean base64 data to ensure no prefixes interfere
             const base64Data = base64Image.includes(',') ? base64Image.split(',')[1] : base64Image;
-            
-            // TIMEOUT PROTECTION: 25s
-            const timeoutPromise = new Promise<never>((_, reject) => 
-                setTimeout(() => reject(new Error("Timeout")), 25000)
-            );
-
-            const apiCall = ai.models.generateContent({
+            const response = await ai.models.generateContent({
                 model: 'gemini-3-flash-preview', 
-                contents: {
-                    role: 'user',
-                    parts: [
-                        { inlineData: { mimeType: 'image/jpeg', data: base64Data } }, 
-                        { text: prompt }
-                    ]
-                },
-                config: {
-                    responseMimeType: 'application/json'
-                }
+                contents: { parts: [{ inlineData: { mimeType: 'image/jpeg', data: base64Data } }, { text: prompt }] },
+                config: { responseMimeType: 'application/json' }
             });
-
-            // Force cast to any to avoid TS race condition strictness
-            const response = await Promise.race([apiCall, timeoutPromise]) as any;
-
             const text = response.text;
-            if (!text) {
-                 if (response.candidates?.[0]?.finishReason === 'SAFETY') {
-                     throw new Error("Contenido bloqueado por seguridad.");
-                 }
-                 throw new Error("Respuesta vacía del modelo.");
-            }
-
-            // Robust JSON extraction
-            let jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim();
-            const firstBrace = jsonString.indexOf('{');
-            const lastBrace = jsonString.lastIndexOf('}');
-            if (firstBrace !== -1 && lastBrace !== -1) jsonString = jsonString.substring(firstBrace, lastBrace + 1);
-
-            const data = JSON.parse(jsonString);
-            
-            // Batch updates
+            if (!text) throw new Error("Empty response");
+            const data = JSON.parse(text);
             if (data.supplier && !supplier) setSupplier(data.supplier);
             if (data.product && !product) setProduct(data.product);
             if (data.batch && !batch) setBatch(data.batch);
@@ -430,40 +339,20 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
             if (data.storage) setStorageType(data.storage);
             if (data.temperature_range) setRecommendedTemp(data.temperature_range);
             if (data.warning) setCriticalWarning(data.warning);
-            
-            let normalizedTara: string | null = null;
-            
             if (data.tara) {
-                // Parse float first to catch "0.5" etc.
                 let val = parseFloat(String(data.tara));
                 if (!isNaN(val)) {
-                    // Logic: if small (< 20), likely kg -> convert to g. else assume g.
                     if (val < 20) val = val * 1000;
-                    // FORCE INTEGER: Round to remove decimals
-                    normalizedTara = Math.round(val).toString();
+                    setBoxTara(Math.round(val).toString());
+                    if (!boxQty || boxQty === '0') setBoxQty('0'); 
+                    setShowBoxes(true);
                 }
             }
-            
-            // Force update if we found a tara and the field is empty OR currently 0
-            if (normalizedTara) {
-                setBoxTara(normalizedTara);
-                if (!boxQty || boxQty === '0') setBoxQty('0'); 
-                setShowBoxes(true);
-            }
-
         } catch (error: any) {
             console.error("AI Analysis Error:", error);
-            let errMsg = "Error al leer imagen.";
-            if (error.message?.includes("Timeout")) errMsg = "Tiempo agotado (Red lenta).";
-            else if (error.message?.includes("API Key")) errMsg = "Falta API Key.";
-            else if (error.message?.includes("SAFETY")) errMsg = "Imagen bloqueada (Seguridad).";
-            else if (error.message?.includes("fetch")) errMsg = "Sin conexión.";
-            else if (error.message?.includes("JSON")) errMsg = "Error formato datos.";
-            
-            setAiAlert(errMsg);
+            setAiAlert("Error al leer imagen.");
         } finally {
             setIsReadingImage(false);
-            // Allow effects to resume after a short delay
             setTimeout(() => { isAiPopulating.current = false; }, 1500);
         }
     };
@@ -495,12 +384,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
         const kb = getKnowledgeBase();
         setSuggestions({ products: kb.products, suppliers: kb.suppliers });
         showToast(t('alert_saved'), 'success');
-        
-        // Trigger local notification for confirmation
-        sendLocalNotification(
-            'Registro Guardado', 
-            `${supplier} - ${product}: ${netWeight.toFixed(3)}kg (Dif: ${difference > 0 ? '+' : ''}${difference.toFixed(3)})`
-        );
+        sendLocalNotification('Registro Guardado', `${supplier} - ${product}: ${netWeight.toFixed(3)}kg`);
     };
 
     useImperativeHandle(ref, () => ({
@@ -511,27 +395,18 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
     }));
 
     const analyzeWithAI = async () => {
-        // OFFLINE CHECK
-        if (!navigator.onLine) {
-            setAiAlert("Modo Offline: IA no disponible.");
-            return;
-        }
-
+        if (!navigator.onLine) { setAiAlert("Modo Offline: IA no disponible."); return; }
         setIsAnalyzing(true);
         try {
-            // INITIALIZE HERE to ensure process.env is read at execution time
             const apiKey = process.env.API_KEY;
             if (!apiKey) throw new Error("Missing API Key");
             const ai = new GoogleGenAI({ apiKey });
-
-            const prompt = `Act as a logistics supervisor. Context: User Language ${t('ai_prompt_lang')}. Answer in ${t('ai_prompt_lang')}. Info: Supplier: ${supplier}, Product: ${product}, Diff: ${difference.toFixed(2)}. Check weight tolerance (+/- 200g) and Expiration Date vs Current Date. Output: Short action instruction.`;
+            const prompt = `Act as a logistics supervisor. Context: User Language ${t('ai_prompt_lang')}. Info: Supplier: ${supplier}, Product: ${product}, Diff: ${difference.toFixed(2)}. Suggest action.`;
             const response = await ai.models.generateContent({ model: 'gemini-3-flash-preview', contents: prompt });
             setAiAlert(response.text?.trim() || "Revisado.");
         } catch (e: any) { 
             console.error(e);
-            let msg = "Offline.";
-            if (e.message?.includes("API Key")) msg = "Err: API Key";
-            setAiAlert(msg); 
+            setAiAlert("Error IA."); 
         } finally { setIsAnalyzing(false); }
     };
 
@@ -543,21 +418,14 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
         return 'bg-zinc-50 dark:bg-zinc-900/50 border-transparent';
     };
 
-    // Common Input Class
     const inputClass = "w-full bg-zinc-100 dark:bg-zinc-800/80 border-0 rounded-2xl px-5 py-4 text-zinc-900 dark:text-white font-semibold outline-none focus:bg-white dark:focus:bg-zinc-800 focus:ring-2 focus:ring-primary-500/50 transition-all placeholder:text-zinc-400 dark:placeholder:text-zinc-500 shadow-inner";
-    
-    // Style for suggested fields
     const suggestionClass = "ring-2 ring-purple-500/50 border-purple-500 dark:border-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.15)] animate-pulse";
-
     const hasDataToSave = !!(supplier && product && grossWeight && noteWeight);
 
     return (
         <div className="space-y-4 relative pb-32">
-            
-            {/* Top Status Header (Weight/Diff) - Kept as requested in previous turn, but standard nav replaced */}
             <div className={`sticky top-20 z-40 p-5 rounded-[2.5rem] shadow-2xl transition-all duration-500 bg-gradient-to-br ${getStatusColor()} border border-white/10 backdrop-blur-xl overflow-hidden group mx-1`}>
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-10 -mt-10 blur-3xl pointer-events-none"></div>
-
                 <div className="relative z-10">
                     <div className="flex items-start gap-4 mb-3 select-none touch-pan-y min-h-[3.5rem]" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
                          <div className={`w-12 h-12 rounded-2xl backdrop-blur-md flex items-center justify-center shrink-0 border border-white/20 shadow-inner transition-colors duration-500 ${activeTip.bg || 'bg-white/10'}`}>
@@ -577,7 +445,6 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                              )}
                          </div>
                     </div>
-
                     <div className="flex justify-between items-end border-t border-white/10 pt-3 mt-1">
                         <div className="text-white">
                             <span className="text-[10px] uppercase tracking-widest opacity-60 font-black mb-0.5 block">Líquido</span>
@@ -592,7 +459,6 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                             </div>
                         </div>
                     </div>
-
                     {!aiAlert && Math.abs(difference) > TOLERANCE_KG && (
                          <button onClick={analyzeWithAI} disabled={isAnalyzing} className="mt-3 w-full py-3 bg-white hover:bg-zinc-100 text-zinc-900 rounded-2xl text-xs font-bold shadow-lg transition-all flex items-center justify-center gap-2">
                              {isAnalyzing ? <span className="animate-spin material-icons-round text-sm pointer-events-none">refresh</span> : <span className="material-icons-round text-sm pointer-events-none">analytics</span>}
@@ -602,7 +468,6 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                 </div>
             </div>
 
-            {/* Evidence Section - Compact Thumbnail Row Style */}
             {evidence && (
                 <div className={`rounded-xl relative overflow-hidden group transition-all duration-300 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm flex items-center h-20 pl-2 pr-4 gap-4 ${activeSection === 'evidence' ? 'ring-2 ring-primary-500/20' : ''}`} onClick={() => setActiveSection('evidence')}>
                      <div className="relative w-16 h-16 shrink-0 rounded-lg overflow-hidden border border-zinc-100 dark:border-zinc-700">
@@ -614,27 +479,20 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
                             <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">IA Live Feed</span>
                         </div>
-                        <div className="text-xs text-zinc-500 dark:text-zinc-400 font-medium truncate">
-                            {t('lbl_analyzing_img')}
-                        </div>
+                        <div className="text-xs text-zinc-500 dark:text-zinc-400 font-medium truncate">{t('lbl_analyzing_img')}</div>
                      </div>
-                     <button onClick={(e) => { e.stopPropagation(); setEvidence(null); setAiAlert(null); setIsReadingImage(false); }} className="w-8 h-8 flex items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all">
-                        <span className="material-icons-round text-base">close</span>
-                    </button>
+                     <button onClick={(e) => { e.stopPropagation(); setEvidence(null); setAiAlert(null); setIsReadingImage(false); }} className="w-8 h-8 flex items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"><span className="material-icons-round text-base">close</span></button>
                 </div>
             )}
             
-            {/* Hidden Inputs */}
             <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleImageUpload} />
             <input ref={galleryInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
 
-            {/* Form Sections */}
             <div className={`rounded-[2.5rem] border transition-all duration-300 overflow-hidden ${getSectionStyle('identity')}`} onFocus={() => setActiveSection('identity')}>
                 <div className="p-8 space-y-6">
                     <div className="flex items-center gap-3 mb-2">
                         <span className="text-xs font-black uppercase tracking-widest text-zinc-400 dark:text-zinc-500">{t('lbl_identity')}</span>
                     </div>
-
                     <div className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
                             <div className="relative group">
@@ -716,62 +574,28 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                 )}
             </div>
 
-            {/* OPTIMIZED DYNAMIC ISLAND (Bottom Bar) */}
             <div className="fixed bottom-6 left-0 right-0 z-50 flex justify-center pointer-events-none">
                 <div className="flex items-center gap-2 p-2.5 bg-[#1C1C1E] rounded-[3rem] shadow-2xl shadow-black/50 ring-1 ring-white/10 animate-slide-up select-none pointer-events-auto">
-                    
-                    {/* 1. Main Action: Weigh */}
                     <div className="bg-white text-black px-6 py-4 rounded-full flex items-center gap-2.5 shadow-xl hover:scale-105 active:scale-95 transition-all cursor-pointer group" onClick={() => setActiveSection('weights')}>
                         <span className="material-icons-round text-xl group-hover:rotate-12 transition-transform">scale</span>
                         <span className="font-bold text-sm tracking-tight">{t('tab_weigh')}</span>
                     </div>
-
-                    {/* 2. History */}
-                    <button onClick={onViewHistory} className="w-12 h-12 rounded-full flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 transition-all active:scale-90">
-                        <span className="material-icons-round text-xl">history</span>
-                    </button>
-
-                    {/* Vertical Separator */}
+                    <button onClick={onViewHistory} className="w-12 h-12 rounded-full flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 transition-all active:scale-90"><span className="material-icons-round text-xl">history</span></button>
                     <div className="w-[1px] h-6 bg-white/10 mx-0.5"></div>
-
-                    {/* 3. Camera */}
-                    <button onClick={() => cameraInputRef.current?.click()} className="w-12 h-12 rounded-full bg-[#2C2C2E] flex items-center justify-center text-white hover:bg-white/20 hover:scale-110 transition-all active:scale-90 shadow-inner group">
-                        <span className="material-icons-round text-xl group-hover:text-blue-400 transition-colors">photo_camera</span>
-                    </button>
-
-                    {/* 4. Gallery */}
-                    <button onClick={() => galleryInputRef.current?.click()} className="w-12 h-12 rounded-full bg-[#2C2C2E] flex items-center justify-center text-white hover:bg-white/20 hover:scale-110 transition-all active:scale-90 shadow-inner group">
-                        <span className="material-icons-round text-xl group-hover:text-purple-400 transition-colors">collections</span>
-                    </button>
-
-                    {/* Vertical Separator */}
+                    <button onClick={() => cameraInputRef.current?.click()} className="w-12 h-12 rounded-full bg-[#2C2C2E] flex items-center justify-center text-white hover:bg-white/20 hover:scale-110 transition-all active:scale-90 shadow-inner group"><span className="material-icons-round text-xl group-hover:text-blue-400 transition-colors">photo_camera</span></button>
+                    <button onClick={() => galleryInputRef.current?.click()} className="w-12 h-12 rounded-full bg-[#2C2C2E] flex items-center justify-center text-white hover:bg-white/20 hover:scale-110 transition-all active:scale-90 shadow-inner group"><span className="material-icons-round text-xl group-hover:text-purple-400 transition-colors">collections</span></button>
                     <div className="w-[1px] h-6 bg-white/10 mx-0.5"></div>
-
-                    {/* 5. Trash / Clear */}
-                    <button onClick={() => setShowConfirmReset(true)} className="w-12 h-12 rounded-full flex items-center justify-center text-zinc-400 hover:text-red-500 hover:bg-red-500/10 transition-all active:scale-90">
-                        <span className="material-icons-round text-xl">delete</span>
-                    </button>
-
-                    {/* 6. Save */}
-                    <button 
-                        onClick={handleSave} 
-                        className={`w-16 h-16 ml-1 rounded-full flex items-center justify-center text-white shadow-lg transition-all active:scale-90
-                            ${hasDataToSave ? 'bg-[#10B981] shadow-emerald-500/30 animate-pulse-slow hover:scale-105' : 'bg-[#10B981]/80 shadow-[#10B981]/10'}`}
-                    >
-                        <span className="material-icons-round text-2xl">save</span>
-                    </button>
+                    <button onClick={() => setShowConfirmReset(true)} className="w-12 h-12 rounded-full flex items-center justify-center text-zinc-400 hover:text-red-500 hover:bg-red-500/10 transition-all active:scale-90"><span className="material-icons-round text-xl">delete</span></button>
+                    <button onClick={handleSave} className={`w-16 h-16 ml-1 rounded-full flex items-center justify-center text-white shadow-lg transition-all active:scale-90 ${hasDataToSave ? 'bg-[#10B981] shadow-emerald-500/30 animate-pulse-slow hover:scale-105' : 'bg-[#10B981]/80 shadow-[#10B981]/10'}`}><span className="material-icons-round text-2xl">save</span></button>
                 </div>
             </div>
 
-            {/* Custom Confirmation Modal */}
             {showConfirmReset && createPortal(
                 <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in" style={{ touchAction: 'none' }}>
                     <div className="bg-white dark:bg-zinc-900 rounded-[2rem] w-full max-w-sm p-6 shadow-2xl animate-slide-up ring-1 ring-white/10 relative overflow-hidden" onClick={e => e.stopPropagation()}>
                          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-red-500 to-transparent opacity-50"></div>
                          <div className="flex flex-col items-center text-center pt-2">
-                            <div className="w-16 h-16 bg-red-50 dark:bg-red-900/10 rounded-full flex items-center justify-center mb-5 text-red-500 shadow-inner">
-                                <span className="material-icons-round text-3xl">delete_forever</span>
-                            </div>
+                            <div className="w-16 h-16 bg-red-50 dark:bg-red-900/10 rounded-full flex items-center justify-center mb-5 text-red-500 shadow-inner"><span className="material-icons-round text-3xl">delete_forever</span></div>
                             <h3 className="text-xl font-black text-zinc-900 dark:text-white mb-2 leading-tight">{t('msg_confirm_clear')}</h3>
                             <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-8 leading-relaxed px-4">Esta acción no se puede deshacer. Se borrarán todos los datos del formulario actual.</p>
                             <div className="grid grid-cols-2 gap-3 w-full">
