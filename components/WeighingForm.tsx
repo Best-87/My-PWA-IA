@@ -1,12 +1,12 @@
 
 import React, { useState, useEffect, useRef, useMemo, forwardRef, useImperativeHandle } from 'react';
 import { createPortal } from 'react-dom';
-import { GoogleGenAI } from "@google/genai";
 import { saveRecord, predictData, getKnowledgeBase, getLastRecordBySupplier } from '../services/storageService';
 import { trackEvent } from '../services/analyticsService';
 import { useTranslation } from '../services/i18n';
 import { useToast } from './Toast';
 import { sendLocalNotification } from '../services/notificationService';
+import { generateGeminiContent } from '../services/geminiService';
 
 // Stable tolerance
 const TOLERANCE_KG = 0.2;
@@ -328,19 +328,19 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
         setStorageType(null);
         setRecommendedTemp('');
         try {
-            const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-            if (!apiKey) throw new Error("API Key missing");
-            const ai = new GoogleGenAI({ apiKey });
-            const prompt = `Analyze this product label image for logistics. Extract readable text and return strictly valid JSON.
+            const promptText = `Analyze this product label image for logistics. Extract readable text and return strictly valid JSON.
             Fields: supplier, product, expiration (DD/MM/YYYY), production (DD/MM/YYYY), batch, tara (grams as integer), storage (frozen, refrigerated, dry), temperature_range, warning.
             Return ONLY the JSON object.`;
             const base64Data = base64Image.includes(',') ? base64Image.split(',')[1] : base64Image;
-            const response = await ai.models.generateContent({
-                model: 'gemini-3-flash-preview',
-                contents: { parts: [{ inlineData: { mimeType: 'image/jpeg', data: base64Data } }, { text: prompt }] },
-                config: { responseMimeType: 'application/json' }
-            });
-            const text = response.text;
+
+            const prompt = {
+                parts: [
+                    { inlineData: { mimeType: 'image/jpeg', data: base64Data } },
+                    { text: promptText }
+                ]
+            };
+
+            const text = await generateGeminiContent(prompt);
             if (!text) throw new Error("Empty response");
             const data = JSON.parse(text);
             if (data.supplier && !supplier) setSupplier(data.supplier);
@@ -411,12 +411,9 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
         if (!navigator.onLine) { setAiAlert("Modo Offline: IA no disponible."); return; }
         setIsAnalyzing(true);
         try {
-            const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-            if (!apiKey) throw new Error("Missing API Key");
-            const ai = new GoogleGenAI({ apiKey });
             const prompt = `Act as a logistics supervisor. Context: User Language ${t('ai_prompt_lang')}. Info: Supplier: ${supplier}, Product: ${product}, Diff: ${difference.toFixed(2)}. Suggest action.`;
-            const response = await ai.models.generateContent({ model: 'gemini-3-flash-preview', contents: prompt });
-            setAiAlert(response.text?.trim() || "Revisado.");
+            const text = await generateGeminiContent(prompt);
+            setAiAlert(text?.trim() || "Revisado.");
         } catch (e: any) {
             console.error(e);
             setAiAlert("Error IA.");
@@ -448,7 +445,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                             <div className={`flex flex-col justify-center relative transition-all duration-300`}>
                                 {activeTip.id !== 'assistant' && <span className={`text-[10px] uppercase font-black tracking-widest mb-1 ${activeTip.color || 'text-white/80'}`}>{activeTip.title}</span>}
                                 <div className="text-sm font-medium opacity-95 text-white leading-snug">
-                                    {isReadingImage ? <span className="animate-pulse">{t('lbl_analyzing_img')}</span> : (activeTip.component || activeTip.text)}
+                                    {isReadingImage ? <span className="animate-pulse">{t('lbl_analyzing_img')}</span> : activeTip.component}
                                 </div>
                             </div>
                             {tips.length > 1 && (

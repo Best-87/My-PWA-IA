@@ -25,7 +25,7 @@ export default async function handler(req: Request) {
     const body = (await req.json()) as GeminiRequest;
 
     const { prompt, systemInstruction } = body;
-    const apiKey = process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+    const apiKey = process.env.AI_API_KEY || process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
 
     if (!apiKey) {
       return new Response(JSON.stringify({ error: 'Configuración del servidor incompleta (API Key)' }), {
