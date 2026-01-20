@@ -35,30 +35,30 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
     const [batch, setBatch] = useState(persistentFormState?.batch || '');
     const [expirationDate, setExpirationDate] = useState(persistentFormState?.expirationDate || '');
     const [productionDate, setProductionDate] = useState(persistentFormState?.productionDate || '');
-    const [grossWeight, setGrossWeight] = useState<string>(persistentFormState?.grossWeight || ''); 
+    const [grossWeight, setGrossWeight] = useState<string>(persistentFormState?.grossWeight || '');
     const [noteWeight, setNoteWeight] = useState<string>(persistentFormState?.noteWeight || '');
-    const [evidence, setEvidence] = useState<string | null>(persistentFormState?.evidence || null); 
-    
+    const [evidence, setEvidence] = useState<string | null>(persistentFormState?.evidence || null);
+
     const [showBoxes, setShowBoxes] = useState(persistentFormState?.showBoxes || false);
     const [boxQty, setBoxQty] = useState<string>(persistentFormState?.boxQty || '');
-    const [boxTara, setBoxTara] = useState<string>(persistentFormState?.boxTara || ''); 
-    
+    const [boxTara, setBoxTara] = useState<string>(persistentFormState?.boxTara || '');
+
     const [showConfirmReset, setShowConfirmReset] = useState(false);
     const [storageType, setStorageType] = useState<'frozen' | 'refrigerated' | 'dry' | null>(persistentFormState?.storageType || null);
     const [recommendedTemp, setRecommendedTemp] = useState<string>(persistentFormState?.recommendedTemp || '');
     const [criticalWarning, setCriticalWarning] = useState<string | null>(persistentFormState?.criticalWarning || null);
-    
+
     const noteInputRef = useRef<HTMLInputElement>(null);
     const grossInputRef = useRef<HTMLInputElement>(null);
     const cameraInputRef = useRef<HTMLInputElement>(null);
     const galleryInputRef = useRef<HTMLInputElement>(null);
     const isAiPopulating = useRef(false);
 
-    const [suggestions, setSuggestions] = useState<{products: string[], suppliers: string[]}>({products: [], suppliers: []});
-    const [prediction, setPrediction] = useState<{suggestedProduct?: string; suggestedTaraBox?: number;}>({});
+    const [suggestions, setSuggestions] = useState<{ products: string[], suppliers: string[] }>({ products: [], suppliers: [] });
+    const [prediction, setPrediction] = useState<{ suggestedProduct?: string; suggestedTaraBox?: number; }>({});
     const [historyContext, setHistoryContext] = useState<string | null>(null);
     const [assistantMessage, setAssistantMessage] = useState("");
-    
+
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [isReadingImage, setIsReadingImage] = useState(false);
     const [aiAlert, setAiAlert] = useState<string | null>(null);
@@ -123,7 +123,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                 const suggestedGrams = Math.round(pred.suggestedTaraBox * 1000);
                 if (!boxTara || boxTara === '0') {
                     setBoxTara(suggestedGrams.toString());
-                    setBoxQty('0'); 
+                    setBoxQty('0');
                 }
             }
             const lastRecord = getLastRecordBySupplier(supplier);
@@ -138,7 +138,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
             setHistoryContext(null);
         }
         updateAssistantVoice();
-    }, [supplier, product]); 
+    }, [supplier, product]);
 
     useEffect(() => {
         updateAssistantVoice();
@@ -173,11 +173,11 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
         const day = parseInt(parts[0], 10);
         const month = parseInt(parts[1], 10) - 1;
         let year = parseInt(parts[2], 10);
-        if (year < 100) year += 2000; 
+        if (year < 100) year += 2000;
         if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
         const expDate = new Date(year, month, day);
         const today = new Date();
-        today.setHours(0,0,0,0);
+        today.setHours(0, 0, 0, 0);
         const diffTime = expDate.getTime() - today.getTime();
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         if (diffDays < 0) return `⚠️ VENCIDO hace ${Math.abs(diffDays)} días`;
@@ -188,7 +188,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
     const tips = useMemo(() => {
         const list = [];
         let riskMsg = expirationDate ? checkExpirationRisk(expirationDate) : null;
-        if (criticalWarning) riskMsg = criticalWarning; 
+        if (criticalWarning) riskMsg = criticalWarning;
         if (riskMsg) {
             list.push({
                 id: 'critical_alert',
@@ -214,10 +214,10 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                         )}
                         {batch && <div className="text-xs truncate">Lote: <b className="font-mono">{batch}</b></div>}
                         {(parsedBoxTara || recommendedTemp) && (
-                             <div className="flex items-center gap-3 mt-1">
+                            <div className="flex items-center gap-3 mt-1">
                                 {parsedBoxTara > 0 && <div className="text-xs bg-white/20 px-1.5 rounded flex items-center gap-1"><b>{parsedBoxTara}g</b></div>}
                                 {recommendedTemp && <div className="text-xs flex items-center gap-1 text-cyan-200 font-bold"><span className="material-icons-round text-[10px]">thermostat</span>{recommendedTemp}</div>}
-                             </div>
+                            </div>
                         )}
                     </div>
                 ),
@@ -225,8 +225,8 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
             });
         }
         if (storageType || recommendedTemp) {
-             const isFrozen = storageType === 'frozen';
-             list.push({
+            const isFrozen = storageType === 'frozen';
+            list.push({
                 id: 'storage',
                 icon: isFrozen ? 'ac_unit' : 'thermostat',
                 title: t('tip_title_storage'),
@@ -255,7 +255,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
         if (tips.length <= 1) return;
         const interval = setInterval(() => {
             setCurrentTipIndex(prev => (prev + 1) % tips.length);
-        }, isReadingImage ? 2000 : 8000); 
+        }, isReadingImage ? 2000 : 8000);
         return () => clearInterval(interval);
     }, [tips.length, isReadingImage]);
 
@@ -306,7 +306,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                     canvas.height = img.height * scaleSize;
                     const ctx = canvas.getContext('2d');
                     ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.6); 
+                    const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.6);
                     setEvidence(compressedDataUrl);
                     analyzeImageContent(compressedDataUrl);
                 };
@@ -315,7 +315,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
             reader.readAsDataURL(file);
         }
     };
-    
+
     const analyzeImageContent = async (base64Image: string) => {
         if (!navigator.onLine) {
             setAiAlert("Modo Offline: IA no disponible.");
@@ -328,7 +328,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
         setStorageType(null);
         setRecommendedTemp('');
         try {
-            const apiKey = process.env.API_KEY;
+            const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
             if (!apiKey) throw new Error("API Key missing");
             const ai = new GoogleGenAI({ apiKey });
             const prompt = `Analyze this product label image for logistics. Extract readable text and return strictly valid JSON.
@@ -336,7 +336,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
             Return ONLY the JSON object.`;
             const base64Data = base64Image.includes(',') ? base64Image.split(',')[1] : base64Image;
             const response = await ai.models.generateContent({
-                model: 'gemini-3-flash-preview', 
+                model: 'gemini-3-flash-preview',
                 contents: { parts: [{ inlineData: { mimeType: 'image/jpeg', data: base64Data } }, { text: prompt }] },
                 config: { responseMimeType: 'application/json' }
             });
@@ -356,7 +356,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                 if (!isNaN(val)) {
                     if (val < 20) val = val * 1000;
                     setBoxTara(Math.round(val).toString());
-                    if (!boxQty || boxQty === '0') setBoxQty('0'); 
+                    if (!boxQty || boxQty === '0') setBoxQty('0');
                     setShowBoxes(true);
                 }
             }
@@ -411,15 +411,15 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
         if (!navigator.onLine) { setAiAlert("Modo Offline: IA no disponible."); return; }
         setIsAnalyzing(true);
         try {
-            const apiKey = process.env.API_KEY;
+            const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
             if (!apiKey) throw new Error("Missing API Key");
             const ai = new GoogleGenAI({ apiKey });
             const prompt = `Act as a logistics supervisor. Context: User Language ${t('ai_prompt_lang')}. Info: Supplier: ${supplier}, Product: ${product}, Diff: ${difference.toFixed(2)}. Suggest action.`;
             const response = await ai.models.generateContent({ model: 'gemini-3-flash-preview', contents: prompt });
             setAiAlert(response.text?.trim() || "Revisado.");
-        } catch (e: any) { 
+        } catch (e: any) {
             console.error(e);
-            setAiAlert("Error IA."); 
+            setAiAlert("Error IA.");
         } finally { setIsAnalyzing(false); }
     };
 
@@ -441,22 +441,22 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-10 -mt-10 blur-3xl pointer-events-none"></div>
                 <div className="relative z-10">
                     <div className="flex items-start gap-4 mb-3 select-none touch-pan-y min-h-[3.5rem]" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
-                         <div className={`w-12 h-12 rounded-2xl backdrop-blur-md flex items-center justify-center shrink-0 border border-white/20 shadow-inner transition-colors duration-500 ${activeTip.bg || 'bg-white/10'}`}>
+                        <div className={`w-12 h-12 rounded-2xl backdrop-blur-md flex items-center justify-center shrink-0 border border-white/20 shadow-inner transition-colors duration-500 ${activeTip.bg || 'bg-white/10'}`}>
                             <span className="material-icons-round text-2xl pointer-events-none text-white transition-all duration-500">{activeTip.icon}</span>
-                         </div>
-                         <div className="flex-1 overflow-hidden relative pt-1">
-                             <div className={`flex flex-col justify-center relative transition-all duration-300`}>
-                                 {activeTip.id !== 'assistant' && <span className={`text-[10px] uppercase font-black tracking-widest mb-1 ${activeTip.color || 'text-white/80'}`}>{activeTip.title}</span>}
-                                 <div className="text-sm font-medium opacity-95 text-white leading-snug">
+                        </div>
+                        <div className="flex-1 overflow-hidden relative pt-1">
+                            <div className={`flex flex-col justify-center relative transition-all duration-300`}>
+                                {activeTip.id !== 'assistant' && <span className={`text-[10px] uppercase font-black tracking-widest mb-1 ${activeTip.color || 'text-white/80'}`}>{activeTip.title}</span>}
+                                <div className="text-sm font-medium opacity-95 text-white leading-snug">
                                     {isReadingImage ? <span className="animate-pulse">{t('lbl_analyzing_img')}</span> : (activeTip.component || activeTip.text)}
-                                 </div>
-                             </div>
-                             {tips.length > 1 && (
-                                 <div className="flex gap-1.5 mt-2.5">
-                                    {tips.map((_, idx) => ( <div key={idx} className={`h-1 rounded-full transition-all duration-300 ${idx === currentTipIndex ? 'w-5 bg-white' : 'w-1.5 bg-white/30'}`} /> ))}
-                                 </div>
-                             )}
-                         </div>
+                                </div>
+                            </div>
+                            {tips.length > 1 && (
+                                <div className="flex gap-1.5 mt-2.5">
+                                    {tips.map((_, idx) => (<div key={idx} className={`h-1 rounded-full transition-all duration-300 ${idx === currentTipIndex ? 'w-5 bg-white' : 'w-1.5 bg-white/30'}`} />))}
+                                </div>
+                            )}
+                        </div>
                     </div>
                     <div className="flex justify-between items-end border-t border-white/10 pt-3 mt-1">
                         <div className="text-white">
@@ -473,31 +473,31 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                         </div>
                     </div>
                     {!aiAlert && Math.abs(difference) > TOLERANCE_KG && (
-                         <button onClick={analyzeWithAI} disabled={isAnalyzing} className="mt-3 w-full py-3 bg-white hover:bg-zinc-100 text-zinc-900 rounded-2xl text-xs font-bold shadow-lg transition-all flex items-center justify-center gap-2">
-                             {isAnalyzing ? <span className="animate-spin material-icons-round text-sm pointer-events-none">refresh</span> : <span className="material-icons-round text-sm pointer-events-none">analytics</span>}
-                             {isAnalyzing ? t('btn_analyzing') : t('btn_consult_ai')}
-                         </button>
-                     )}
+                        <button onClick={analyzeWithAI} disabled={isAnalyzing} className="mt-3 w-full py-3 bg-white hover:bg-zinc-100 text-zinc-900 rounded-2xl text-xs font-bold shadow-lg transition-all flex items-center justify-center gap-2">
+                            {isAnalyzing ? <span className="animate-spin material-icons-round text-sm pointer-events-none">refresh</span> : <span className="material-icons-round text-sm pointer-events-none">analytics</span>}
+                            {isAnalyzing ? t('btn_analyzing') : t('btn_consult_ai')}
+                        </button>
+                    )}
                 </div>
             </div>
 
             {evidence && (
                 <div className={`rounded-xl relative overflow-hidden group transition-all duration-300 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm flex items-center h-20 pl-2 pr-4 gap-4 ${activeSection === 'evidence' ? 'ring-2 ring-primary-500/20' : ''}`} onClick={() => setActiveSection('evidence')}>
-                     <div className="relative w-16 h-16 shrink-0 rounded-lg overflow-hidden border border-zinc-100 dark:border-zinc-700">
-                         <img src={evidence} alt="Evidence" className="w-full h-full object-cover" />
-                         <div className="absolute inset-0 bg-primary-500/10 animate-pulse pointer-events-none"></div>
-                     </div>
-                     <div className="flex-1 min-w-0 flex flex-col justify-center">
+                    <div className="relative w-16 h-16 shrink-0 rounded-lg overflow-hidden border border-zinc-100 dark:border-zinc-700">
+                        <img src={evidence} alt="Evidence" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-primary-500/10 animate-pulse pointer-events-none"></div>
+                    </div>
+                    <div className="flex-1 min-w-0 flex flex-col justify-center">
                         <div className="flex items-center gap-2 mb-1">
                             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
                             <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">IA Live Feed</span>
                         </div>
                         <div className="text-xs text-zinc-500 dark:text-zinc-400 font-medium truncate">{t('lbl_analyzing_img')}</div>
-                     </div>
-                     <button onClick={(e) => { e.stopPropagation(); setEvidence(null); setAiAlert(null); setIsReadingImage(false); }} className="w-8 h-8 flex items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"><span className="material-icons-round text-base">close</span></button>
+                    </div>
+                    <button onClick={(e) => { e.stopPropagation(); setEvidence(null); setAiAlert(null); setIsReadingImage(false); }} className="w-8 h-8 flex items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"><span className="material-icons-round text-base">close</span></button>
                 </div>
             )}
-            
+
             <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleImageUpload} />
             <input ref={galleryInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
 
@@ -520,14 +520,14 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                             </div>
                         </div>
                         {prediction.suggestedProduct && !product && (
-                             <button onClick={() => setProduct(prediction.suggestedProduct!)} className="w-full animate-fade-in text-left px-6 py-4 bg-zinc-50 dark:bg-zinc-800/50 border border-dashed border-primary-300 dark:border-primary-700 rounded-2xl flex items-center justify-between group hover:bg-white dark:hover:bg-zinc-800 transition-all">
-                                <span className="text-xs text-primary-700 dark:text-primary-300">{t('btn_suggestion', {supplier})}<br/><span className="font-bold text-sm">{prediction.suggestedProduct}</span></span>
+                            <button onClick={() => setProduct(prediction.suggestedProduct!)} className="w-full animate-fade-in text-left px-6 py-4 bg-zinc-50 dark:bg-zinc-800/50 border border-dashed border-primary-300 dark:border-primary-700 rounded-2xl flex items-center justify-between group hover:bg-white dark:hover:bg-zinc-800 transition-all">
+                                <span className="text-xs text-primary-700 dark:text-primary-300">{t('btn_suggestion', { supplier })}<br /><span className="font-bold text-sm">{prediction.suggestedProduct}</span></span>
                                 <span className="material-icons-round text-primary-500 group-hover:scale-110 transition-transform pointer-events-none bg-white dark:bg-zinc-900 rounded-full p-1.5 shadow-sm">add</span>
                             </button>
                         )}
                         <div className="relative group">
-                             <span className="absolute left-5 top-4 text-zinc-400 dark:text-zinc-500 material-icons-round text-xl group-focus-within:text-primary-500 transition-colors pointer-events-none">qr_code_2</span>
-                             <input type="text" value={batch} onChange={e => setBatch(e.target.value)} placeholder={t('ph_batch')} className={inputClass + " pl-14"} />
+                            <span className="absolute left-5 top-4 text-zinc-400 dark:text-zinc-500 material-icons-round text-xl group-focus-within:text-primary-500 transition-colors pointer-events-none">qr_code_2</span>
+                            <input type="text" value={batch} onChange={e => setBatch(e.target.value)} placeholder={t('ph_batch')} className={inputClass + " pl-14"} />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="relative group">
@@ -545,7 +545,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
 
             <div className={`rounded-[2.5rem] border transition-all duration-300 overflow-hidden ${getSectionStyle('weights')}`} onFocus={() => setActiveSection('weights')}>
                 <div className="p-8 space-y-4">
-                     <div className="flex items-center gap-3 mb-2">
+                    <div className="flex items-center gap-3 mb-2">
                         <span className="text-xs font-black uppercase tracking-widest text-zinc-400 dark:text-zinc-500">{t('lbl_weighing')}</span>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
@@ -598,10 +598,10 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                     <button onClick={() => cameraInputRef.current?.click()} className="w-12 h-12 rounded-full bg-[#2C2C2E] flex items-center justify-center text-white hover:bg-white/20 hover:scale-110 transition-all active:scale-90 shadow-inner group"><span className="material-icons-round text-xl group-hover:text-blue-400 transition-colors">photo_camera</span></button>
                     <button onClick={() => galleryInputRef.current?.click()} className="w-12 h-12 rounded-full bg-[#2C2C2E] flex items-center justify-center text-white hover:bg-white/20 hover:scale-110 transition-all active:scale-90 shadow-inner group"><span className="material-icons-round text-xl group-hover:text-purple-400 transition-colors">collections</span></button>
                     <div className="w-[1px] h-6 bg-white/10 mx-0.5"></div>
-                    
+
                     {/* Redesigned Minimalist Modern Trash Icon */}
-                    <button 
-                        onClick={() => setShowConfirmReset(true)} 
+                    <button
+                        onClick={() => setShowConfirmReset(true)}
                         className="w-12 h-12 rounded-full flex items-center justify-center transition-all active:scale-75 group relative overflow-hidden"
                         title={t('btn_clear')}
                     >
@@ -619,8 +619,8 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
             {showConfirmReset && createPortal(
                 <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in" style={{ touchAction: 'none' }} role="dialog" aria-modal="true" aria-labelledby="modal-title">
                     <div className="bg-white dark:bg-zinc-900 rounded-[2rem] w-full max-w-sm p-6 shadow-2xl animate-slide-up ring-1 ring-white/10 relative overflow-hidden" onClick={e => e.stopPropagation()}>
-                         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-red-500/10 blur-[60px] pointer-events-none"></div>
-                         <div className="flex flex-col items-center text-center relative z-10">
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-red-500/10 blur-[60px] pointer-events-none"></div>
+                        <div className="flex flex-col items-center text-center relative z-10">
                             <div className="relative mb-5">
                                 <div className="absolute inset-0 bg-red-500 blur-xl opacity-20 rounded-full"></div>
                                 <div className="w-20 h-20 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center relative shadow-sm border border-red-100 dark:border-red-900/30">
