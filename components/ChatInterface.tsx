@@ -18,7 +18,7 @@ export const ChatInterface: React.FC = () => {
     useEffect(() => {
         if (!navigator.onLine) return; // Skip if offline
         try {
-            const session = createChatSession("Eres un consultor experto en logística y pesaje para Conferente Pro.");
+            const session = createChatSession("Eres el consultor senior de Conferente Pro. Tu entrenamiento incluye análisis logístico avanzado, gestión de inventarios y optimización de pesaje. Ayuda al usuario a interpretar datos de etiquetas, resolver dudas sobre proveedores y mejorar la precisión de los registros.");
             setChatSession(session);
         } catch (error) {
             console.error("Failed to init chat session", error);
@@ -38,20 +38,20 @@ export const ChatInterface: React.FC = () => {
     const handleSendMessage = useCallback(async (e?: React.FormEvent) => {
         e?.preventDefault();
         if (!input.trim() || isLoading) return;
-        
+
         // CHECK OFFLINE
         if (!navigator.onLine) {
-            setMessages(prev => [...prev, { 
-                id: Date.now().toString(), 
-                role: 'model', 
-                text: "⚠️ No hay conexión a internet. El asistente no puede responder.", 
-                timestamp: Date.now() 
+            setMessages(prev => [...prev, {
+                id: Date.now().toString(),
+                role: 'model',
+                text: "⚠️ No hay conexión a internet. El asistente no puede responder.",
+                timestamp: Date.now()
             }]);
             return;
         }
 
         // Track interaction event
-        trackEvent('message_sent', { 
+        trackEvent('message_sent', {
             length: input.length,
             timestamp: Date.now()
         });
@@ -76,28 +76,28 @@ export const ChatInterface: React.FC = () => {
             // Re-init session if missing (e.g. came online later)
             let session = chatSession;
             if (!session) {
-                 session = createChatSession();
-                 setChatSession(session);
+                session = createChatSession();
+                setChatSession(session);
             }
 
             const streamResult = await sendMessageStream(session, userMessage.text);
-            
+
             let fullText = '';
             for await (const chunk of streamResult) {
-                 const content = chunk as GenerateContentResponse;
-                 const textChunk = content.text || '';
-                 fullText += textChunk;
-                 
-                 setMessages(prev => prev.map(msg => 
+                const content = chunk as GenerateContentResponse;
+                const textChunk = content.text || '';
+                fullText += textChunk;
+
+                setMessages(prev => prev.map(msg =>
                     msg.id === modelMsgId ? { ...msg, text: fullText } : msg
-                 ));
+                ));
             }
             // Track successful response
             trackEvent('message_response_received', { length: fullText.length });
         } catch (error) {
             console.error("Error receiving stream", error);
             trackEvent('error_message_send', { error: String(error) });
-            setMessages(prev => prev.map(msg => 
+            setMessages(prev => prev.map(msg =>
                 msg.id === modelMsgId ? { ...msg, text: "Lo siento, ha ocurrido un error en la conexión. Por favor verifica tu red e intenta nuevamente." } : msg
             ));
         } finally {
@@ -116,8 +116,8 @@ export const ChatInterface: React.FC = () => {
                     <div>
                         <h2 className="text-white font-display font-medium text-sm">Sesión Activa</h2>
                         <div className="flex items-center gap-1.5">
-                             <div className={`w-1.5 h-1.5 rounded-full ${navigator.onLine ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
-                             <span className="text-white/40 text-xs">{navigator.onLine ? 'Conectado a Gemini 3' : 'Sin Conexión'}</span>
+                            <div className={`w-1.5 h-1.5 rounded-full ${navigator.onLine ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
+                            <span className="text-white/40 text-xs">{navigator.onLine ? 'Conectado a Gemini 3' : 'Sin Conexión'}</span>
                         </div>
                     </div>
                 </div>
@@ -126,16 +126,15 @@ export const ChatInterface: React.FC = () => {
             {/* Messages Area */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-thin">
                 {messages.map((msg) => (
-                    <div 
-                        key={msg.id} 
+                    <div
+                        key={msg.id}
                         className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                     >
-                        <div 
-                            className={`max-w-[85%] rounded-2xl px-6 py-4 text-sm leading-7 shadow-sm ${
-                                msg.role === 'user' 
-                                    ? 'bg-primary text-white rounded-br-sm' 
+                        <div
+                            className={`max-w-[85%] rounded-2xl px-6 py-4 text-sm leading-7 shadow-sm ${msg.role === 'user'
+                                    ? 'bg-primary text-white rounded-br-sm'
                                     : 'bg-white/10 text-gray-100 rounded-bl-sm border border-white/5'
-                            }`}
+                                }`}
                         >
                             <p className="whitespace-pre-wrap font-sans">{msg.text}</p>
                             {msg.role === 'model' && msg.text === '' && (
@@ -154,15 +153,15 @@ export const ChatInterface: React.FC = () => {
             {/* Input Area */}
             <div className="p-4 bg-black/40 border-t border-white/5">
                 <form onSubmit={handleSendMessage} className="relative flex items-center gap-3 max-w-4xl mx-auto">
-                    <input 
-                        type="text" 
+                    <input
+                        type="text"
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
-                        placeholder="Escribe tu consulta o datos a analizar..." 
+                        placeholder="Escribe tu consulta o datos a analizar..."
                         className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 focus:bg-white/10 transition-all font-sans"
                         disabled={isLoading}
                     />
-                    <button 
+                    <button
                         type="submit"
                         disabled={isLoading || !input.trim()}
                         className="bg-primary hover:bg-[#6a11cb] disabled:opacity-50 disabled:cursor-not-allowed text-white p-4 rounded-2xl shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 flex items-center justify-center"
@@ -180,7 +179,7 @@ export const ChatInterface: React.FC = () => {
                     </button>
                 </form>
                 <div className="text-center mt-2">
-                     <p className="text-[10px] text-white/20">Conferente AI puede cometer errores. Verifica la información importante.</p>
+                    <p className="text-[10px] text-white/20">Conferente AI puede cometer errores. Verifica la información importante.</p>
                 </div>
             </div>
         </div>

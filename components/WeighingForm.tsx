@@ -300,13 +300,13 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                 const img = new Image();
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 800;
+                    const MAX_WIDTH = 700; // Reducido para mayor velocidad de subida
                     const scaleSize = MAX_WIDTH / img.width;
                     canvas.width = MAX_WIDTH;
                     canvas.height = img.height * scaleSize;
                     const ctx = canvas.getContext('2d');
                     ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.6);
+                    const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.5); // Compresión aumentada
                     setEvidence(compressedDataUrl);
                     analyzeImageContent(compressedDataUrl);
                 };
@@ -328,9 +328,19 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
         setStorageType(null);
         setRecommendedTemp('');
         try {
-            const promptText = `Analyze this product label image for logistics. Extract readable text and return strictly valid JSON.
-            Fields: supplier, product, expiration (DD/MM/YYYY), production (DD/MM/YYYY), batch, tara (grams as integer), storage (frozen, refrigerated, dry), temperature_range, warning.
-            Return ONLY the JSON object.`;
+            const promptText = `EXTRACT_LOGISTICS_DATA_JSON:
+            {
+              "supplier": "string",
+              "product": "string",
+              "expiration": "DD/MM/YYYY" | null,
+              "production": "DD/MM/YYYY" | null,
+              "batch": "string" | null,
+              "tara": "integer_grams" | null,
+              "storage": "frozen"|"refrigerated"|"dry",
+              "temperature_range": "string" | null,
+              "warning": "string" | null
+            }
+            Rules: Use high precision OCR. Output ONLY raw JSON. No markdown. If info is missing, use null.`;
             const base64Data = base64Image.includes(',') ? base64Image.split(',')[1] : base64Image;
 
             const prompt = {
@@ -343,7 +353,6 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
             const text = await generateGeminiContent(prompt);
             if (!text) throw new Error("Empty response");
 
-            // Limpiar Markdown si la IA lo incluye
             const cleanJson = text.replace(/```json|```/g, '').trim();
             const data = JSON.parse(cleanJson);
             if (data.supplier && !supplier) setSupplier(data.supplier);
