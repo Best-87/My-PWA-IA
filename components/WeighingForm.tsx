@@ -342,7 +342,10 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
 
             const text = await generateGeminiContent(prompt);
             if (!text) throw new Error("Empty response");
-            const data = JSON.parse(text);
+
+            // Limpiar Markdown si la IA lo incluye
+            const cleanJson = text.replace(/```json|```/g, '').trim();
+            const data = JSON.parse(cleanJson);
             if (data.supplier && !supplier) setSupplier(data.supplier);
             if (data.product && !product) setProduct(data.product);
             if (data.batch && !batch) setBatch(data.batch);
