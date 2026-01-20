@@ -47,19 +47,38 @@ export const getUserProfile = (): UserProfile => {
 
 // --- Record Functions ---
 
-export const saveRecord = (record: WeighingRecord) => {
+export const saveRecord = async (record: WeighingRecord) => {
     const records = getRecords();
-    
+
     // Automatically attach the store from the current profile to the record
     const profile = getUserProfile();
     const enrichedRecord = {
         ...record,
         store: profile.store
     };
-    
+
     records.unshift(enrichedRecord);
     localStorage.setItem(KEY_RECORDS, JSON.stringify(records));
     learnFromRecord(enrichedRecord);
+
+    // Auto-sync to Cloud if configured
+    const googleClientId = localStorage.getItem('google_client_id');
+    if (googleClientId && navigator.onLine) {
+        try {
+            const { generateBackupData } = await import('./storageService');
+            const { initGoogleDrive, uploadBackupToDrive } = await import('./googleDriveService');
+
+            initGoogleDrive(googleClientId, async (success) => {
+                if (success) {
+                    const data = generateBackupData();
+                    await uploadBackupToDrive(data);
+                    console.log("Cloud Backup Auto-Synced");
+                }
+            });
+        } catch (e) {
+            console.error("Auto-sync failed", e);
+        }
+    }
 };
 
 export const deleteRecord = (id: string) => {
@@ -89,26 +108,26 @@ export const getLastRecordBySupplier = (supplier: string): WeighingRecord | unde
 
 const learnFromRecord = (record: WeighingRecord) => {
     const kb = getKnowledgeBase();
-    
+
     // Add unique supplier/product
     if (!kb.suppliers.includes(record.supplier)) kb.suppliers.push(record.supplier);
     if (!kb.products.includes(record.product)) kb.products.push(record.product);
 
     // Learn patterns STRICTLY by Supplier + Product combination
     // This ensures "Tomatoes" from Supplier A (wood box) are different from Supplier B (plastic box)
-    const key = `${record.supplier}::${record.product}`; 
-    
+    const key = `${record.supplier}::${record.product}`;
+
     // Get existing pattern to preserve data if needed
     const existingPattern = kb.patterns[key];
 
     kb.patterns[key] = {
         typicalTaraBox: record.boxes.unitTara > 0 ? record.boxes.unitTara : (existingPattern?.typicalTaraBox || 0),
-        lastUsedProduct: record.product 
+        lastUsedProduct: record.product
     };
 
     // Update supplier preference (Last product brought by this supplier)
     const supplierKey = `SUP::${record.supplier}`;
-    
+
     kb.patterns[supplierKey] = {
         typicalTaraBox: 0, // Not used for general supplier key
         lastUsedProduct: record.product
@@ -128,7 +147,7 @@ export const getKnowledgeBase = (): KnowledgeBase => {
 
 export const predictData = (supplier: string, product?: string) => {
     const kb = getKnowledgeBase();
-    
+
     if (supplier && !product) {
         // Predict product based on supplier history
         const supKey = `SUP::${supplier}`;
@@ -169,7 +188,7 @@ export const generateBackupData = () => {
 export const restoreBackupData = (jsonString: string): boolean => {
     try {
         const backup = JSON.parse(jsonString);
-        
+
         // Basic Validation
         if (backup.app !== 'Conferente Pro' || !backup.data) {
             return false;
