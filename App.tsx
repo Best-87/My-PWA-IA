@@ -25,14 +25,14 @@ const checkExpirationRisk = (dateStr?: string): string | null => {
     const month = parseInt(parts[1], 10) - 1;
     let year = parseInt(parts[2], 10);
     if (year < 100) year += 2000;
-    
+
     const expDate = new Date(year, month, day);
     const today = new Date();
-    today.setHours(0,0,0,0);
-    
+    today.setHours(0, 0, 0, 0);
+
     const diffTime = expDate.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
+
     if (diffDays < 0) return `VENCIDO (${Math.abs(diffDays)}d)`;
     if (diffDays <= 3) return `CRÍTICO (${diffDays}d)`;
     if (diffDays <= 7) return `ALERTA (${diffDays}d)`;
@@ -52,7 +52,7 @@ const AppContent = () => {
     const [showAnalytics, setShowAnalytics] = useState(false);
     const [showChat, setShowChat] = useState(false);
     const [theme, setThemeState] = useState(getTheme());
-    
+
     // Filter States
     const [searchTerm, setSearchTerm] = useState('');
     const [timeFilter, setTimeFilter] = useState<'all' | 'today' | 'week' | 'month' | 'year'>('all');
@@ -61,11 +61,11 @@ const AppContent = () => {
     const [viewImage, setViewImage] = useState<string | null>(null);
 
     // Backup State
-    const [googleClientId, setGoogleClientId] = useState(() => localStorage.getItem('google_client_id') || '');
+    const [googleClientId, setGoogleClientId] = useState(() => localStorage.getItem('google_client_id') || '593915476590-pl7aq2q1mtpeec131r3u783i67o1k1pc.apps.googleusercontent.com');
     const [isDriveSyncing, setIsDriveSyncing] = useState(false);
     const backupInputRef = useRef<HTMLInputElement>(null);
     const profileInputRef = useRef<HTMLInputElement>(null); // New ref for profile photo
-    
+
     const formRef = useRef<WeighingFormHandle>(null);
 
     // Delete Modal State
@@ -81,7 +81,7 @@ const AppContent = () => {
         } else {
             document.documentElement.classList.remove('dark');
         }
-        
+
         // Listen for updates via focus
         const handleFocus = () => setRecords(getRecords());
         window.addEventListener('focus', handleFocus);
@@ -126,7 +126,7 @@ const AppContent = () => {
     useEffect(() => {
         if (googleClientId) {
             initGoogleDrive(googleClientId, (success) => {
-                if(success) console.log("Google Drive Initialized");
+                if (success) console.log("Google Drive Initialized");
             });
         }
     }, [googleClientId]);
@@ -188,7 +188,7 @@ const AppContent = () => {
         showToast(t('msg_history_cleared'), 'warning');
         trackEvent('history_cleared');
     };
-    
+
     const handleSaveProfile = () => {
         saveUserProfile(profile);
         setShowProfileModal(false);
@@ -224,11 +224,11 @@ const AppContent = () => {
             (r.netWeight - r.noteWeight).toFixed(3),
             r.status
         ]);
-        
-        const csvContent = "data:text/csv;charset=utf-8," 
-            + headers.join(",") + "\n" 
+
+        const csvContent = "data:text/csv;charset=utf-8,"
+            + headers.join(",") + "\n"
             + rows.map(e => e.join(",")).join("\n");
-            
+
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement("a");
         link.setAttribute("href", encodedUri);
@@ -238,12 +238,12 @@ const AppContent = () => {
         document.body.removeChild(link);
         trackEvent('data_exported', { count: records.length });
     };
-    
+
     const handleShareWhatsapp = (rec: WeighingRecord, e?: React.MouseEvent) => {
         e?.stopPropagation();
         const diff = rec.netWeight - rec.noteWeight;
         const isSurplus = diff >= 0;
-        
+
         const text = `*${t('rpt_title')}*
 ---------------------------
 ${t('rpt_supplier')} ${rec.supplier}
@@ -281,7 +281,7 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
         try {
             const data = generateBackupData();
             initGoogleDrive(googleClientId, async (success) => {
-                if(success) {
+                if (success) {
                     await uploadBackupToDrive(data);
                     showToast(t('backup_success'), 'success');
                     trackEvent('drive_upload_success');
@@ -299,13 +299,13 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
 
     const handleDriveRestore = async () => {
         if (!googleClientId) {
-             showToast("Ingresa tu Google Client ID", 'warning');
-             return;
+            showToast("Ingresa tu Google Client ID", 'warning');
+            return;
         }
         setIsDriveSyncing(true);
         try {
             initGoogleDrive(googleClientId, async (success) => {
-                if(success) {
+                if (success) {
                     const content = await restoreBackupFromDrive();
                     if (content) {
                         restoreBackupData(content);
@@ -318,9 +318,9 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                 setIsDriveSyncing(false);
             });
         } catch (e) {
-             console.error(e);
-             showToast("Error restaurando de Drive", 'error');
-             setIsDriveSyncing(false);
+            console.error(e);
+            showToast("Error restaurando de Drive", 'error');
+            setIsDriveSyncing(false);
         }
     };
 
@@ -340,7 +340,7 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
         };
         reader.readAsText(file);
     };
-    
+
     // Filter logic
     const filteredRecords = records.filter(rec => {
         // Search Filter
@@ -385,7 +385,7 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
             <InstallManager />
             <input ref={backupInputRef} type="file" accept=".json" className="hidden" onChange={handleRestore} />
             <input ref={profileInputRef} type="file" accept="image/*" className="hidden" onChange={handleProfilePhotoUpload} />
-            
+
             {/* Header */}
             <header className="fixed top-0 w-full z-50 bg-white/80 dark:bg-black/80 backdrop-blur-xl border-b border-zinc-200 dark:border-zinc-800 transition-colors animate-slide-down">
                 <div className="max-w-3xl mx-auto px-4 h-16 flex items-center justify-between">
@@ -398,7 +398,7 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                             <span className="text-[10px] font-bold text-primary-500 dark:text-primary-400 tracking-widest uppercase">{t('app_subtitle')}</span>
                         </div>
                     </div>
-                    
+
                     <div className="flex items-center gap-2">
                         <button onClick={() => setShowAnalytics(true)} className="w-9 h-9 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 flex items-center justify-center hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors">
                             <span className="material-icons-round text-lg">bar_chart</span>
@@ -434,12 +434,12 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                 {activeTab === 'weigh' ? (
                     <div className="animate-fade-in">
                         <div className="mb-6 flex items-center justify-between">
-                             <div className="flex flex-col">
-                                 <h2 className="text-2xl font-black text-zinc-900 dark:text-white">{t('lbl_weighing')}</h2>
-                                 <p className="text-sm text-zinc-500 dark:text-zinc-400">Nova conferência</p>
-                             </div>
+                            <div className="flex flex-col">
+                                <h2 className="text-2xl font-black text-zinc-900 dark:text-white">{t('lbl_weighing')}</h2>
+                                <p className="text-sm text-zinc-500 dark:text-zinc-400">Nova conferência</p>
+                            </div>
                         </div>
-                        
+
                         <WeighingForm ref={formRef} onViewHistory={() => handleTabChange('history')} />
                     </div>
                 ) : (
@@ -465,11 +465,10 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                                 <button
                                     key={filter.id}
                                     onClick={() => setTimeFilter(filter.id as any)}
-                                    className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
-                                        timeFilter === filter.id
+                                    className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all ${timeFilter === filter.id
                                             ? 'bg-primary-500 text-white shadow-lg'
                                             : 'bg-white dark:bg-zinc-900 text-zinc-500 border border-zinc-200 dark:border-zinc-800'
-                                    }`}
+                                        }`}
                                 >
                                     {filter.label}
                                 </button>
@@ -479,7 +478,7 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                         {/* Search Bar */}
                         <div className="relative mb-6">
                             <span className="absolute left-4 top-3.5 text-zinc-400 dark:text-zinc-500 material-icons-round text-xl">search</span>
-                            <input 
+                            <input
                                 type="text"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -504,25 +503,25 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                                     const isError = Math.abs(diff) > TOLERANCE_KG;
                                     const risk = checkExpirationRisk(rec.expirationDate);
                                     const isExpanded = expandedIds.has(rec.id);
-                                    
+
                                     return (
                                         <div key={rec.id} className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-zinc-100 dark:border-zinc-800 relative overflow-hidden transition-all duration-300">
                                             {/* Main Clickable Header */}
                                             <div onClick={() => toggleExpand(rec.id)} className="p-5 relative cursor-pointer select-none">
                                                 {/* Status Bar */}
                                                 <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${isError ? 'bg-red-500' : 'bg-emerald-500'}`}></div>
-                                                
+
                                                 <div className="pl-3 flex justify-between items-start">
                                                     {/* Left: Info */}
                                                     <div>
                                                         <h3 className="font-bold text-zinc-900 dark:text-white text-lg leading-tight">{rec.product}</h3>
                                                         <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wide mt-0.5">{rec.supplier}</p>
                                                     </div>
-                                                    
+
                                                     {/* Right: Toggle Icon & Time */}
                                                     <div className="flex flex-col items-end gap-1">
-                                                         <span className="text-[10px] font-mono text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded-md">
-                                                            {new Date(rec.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                                        <span className="text-[10px] font-mono text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded-md">
+                                                            {new Date(rec.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                         </span>
                                                         <span className={`material-icons-round text-zinc-400 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>expand_more</span>
                                                     </div>
@@ -585,18 +584,18 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                                             {/* Expanded Content */}
                                             {isExpanded && (
                                                 <div className="border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/30 p-5 pl-8 animate-slide-down">
-                                                     {/* Expanded Details: Logistics */}
-                                                     {(rec.batch || rec.productionDate || rec.expirationDate || rec.recommendedTemperature) && (
+                                                    {/* Expanded Details: Logistics */}
+                                                    {(rec.batch || rec.productionDate || rec.expirationDate || rec.recommendedTemperature) && (
                                                         <div className="mb-6">
                                                             <span className="text-[10px] font-bold text-zinc-400 uppercase block mb-2">Datos Logísticos</span>
                                                             <div className="grid grid-cols-2 gap-3 text-xs bg-white dark:bg-zinc-900/50 p-3 rounded-xl border border-zinc-100 dark:border-zinc-800">
-                                                                 {rec.batch && <div><span className="text-zinc-500 block mb-0.5">Lote</span> <span className="font-mono font-bold text-zinc-800 dark:text-zinc-200">{rec.batch}</span></div>}
-                                                                 {rec.recommendedTemperature && <div><span className="text-zinc-500 block mb-0.5">Temp</span> <span className="font-mono font-bold text-zinc-800 dark:text-zinc-200">{rec.recommendedTemperature}</span></div>}
-                                                                 {rec.productionDate && <div><span className="text-zinc-500 block mb-0.5">Fabricación</span> <span className="font-mono font-bold text-zinc-800 dark:text-zinc-200">{rec.productionDate}</span></div>}
-                                                                 {rec.expirationDate && <div><span className="text-zinc-500 block mb-0.5">Vencimiento</span> <span className="font-mono font-bold text-zinc-800 dark:text-zinc-200">{rec.expirationDate}</span></div>}
+                                                                {rec.batch && <div><span className="text-zinc-500 block mb-0.5">Lote</span> <span className="font-mono font-bold text-zinc-800 dark:text-zinc-200">{rec.batch}</span></div>}
+                                                                {rec.recommendedTemperature && <div><span className="text-zinc-500 block mb-0.5">Temp</span> <span className="font-mono font-bold text-zinc-800 dark:text-zinc-200">{rec.recommendedTemperature}</span></div>}
+                                                                {rec.productionDate && <div><span className="text-zinc-500 block mb-0.5">Fabricación</span> <span className="font-mono font-bold text-zinc-800 dark:text-zinc-200">{rec.productionDate}</span></div>}
+                                                                {rec.expirationDate && <div><span className="text-zinc-500 block mb-0.5">Vencimiento</span> <span className="font-mono font-bold text-zinc-800 dark:text-zinc-200">{rec.expirationDate}</span></div>}
                                                             </div>
                                                         </div>
-                                                     )}
+                                                    )}
 
                                                     {/* AI & Risk Alerts */}
                                                     <div className="space-y-3 mb-6">
@@ -609,7 +608,7 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                                                                 </div>
                                                             </div>
                                                         )}
-                                                         {rec.aiAnalysis && (
+                                                        {rec.aiAnalysis && (
                                                             <div className="bg-purple-50 dark:bg-purple-900/20 p-3 rounded-xl border border-purple-100 dark:border-purple-900/30 flex gap-3">
                                                                 <span className="material-icons-round text-purple-500">smart_toy</span>
                                                                 <div>
@@ -623,13 +622,13 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                                                     {/* Evidence Image */}
                                                     {rec.evidence && (
                                                         <div className="mb-6">
-                                                             <span className="text-[10px] font-bold text-zinc-400 uppercase block mb-2">{t('lbl_evidence_section')}</span>
-                                                             <div className="rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-700 h-48 bg-zinc-100 dark:bg-zinc-900 cursor-pointer hover:opacity-90 transition-opacity flex items-center justify-center relative" onClick={(e) => { e.stopPropagation(); setViewImage(rec.evidence!); }}>
+                                                            <span className="text-[10px] font-bold text-zinc-400 uppercase block mb-2">{t('lbl_evidence_section')}</span>
+                                                            <div className="rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-700 h-48 bg-zinc-100 dark:bg-zinc-900 cursor-pointer hover:opacity-90 transition-opacity flex items-center justify-center relative" onClick={(e) => { e.stopPropagation(); setViewImage(rec.evidence!); }}>
                                                                 <img src={rec.evidence} alt="Evidencia" className="h-full w-auto object-contain" />
                                                                 <div className="absolute top-2 right-2 bg-black/50 p-1 rounded-full text-white">
                                                                     <span className="material-icons-round text-sm">open_in_full</span>
                                                                 </div>
-                                                             </div>
+                                                            </div>
                                                         </div>
                                                     )}
 
@@ -639,7 +638,7 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                                                             <span className="text-lg">💬</span>
                                                             WhatsApp
                                                         </button>
-                                                        
+
                                                         <button onClick={(e) => handleDelete(rec.id, e)} className="flex items-center justify-center gap-2 px-4 py-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl text-xs font-bold hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors active:scale-95">
                                                             <span className="material-icons-round text-lg">delete</span>
                                                         </button>
@@ -651,11 +650,11 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                                 })}
                             </div>
                         )}
-                        
+
                         {/* Floating Action Island for History View */}
                         <div className="fixed bottom-6 left-0 right-0 z-50 flex justify-center pointer-events-none">
                             <div className="flex items-center gap-2 p-2.5 bg-[#1C1C1E] rounded-[3rem] shadow-2xl shadow-black/50 ring-1 ring-white/10 animate-slide-up select-none pointer-events-auto">
-                                <button 
+                                <button
                                     onClick={() => handleTabChange('weigh')}
                                     className="bg-white text-black px-6 py-3 rounded-full flex items-center gap-2 shadow-xl hover:scale-105 active:scale-95 transition-all group"
                                 >
@@ -664,8 +663,8 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                                 </button>
                                 <div className="w-[1px] h-6 bg-white/10 mx-0.5"></div>
                                 {/* Redesigned Minimalist Modern Trash Icon - History View */}
-                                <button 
-                                    onClick={handleClearAll} 
+                                <button
+                                    onClick={handleClearAll}
                                     className="w-12 h-12 rounded-full flex items-center justify-center transition-all active:scale-75 group relative overflow-hidden"
                                     title={t('btn_delete_all_history')}
                                 >
@@ -695,10 +694,10 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
 
             {/* Delete Confirmation Modal (Single Record) */}
             {recordToDelete && (
-                 <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in" style={{ touchAction: 'none' }} role="dialog" aria-modal="true" aria-labelledby="modal-delete-title">
+                <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in" style={{ touchAction: 'none' }} role="dialog" aria-modal="true" aria-labelledby="modal-delete-title">
                     <div className="bg-white dark:bg-zinc-900 rounded-[2rem] w-full max-w-sm p-6 shadow-2xl animate-slide-up ring-1 ring-white/10 relative overflow-hidden" onClick={e => e.stopPropagation()}>
-                         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-red-500/10 blur-[60px] pointer-events-none"></div>
-                         <div className="flex flex-col items-center text-center relative z-10">
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-red-500/10 blur-[60px] pointer-events-none"></div>
+                        <div className="flex flex-col items-center text-center relative z-10">
                             <div className="relative mb-5">
                                 <div className="absolute inset-0 bg-red-500 blur-xl opacity-20 rounded-full"></div>
                                 <div className="w-20 h-20 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center relative shadow-sm border border-red-100 dark:border-red-900/30">
@@ -718,10 +717,10 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
 
             {/* Delete All Confirmation Modal */}
             {showDeleteAllModal && (
-                 <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in" style={{ touchAction: 'none' }} role="dialog" aria-modal="true" aria-labelledby="modal-delete-all-title">
+                <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in" style={{ touchAction: 'none' }} role="dialog" aria-modal="true" aria-labelledby="modal-delete-all-title">
                     <div className="bg-white dark:bg-zinc-900 rounded-[2rem] w-full max-w-sm p-6 shadow-2xl animate-slide-up ring-1 ring-white/10 relative overflow-hidden" onClick={e => e.stopPropagation()}>
-                         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-red-500/10 blur-[60px] pointer-events-none"></div>
-                         <div className="flex flex-col items-center text-center relative z-10">
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-red-500/10 blur-[60px] pointer-events-none"></div>
+                        <div className="flex flex-col items-center text-center relative z-10">
                             <div className="relative mb-5">
                                 <div className="absolute inset-0 bg-red-500 blur-xl opacity-20 rounded-full"></div>
                                 <div className="w-20 h-20 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center relative shadow-sm border border-red-100 dark:border-red-900/30">
@@ -749,7 +748,7 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                                 <span className="material-icons-round">{theme === 'light' ? 'dark_mode' : 'light_mode'}</span>
                             </button>
                         </div>
-                        
+
                         <div className="space-y-5">
                             <div className="flex justify-center mb-4">
                                 <div className="relative group cursor-pointer" onClick={() => profileInputRef.current?.click()}>
@@ -770,45 +769,45 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                                     </div>
                                 </div>
                             </div>
-                            
+
                             {/* Profile Fields */}
                             <div className="space-y-3">
                                 <div>
                                     <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase ml-2 mb-1 block">{t('lbl_name')}</label>
-                                    <input 
-                                        type="text" 
-                                        value={profile.name} 
-                                        onChange={e => setProfile({...profile, name: e.target.value})}
+                                    <input
+                                        type="text"
+                                        value={profile.name}
+                                        onChange={e => setProfile({ ...profile, name: e.target.value })}
                                         className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-xl px-4 py-3 text-zinc-900 dark:text-white font-medium outline-none focus:ring-2 focus:ring-primary-500/50"
                                         placeholder={t('ph_name')}
                                     />
                                 </div>
-                                 <div>
+                                <div>
                                     <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase ml-2 mb-1 block">{t('lbl_role')}</label>
-                                    <input 
-                                        type="text" 
-                                        value={profile.role} 
-                                        onChange={e => setProfile({...profile, role: e.target.value})}
+                                    <input
+                                        type="text"
+                                        value={profile.role}
+                                        onChange={e => setProfile({ ...profile, role: e.target.value })}
                                         className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-xl px-4 py-3 text-zinc-900 dark:text-white font-medium outline-none focus:ring-2 focus:ring-primary-500/50"
                                         placeholder={t('ph_role')}
                                     />
                                 </div>
-                                 <div>
+                                <div>
                                     <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase ml-2 mb-1 block">{t('lbl_store')}</label>
-                                    <input 
-                                        type="text" 
-                                        value={profile.store || ''} 
-                                        onChange={e => setProfile({...profile, store: e.target.value})}
+                                    <input
+                                        type="text"
+                                        value={profile.store || ''}
+                                        onChange={e => setProfile({ ...profile, store: e.target.value })}
                                         className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-xl px-4 py-3 text-zinc-900 dark:text-white font-medium outline-none focus:ring-2 focus:ring-primary-500/50"
                                         placeholder={t('ph_store')}
                                     />
                                 </div>
                             </div>
-                            
+
                             {/* Language */}
                             <div className="grid grid-cols-3 gap-2 pt-2">
                                 {['pt', 'es', 'en'].map((lang) => (
-                                    <button 
+                                    <button
                                         key={lang}
                                         onClick={() => setLanguage(lang as any)}
                                         className={`py-2 rounded-lg text-xs font-bold uppercase transition-colors ${language === lang ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400'}`}
@@ -826,14 +825,14 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                                 <h4 className="text-xs font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400 flex items-center gap-2">
                                     <span className="material-icons-round text-sm">cloud_sync</span> Copia de Seguridad
                                 </h4>
-                                
+
                                 <div>
                                     <label className="text-[10px] font-bold uppercase text-zinc-400 mb-1 block">{t('lbl_client_id')}</label>
-                                    <input 
-                                        type="text" 
-                                        value={googleClientId} 
-                                        onChange={handleSaveClientId} 
-                                        placeholder={t('ph_client_id')} 
+                                    <input
+                                        type="text"
+                                        value={googleClientId}
+                                        onChange={handleSaveClientId}
+                                        placeholder={t('ph_client_id')}
                                         className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-2 text-xs font-mono text-zinc-600 dark:text-zinc-300 outline-none focus:ring-1 focus:ring-blue-500"
                                     />
                                 </div>
@@ -848,12 +847,12 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                                         <span className="text-[9px] font-bold uppercase text-zinc-500">Restaurar</span>
                                     </button>
                                 </div>
-                                
+
                                 <button onClick={() => backupInputRef.current?.click()} className="w-full py-2 bg-transparent text-zinc-400 hover:text-zinc-600 text-xs font-medium border border-dashed border-zinc-300 dark:border-zinc-700 rounded-lg">
                                     Restaurar Archivo Local (.json)
                                 </button>
                             </div>
-                            
+
                             <button onClick={handleSaveProfile} className="w-full py-4 bg-zinc-900 dark:bg-white text-white dark:text-black font-bold rounded-xl mt-2 hover:scale-[1.02] active:scale-95 transition-all shadow-xl">
                                 {t('btn_save')}
                             </button>
@@ -867,8 +866,8 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                 <div className="fixed inset-0 z-[120] bg-black/60 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in" onClick={() => setShowChat(false)}>
                     <div className="w-full max-w-4xl max-h-[90vh] h-[800px] animate-scale-in" onClick={e => e.stopPropagation()}>
                         <div className="relative h-full">
-                            <button 
-                                onClick={() => setShowChat(false)} 
+                            <button
+                                onClick={() => setShowChat(false)}
                                 className="absolute -top-4 -right-4 z-50 w-10 h-10 bg-white dark:bg-zinc-800 text-black dark:text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
                             >
                                 <span className="material-icons-round">close</span>
