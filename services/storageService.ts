@@ -100,12 +100,18 @@ export const saveRecord = async (record: WeighingRecord) => {
     if (googleClientId && navigator.onLine) {
         import('./googleDriveService').then(async ({ uploadBackupToDrive }) => {
             try {
+                // Post event via window for UI feedback
+                window.dispatchEvent(new CustomEvent('cloud-sync-start'));
+
                 const data = generateBackupData();
                 await uploadBackupToDrive(data, true);
                 console.log("Cloud Backup Auto-Synced Successfully");
+
+                window.dispatchEvent(new CustomEvent('cloud-sync-end', { detail: { success: true } }));
             } catch (e) {
                 // Silently fail for auto-sync to not disturb UX
                 console.log("Auto-sync background skipped: Session not active or offline");
+                window.dispatchEvent(new CustomEvent('cloud-sync-end', { detail: { success: false } }));
             }
         });
     }

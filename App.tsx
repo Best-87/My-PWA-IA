@@ -129,6 +129,23 @@ const AppContent = () => {
                 if (success) console.log("Google Drive Initialized");
             });
         }
+
+        // Listen for background sync events
+        const startSync = () => setIsDriveSyncing(true);
+        const endSync = (e: any) => {
+            setIsDriveSyncing(false);
+            if (e.detail?.success) {
+                // Optional: track success or show subtle pulse
+            }
+        };
+
+        window.addEventListener('cloud-sync-start', startSync);
+        window.addEventListener('cloud-sync-end', endSync);
+
+        return () => {
+            window.removeEventListener('cloud-sync-start', startSync);
+            window.removeEventListener('cloud-sync-end', endSync);
+        };
     }, [googleClientId]);
 
     // Theme Toggle
@@ -400,6 +417,13 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                     </div>
 
                     <div className="flex items-center gap-2">
+                        {isDriveSyncing && (
+                            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/30 rounded-full animate-pulse-slow">
+                                <span className="material-icons-round text-sm text-blue-500 animate-spin" style={{ animationDuration: '3s' }}>sync</span>
+                                <span className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-tight">Nuvem</span>
+                            </div>
+                        )}
+
                         <button onClick={() => setShowAnalytics(true)} className="w-9 h-9 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 flex items-center justify-center hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors">
                             <span className="material-icons-round text-lg">bar_chart</span>
                         </button>
