@@ -1,4 +1,5 @@
 import { KnowledgeBase, WeighingRecord, UserProfile } from "../types";
+import { syncRecordToSupabase, syncProfileToSupabase, syncKnowledgeBaseToSupabase } from "./supabaseService";
 
 const KEY_RECORDS = 'conferente_records';
 const KEY_KNOWLEDGE = 'conferente_knowledge';
@@ -36,6 +37,9 @@ const KEY_AUTH_LINKS = 'conferente_auth_links';
 
 export const saveUserProfile = (profile: UserProfile) => {
     localStorage.setItem(KEY_PROFILE, JSON.stringify(profile));
+
+    // Sync to Supabase
+    syncProfileToSupabase(profile);
 
     // If there is an email and a clientId in localstorage, link them
     if (profile.email) {
@@ -95,7 +99,10 @@ export const saveRecord = async (record: WeighingRecord) => {
     localStorage.setItem(KEY_RECORDS, JSON.stringify(records));
     learnFromRecord(enrichedRecord);
 
-    // Auto-sync to Cloud (Background)
+    // Sync to Supabase
+    syncRecordToSupabase(enrichedRecord);
+
+    // Auto-sync to Cloud (Background - Google Drive legacy)
     const googleClientId = localStorage.getItem('google_client_id');
     if (googleClientId && navigator.onLine) {
         import('./googleDriveService').then(async ({ uploadBackupToDrive }) => {
@@ -121,6 +128,9 @@ export const deleteRecord = (id: string) => {
     const records = getRecords();
     const updatedRecords = records.filter(r => r.id !== id);
     localStorage.setItem(KEY_RECORDS, JSON.stringify(updatedRecords));
+
+    // Optional: Also delete from Supabase if needed
+    // For now we just sync creations/updates
 };
 
 export const clearAllRecords = () => {
@@ -170,6 +180,12 @@ const learnFromRecord = (record: WeighingRecord) => {
     };
 
     localStorage.setItem(KEY_KNOWLEDGE, JSON.stringify(kb));
+
+    // Sync KB to Supabase
+    const profile = getUserProfile();
+    if (profile.email) {
+        syncKnowledgeBaseToSupabase(kb, profile.email);
+    }
 };
 
 export const getKnowledgeBase = (): KnowledgeBase => {
