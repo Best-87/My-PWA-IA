@@ -8,7 +8,7 @@ export const InstallManager: React.FC = () => {
     const [deferredPrompt, setDeferredPrompt] = useState<InstallPromptEvent | null>(null);
     const [showToast, setShowToast] = useState(false);
     const [isIOS, setIsIOS] = useState(false);
-    
+
     // Update State
     const [updateAvailable, setUpdateAvailable] = useState(false);
     const [waitingWorker, setWaitingWorker] = useState<ServiceWorker | null>(null);
@@ -45,9 +45,9 @@ export const InstallManager: React.FC = () => {
         window.addEventListener('appinstalled', handleAppInstalled);
 
         // Service Worker Updates - SKIP in Preview Envs to avoid Origin Errors
-        const isPreviewEnv = window.location.hostname.includes('scf.usercontent.goog') || 
-                             window.location.hostname.includes('webcontainer') ||
-                             window.location.hostname.includes('ai.studio');
+        const isPreviewEnv = window.location.hostname.includes('scf.usercontent.goog') ||
+            window.location.hostname.includes('webcontainer') ||
+            window.location.hostname.includes('ai.studio');
 
         let updateInterval: any;
 
@@ -55,7 +55,7 @@ export const InstallManager: React.FC = () => {
             const checkUpdate = () => {
                 navigator.serviceWorker.getRegistration().then((reg) => {
                     if (!reg) return;
-                    
+
                     // Force update check
                     reg.update();
 
@@ -63,7 +63,7 @@ export const InstallManager: React.FC = () => {
                         setWaitingWorker(reg.waiting);
                         setUpdateAvailable(true);
                     }
-                    
+
                     reg.addEventListener('updatefound', () => {
                         const newWorker = reg.installing;
                         if (newWorker) {
@@ -110,7 +110,7 @@ export const InstallManager: React.FC = () => {
     const checkShouldShow = () => {
         // Don't show if already standalone
         if (window.matchMedia('(display-mode: standalone)').matches) return;
-        
+
         // Logic: Show after a short delay to be non-intrusive
         setTimeout(() => {
             setShowToast(true);
@@ -152,8 +152,8 @@ export const InstallManager: React.FC = () => {
                         <div className="flex-1">
                             <h3 className="font-bold text-zinc-900 dark:text-white text-sm">Instalar Conferente Pro</h3>
                             <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 leading-snug">
-                                {isIOS 
-                                    ? "En iOS: Pulsa 'Compartir' y selecciona 'Añadir a pantalla de inicio'." 
+                                {isIOS
+                                    ? "En iOS: Pulsa 'Compartir' y selecciona 'Añadir a pantalla de inicio'."
                                     : "Instala la app para mejor rendimiento y acceso offline."}
                             </p>
                         </div>
@@ -161,17 +161,17 @@ export const InstallManager: React.FC = () => {
                             <span className="material-icons-round text-lg">close</span>
                         </button>
                     </div>
-                    
+
                     {!isIOS && (
                         <div className="flex gap-2 mt-1">
-                            <button 
-                                onClick={handleInstallClick} 
+                            <button
+                                onClick={handleInstallClick}
                                 className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl text-xs font-bold shadow-lg shadow-blue-500/20 active:scale-95 transition-all"
                             >
                                 Instalar App
                             </button>
-                            <button 
-                                onClick={() => setShowToast(false)} 
+                            <button
+                                onClick={() => setShowToast(false)}
                                 className="px-4 bg-zinc-100 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300 py-2.5 rounded-xl text-xs font-bold hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors"
                             >
                                 Después
@@ -181,22 +181,21 @@ export const InstallManager: React.FC = () => {
                 </div>
             )}
 
-            {/* Update Available Notification - Toast Style */}
+            {/* Update Available Notification - Dynamic Island Style */}
             {updateAvailable && (
-                <div className="fixed bottom-6 left-4 right-4 z-[150] flex justify-center animate-slide-up pointer-events-none">
-                    <div className="pointer-events-auto bg-[#1C1C1E] dark:bg-white text-white dark:text-black p-4 rounded-2xl shadow-2xl border border-white/10 dark:border-zinc-200 max-w-sm w-full flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-full bg-emerald-600 flex items-center justify-center shrink-0 animate-pulse shadow-lg shadow-emerald-500/30">
-                             <span className="material-icons-round text-white text-xl">system_update_alt</span>
+                <div className="fixed top-2 left-0 right-0 z-[100] flex justify-center px-4 pointer-events-none">
+                    <div className="pointer-events-auto bg-zinc-900/95 dark:bg-white/95 backdrop-blur-md text-white dark:text-black py-2 pl-2 pr-4 rounded-full shadow-2xl border border-white/10 dark:border-zinc-200 flex items-center gap-3 animate-slide-down max-w-fit ring-4 ring-primary-500/10">
+                        <div className="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center shrink-0 shadow-lg shadow-primary-500/20">
+                            <span className="material-icons-round text-white text-base">refresh</span>
                         </div>
-                        <div className="flex-1 min-w-0">
-                             <h4 className="font-bold text-sm leading-tight">Actualización disponible</h4>
-                             <p className="text-xs opacity-70 truncate">Nueva versión lista para instalar.</p>
+                        <div className="flex flex-col pr-1">
+                            <h4 className="font-black text-[11px] uppercase tracking-wider leading-none">{t('update_available')}</h4>
                         </div>
-                        <button 
-                            onClick={updateApp} 
-                            className="bg-white dark:bg-black text-black dark:text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg transition-transform active:scale-95"
+                        <button
+                            onClick={updateApp}
+                            className="bg-white dark:bg-black text-black dark:text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-tight hover:scale-105 active:scale-95 transition-all shadow-md"
                         >
-                            Actualizar
+                            {t('btn_update')}
                         </button>
                     </div>
                 </div>
