@@ -1,13 +1,15 @@
 import { createClient } from '@supabase/supabase-js';
 import { WeighingRecord, UserProfile, KnowledgeBase } from '../types';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
 // Helper to check if supabase is configured
 export const isSupabaseConfigured = () => !!supabaseUrl && !!supabaseAnonKey;
+
+export const supabase = isSupabaseConfigured()
+    ? createClient(supabaseUrl, supabaseAnonKey)
+    : null as any;
 
 export const syncRecordToSupabase = async (record: WeighingRecord) => {
     if (!isSupabaseConfigured()) return;
@@ -104,7 +106,7 @@ export const fetchRecordsFromSupabase = async () => {
         return [];
     }
 
-    return data.map(item => ({
+    return data.map((item: any) => ({
         id: item.id,
         timestamp: Number(item.timestamp),
         supplier: item.supplier,
