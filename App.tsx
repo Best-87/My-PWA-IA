@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { InstallManager } from './components/InstallManager';
 import { WeighingForm, WeighingFormHandle } from './components/WeighingForm';
-import { getRecords, deleteRecord, clearAllRecords, getUserProfile, saveUserProfile, getTheme, saveTheme, generateBackupData, restoreBackupData } from './services/storageService';
+import { getRecords, deleteRecord, clearAllRecords, getUserProfile, saveUserProfile, getTheme, saveTheme, generateBackupData, restoreBackupData, getClientIdByEmail } from './services/storageService';
 import { WeighingRecord, UserProfile } from './types';
 import { LanguageProvider, useTranslation } from './services/i18n';
 import { ToastProvider, useToast } from './components/Toast';
@@ -466,8 +466,8 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                                     key={filter.id}
                                     onClick={() => setTimeFilter(filter.id as any)}
                                     className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all ${timeFilter === filter.id
-                                            ? 'bg-primary-500 text-white shadow-lg'
-                                            : 'bg-white dark:bg-zinc-900 text-zinc-500 border border-zinc-200 dark:border-zinc-800'
+                                        ? 'bg-primary-500 text-white shadow-lg'
+                                        : 'bg-white dark:bg-zinc-900 text-zinc-500 border border-zinc-200 dark:border-zinc-800'
                                         }`}
                                 >
                                     {filter.label}
@@ -780,6 +780,25 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                                         onChange={e => setProfile({ ...profile, name: e.target.value })}
                                         className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-xl px-4 py-3 text-zinc-900 dark:text-white font-medium outline-none focus:ring-2 focus:ring-primary-500/50"
                                         placeholder={t('ph_name')}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase ml-2 mb-1 block">Email (Login)</label>
+                                    <input
+                                        type="email"
+                                        value={profile.email || ''}
+                                        onChange={e => {
+                                            const email = e.target.value;
+                                            setProfile({ ...profile, email });
+                                            const linkedId = getClientIdByEmail(email);
+                                            if (linkedId && linkedId !== googleClientId) {
+                                                setGoogleClientId(linkedId);
+                                                localStorage.setItem('google_client_id', linkedId);
+                                                showToast("Configuración vinculada cargada", "info");
+                                            }
+                                        }}
+                                        className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-xl px-4 py-3 text-zinc-900 dark:text-white font-medium outline-none focus:ring-2 focus:ring-primary-500/50"
+                                        placeholder="tu@email.com"
                                     />
                                 </div>
                                 <div>

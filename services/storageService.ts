@@ -32,8 +32,42 @@ export const saveTheme = (theme: 'light' | 'dark') => {
 
 // --- Profile Functions ---
 
+const KEY_AUTH_LINKS = 'conferente_auth_links';
+
 export const saveUserProfile = (profile: UserProfile) => {
     localStorage.setItem(KEY_PROFILE, JSON.stringify(profile));
+
+    // If there is an email and a clientId in localstorage, link them
+    if (profile.email) {
+        const currentClientId = localStorage.getItem('google_client_id');
+        if (currentClientId) {
+            linkEmailWithAuth(profile.email, currentClientId);
+        }
+    }
+};
+
+export const linkEmailWithAuth = (email: string, clientId: string) => {
+    try {
+        const links = getAuthLinks();
+        links[email.toLowerCase()] = clientId;
+        localStorage.setItem(KEY_AUTH_LINKS, JSON.stringify(links));
+    } catch (e) {
+        console.error("Error linking email", e);
+    }
+};
+
+export const getAuthLinks = (): Record<string, string> => {
+    try {
+        const data = localStorage.getItem(KEY_AUTH_LINKS);
+        return data ? JSON.parse(data) : {};
+    } catch {
+        return {};
+    }
+};
+
+export const getClientIdByEmail = (email: string): string | null => {
+    const links = getAuthLinks();
+    return links[email.toLowerCase()] || null;
 };
 
 export const getUserProfile = (): UserProfile => {

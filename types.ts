@@ -3,6 +3,7 @@ export type Language = 'pt' | 'es' | 'en';
 
 export interface UserProfile {
     name: string;
+    email?: string;
     role: string;
     store?: string; // Tienda / Sucursal
     photo?: string; // Base64 string
