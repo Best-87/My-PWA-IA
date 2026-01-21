@@ -1,14 +1,15 @@
-
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#09090b">
-    
+
     <title>Conferente Pro</title>
     <meta name="description" content="Gestión inteligente de pesajes y conferencias.">
-    
+
     <script>
         window.deferredPrompt = null;
         window.addEventListener('beforeinstallprompt', (e) => {
@@ -17,32 +18,38 @@
             console.log('PWA Install Event captured early');
         });
     </script>
-    
+
     <!-- Modern PWA Meta Tag -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Conferente">
-    
+
     <!-- Favicons (Absolute Paths) -->
     <link rel="icon" type="image/svg+xml" href="/icon.svg">
-    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
-    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png">
-    <link rel="apple-touch-icon" href="/icon-512.png">
+    <link rel="icon" type="image/jpeg" sizes="192x192" href="/icon-192.jpg">
+    <link rel="icon" type="image/jpeg" sizes="512x512" href="/icon-512.jpg">
+    <link rel="apple-touch-icon" href="/icon-512.jpg">
 
     <!-- PWA Manifest (Absolute Path) -->
     <link rel="manifest" href="/manifest.json">
-    
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
 
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://apis.google.com/js/api.js" async defer></script>
 </head>
+
 <body class="antialiased font-sans text-zinc-900 dark:text-zinc-100 transition-colors duration-300">
-    <div id="root"><div class="loader"></div></div>
+    <div id="root">
+        <div class="loader"></div>
+    </div>
     <script type="module" src="/index.tsx"></script>
 </body>
+
 </html>
