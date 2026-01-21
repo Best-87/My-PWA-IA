@@ -11,6 +11,7 @@ import { initAnalytics, trackEvent } from './services/analyticsService';
 import { ChatInterface } from './components/ChatInterface';
 import { initGoogleDrive, uploadBackupToDrive, restoreBackupFromDrive } from './services/googleDriveService';
 import { SplashScreen } from './components/SplashScreen';
+import { UpdateNotification } from './components/UpdateNotification';
 
 // Tolerance limit 200g
 const TOLERANCE_KG = 0.2;
@@ -400,6 +401,7 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
     return (
         <div className="min-h-screen bg-[#F0F2F5] dark:bg-black transition-colors duration-300 pb-20 font-sans selection:bg-primary-500/30">
             <InstallManager />
+            <UpdateNotification />
             <input ref={backupInputRef} type="file" accept=".json" className="hidden" onChange={handleRestore} />
             <input ref={profileInputRef} type="file" accept="image/*" className="hidden" onChange={handleProfilePhotoUpload} />
 
