@@ -95,23 +95,19 @@ export const saveRecord = async (record: WeighingRecord) => {
     localStorage.setItem(KEY_RECORDS, JSON.stringify(records));
     learnFromRecord(enrichedRecord);
 
-    // Auto-sync to Cloud if configured
+    // Auto-sync to Cloud (Background)
     const googleClientId = localStorage.getItem('google_client_id');
     if (googleClientId && navigator.onLine) {
-        try {
-            const { generateBackupData } = await import('./storageService');
-            const { initGoogleDrive, uploadBackupToDrive } = await import('./googleDriveService');
-
-            initGoogleDrive(googleClientId, async (success) => {
-                if (success) {
-                    const data = generateBackupData();
-                    await uploadBackupToDrive(data);
-                    console.log("Cloud Backup Auto-Synced");
-                }
-            });
-        } catch (e) {
-            console.error("Auto-sync failed", e);
-        }
+        import('./googleDriveService').then(async ({ uploadBackupToDrive }) => {
+            try {
+                const data = generateBackupData();
+                await uploadBackupToDrive(data, true);
+                console.log("Cloud Backup Auto-Synced Successfully");
+            } catch (e) {
+                // Silently fail for auto-sync to not disturb UX
+                console.log("Auto-sync background skipped: Session not active or offline");
+            }
+        });
     }
 };
 

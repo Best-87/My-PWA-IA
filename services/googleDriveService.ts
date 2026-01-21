@@ -29,7 +29,7 @@ export const initGoogleDrive = (clientId: string, callback: (inited: boolean) =>
     gapiScript.onload = () => {
         window.gapi.load('client', async () => {
             await window.gapi.client.init({
-                apiKey: '', 
+                apiKey: '',
                 discoveryDocs: [DISCOVERY_DOC],
             });
             gapiInited = true;
@@ -46,7 +46,7 @@ export const initGoogleDrive = (clientId: string, callback: (inited: boolean) =>
         tokenClient = window.google.accounts.oauth2.initTokenClient({
             client_id: clientId,
             scope: SCOPES,
-            callback: '', 
+            callback: '',
         });
         gisInited = true;
         if (gapiInited) callback(true);
@@ -54,7 +54,7 @@ export const initGoogleDrive = (clientId: string, callback: (inited: boolean) =>
     document.body.appendChild(gisScript);
 };
 
-export const handleAuthClick = (): Promise<void> => {
+export const handleAuthClick = (silent = false): Promise<void> => {
     return new Promise((resolve, reject) => {
         if (!tokenClient) {
             reject("Google Client not initialized");
@@ -70,6 +70,10 @@ export const handleAuthClick = (): Promise<void> => {
 
         const token = window.gapi.client.getToken();
         if (token === null) {
+            if (silent) {
+                reject("No active session for silent backup");
+                return;
+            }
             tokenClient.requestAccessToken({ prompt: 'consent' });
         } else {
             tokenClient.requestAccessToken({ prompt: '' });
@@ -77,9 +81,9 @@ export const handleAuthClick = (): Promise<void> => {
     });
 };
 
-export const uploadBackupToDrive = async (content: string): Promise<void> => {
+export const uploadBackupToDrive = async (content: string, silent = false): Promise<void> => {
     try {
-        await handleAuthClick();
+        await handleAuthClick(silent);
         const q = `name = '${FILE_NAME}' and trashed = false`;
         const listResponse = await window.gapi.client.drive.files.list({
             q: q,
