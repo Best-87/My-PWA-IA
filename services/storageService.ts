@@ -101,27 +101,6 @@ export const saveRecord = async (record: WeighingRecord) => {
 
     // Sync to Supabase
     syncRecordToSupabase(enrichedRecord);
-
-    // Auto-sync to Cloud (Background - Google Drive legacy)
-    const googleClientId = localStorage.getItem('google_client_id');
-    if (googleClientId && navigator.onLine) {
-        import('./googleDriveService').then(async ({ uploadBackupToDrive }) => {
-            try {
-                // Post event via window for UI feedback
-                window.dispatchEvent(new CustomEvent('cloud-sync-start'));
-
-                const data = generateBackupData();
-                await uploadBackupToDrive(data, true);
-                console.log("Cloud Backup Auto-Synced Successfully");
-
-                window.dispatchEvent(new CustomEvent('cloud-sync-end', { detail: { success: true } }));
-            } catch (e) {
-                // Silently fail for auto-sync to not disturb UX
-                console.log("Auto-sync background skipped: Session not active or offline");
-                window.dispatchEvent(new CustomEvent('cloud-sync-end', { detail: { success: false } }));
-            }
-        });
-    }
 };
 
 export const deleteRecord = (id: string) => {
@@ -182,10 +161,7 @@ const learnFromRecord = (record: WeighingRecord) => {
     localStorage.setItem(KEY_KNOWLEDGE, JSON.stringify(kb));
 
     // Sync KB to Supabase
-    const profile = getUserProfile();
-    if (profile.email) {
-        syncKnowledgeBaseToSupabase(kb, profile.email);
-    }
+    syncKnowledgeBaseToSupabase(kb);
 };
 
 export const getKnowledgeBase = (): KnowledgeBase => {

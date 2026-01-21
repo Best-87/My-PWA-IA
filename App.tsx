@@ -2,14 +2,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { InstallManager } from './components/InstallManager';
 import { WeighingForm, WeighingFormHandle } from './components/WeighingForm';
-import { getRecords, deleteRecord, clearAllRecords, getUserProfile, saveUserProfile, getTheme, saveTheme, generateBackupData, restoreBackupData, getClientIdByEmail } from './services/storageService';
+import { getRecords, deleteRecord, clearAllRecords, getUserProfile, saveUserProfile, getTheme, saveTheme, generateBackupData, restoreBackupData } from './services/storageService';
 import { WeighingRecord, UserProfile } from './types';
 import { LanguageProvider, useTranslation } from './services/i18n';
 import { ToastProvider, useToast } from './components/Toast';
 import { AnalyticsDashboard } from './components/AnalyticsDashboard';
 import { initAnalytics, trackEvent } from './services/analyticsService';
 import { ChatInterface } from './components/ChatInterface';
-import { initGoogleDrive, uploadBackupToDrive, restoreBackupFromDrive } from './services/googleDriveService';
+import { isSupabaseConfigured, signIn, signUp, signOut, onAuthStateChange, fetchRecordsFromSupabase } from './services/supabaseService';
 import { SplashScreen } from './components/SplashScreen';
 
 // Tolerance limit 200g
@@ -60,11 +60,15 @@ const AppContent = () => {
     // Image Viewer State
     const [viewImage, setViewImage] = useState<string | null>(null);
 
-    // Backup State
-    const [googleClientId, setGoogleClientId] = useState(() => localStorage.getItem('google_client_id') || '593915476590-pl7aq2q1mtpeec131r3u783i67o1k1pc.apps.googleusercontent.com');
-    const [isDriveSyncing, setIsDriveSyncing] = useState(false);
+    // Auth & Session State
+    const [session, setSession] = useState<any>(null);
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [isAuthModeLogin, setIsAuthModeLogin] = useState(true);
+    const [isAuthLoading, setIsAuthLoading] = useState(false);
+
     const backupInputRef = useRef<HTMLInputElement>(null);
-    const profileInputRef = useRef<HTMLInputElement>(null); // New ref for profile photo
+    const profileInputRef = useRef<HTMLInputElement>(null);
 
     const formRef = useRef<WeighingFormHandle>(null);
 
@@ -122,31 +126,22 @@ const AppContent = () => {
         };
     }, []);
 
-    // Initialize Drive if client ID exists
+    // Initialize Session & Auth
     useEffect(() => {
-        if (googleClientId) {
-            initGoogleDrive(googleClientId, (success) => {
-                if (success) console.log("Google Drive Initialized");
-            });
-        }
-
-        // Listen for background sync events
-        const startSync = () => setIsDriveSyncing(true);
-        const endSync = (e: any) => {
-            setIsDriveSyncing(false);
-            if (e.detail?.success) {
-                // Optional: track success or show subtle pulse
+        onAuthStateChange((_event, session) => {
+            setSession(session);
+            if (session?.user) {
+                // If logged in, update profile email
+                setProfile(prev => ({ ...prev, email: session.user.email }));
+                // Force record refresh from Supabase
+                fetchRecordsFromSupabase().then(cloudRecords => {
+                    if (cloudRecords.length > 0) {
+                        setRecords(cloudRecords);
+                    }
+                });
             }
-        };
-
-        window.addEventListener('cloud-sync-start', startSync);
-        window.addEventListener('cloud-sync-end', endSync);
-
-        return () => {
-            window.removeEventListener('cloud-sync-start', startSync);
-            window.removeEventListener('cloud-sync-end', endSync);
-        };
-    }, [googleClientId]);
+        });
+    }, []);
 
     // Theme Toggle
     const toggleTheme = () => {
@@ -283,62 +278,47 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
     };
 
     // --- BACKUP HANDLERS ---
-    const handleSaveClientId = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const val = e.target.value;
-        setGoogleClientId(val);
-        localStorage.setItem('google_client_id', val);
-    };
-
-    const handleDriveUpload = async () => {
-        if (!googleClientId) {
-            showToast("Ingresa tu Google Client ID", 'warning');
-            return;
-        }
-        setIsDriveSyncing(true);
+    const handleLogin = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!email || !password) return;
+        setIsAuthLoading(true);
         try {
-            const data = generateBackupData();
-            initGoogleDrive(googleClientId, async (success) => {
-                if (success) {
-                    await uploadBackupToDrive(data);
-                    showToast(t('backup_success'), 'success');
-                    trackEvent('drive_upload_success');
-                } else {
-                    showToast("Error inicializando Google API", 'error');
-                }
-                setIsDriveSyncing(false);
-            });
-        } catch (e) {
-            console.error(e);
-            showToast("Error subiendo a Drive", 'error');
-            setIsDriveSyncing(false);
+            const { error } = await signIn(email, password);
+            if (error) throw error;
+            showToast("Login realizado com sucesso", "success");
+            setEmail('');
+            setPassword('');
+        } catch (err: any) {
+            showToast(t('msg_auth_error'), "error");
+        } finally {
+            setIsAuthLoading(false);
         }
     };
 
-    const handleDriveRestore = async () => {
-        if (!googleClientId) {
-            showToast("Ingresa tu Google Client ID", 'warning');
-            return;
-        }
-        setIsDriveSyncing(true);
+    const handleSignup = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!email || !password || !profile.name) return;
+        setIsAuthLoading(true);
         try {
-            initGoogleDrive(googleClientId, async (success) => {
-                if (success) {
-                    const content = await restoreBackupFromDrive();
-                    if (content) {
-                        restoreBackupData(content);
-                        showToast(t('restore_success'), 'success');
-                        setTimeout(() => window.location.reload(), 1500);
-                    } else {
-                        showToast(t('restore_not_found'), 'warning');
-                    }
-                }
-                setIsDriveSyncing(false);
+            const { error } = await signUp(email, password, {
+                name: profile.name,
+                role: profile.role,
+                store: profile.store
             });
-        } catch (e) {
-            console.error(e);
-            showToast("Error restaurando de Drive", 'error');
-            setIsDriveSyncing(false);
+            if (error) throw error;
+            showToast(t('msg_account_created'), "success");
+            setIsAuthModeLogin(true);
+        } catch (err: any) {
+            showToast(err.message || t('msg_auth_error'), "error");
+        } finally {
+            setIsAuthLoading(false);
         }
+    };
+
+    const handleSignOut = async () => {
+        await signOut();
+        setSession(null);
+        showToast("Sesión cerrada", "info");
     };
 
     const handleRestore = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -416,10 +396,10 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                         </div>
 
                         <div className="flex items-center gap-2">
-                            {isDriveSyncing && (
-                                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/30 rounded-full animate-pulse-slow">
-                                    <span className="material-icons-round text-sm text-blue-500 animate-spin" style={{ animationDuration: '3s' }}>sync</span>
-                                    <span className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-tight">Nuvem</span>
+                            {session && (
+                                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800/30 rounded-full">
+                                    <span className="material-icons-round text-[10px] text-emerald-500">cloud_done</span>
+                                    <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-tight">{profile.name || 'Cloud Active'}</span>
                                 </div>
                             )}
 
@@ -767,138 +747,186 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                         <div className="bg-white dark:bg-zinc-900 w-full max-w-sm rounded-[2rem] p-6 shadow-2xl animate-slide-up max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
                             <div className="flex justify-between items-center mb-6">
                                 <h3 className="text-xl font-bold text-zinc-900 dark:text-white">{t('lbl_profile')}</h3>
-                                <button onClick={toggleTheme} className="p-2 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
-                                    <span className="material-icons-round">{theme === 'light' ? 'dark_mode' : 'light_mode'}</span>
-                                </button>
+                                <div className="flex gap-2">
+                                    <button onClick={toggleTheme} className="p-2 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
+                                        <span className="material-icons-round">{theme === 'light' ? 'dark_mode' : 'light_mode'}</span>
+                                    </button>
+                                    <button onClick={() => setShowProfileModal(false)} className="p-2 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
+                                        <span className="material-icons-round">close</span>
+                                    </button>
+                                </div>
                             </div>
 
-                            <div className="space-y-5">
-                                <div className="flex justify-center mb-4">
-                                    <div className="relative group cursor-pointer" onClick={() => profileInputRef.current?.click()}>
-                                        <div className="w-24 h-24 rounded-full overflow-hidden bg-zinc-100 dark:bg-zinc-800 border-4 border-white dark:border-zinc-800 shadow-xl">
-                                            {profile.photo ? (
-                                                <img src={profile.photo} alt="Profile" className="w-full h-full object-cover" />
-                                            ) : (
-                                                <div className="w-full h-full flex items-center justify-center text-zinc-300 dark:text-zinc-600">
-                                                    <span className="material-icons-round text-4xl">person</span>
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div className="absolute inset-0 bg-black/30 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <span className="material-icons-round text-white">edit</span>
-                                        </div>
-                                        <div className="absolute bottom-0 right-0 bg-primary-500 rounded-full p-1.5 border-2 border-white dark:border-zinc-900 shadow-md">
-                                            <span className="material-icons-round text-white text-xs block">photo_camera</span>
-                                        </div>
+                            {!session ? (
+                                <div className="space-y-4">
+                                    <div className="bg-primary-50 dark:bg-primary-900/20 p-4 rounded-2xl border border-primary-100 dark:border-primary-800/30 mb-4">
+                                        <h4 className="text-sm font-bold text-primary-900 dark:text-primary-100 flex items-center gap-2 mb-1">
+                                            <span className="material-icons-round text-base">cloud</span> {t('lbl_auth_title')}
+                                        </h4>
+                                        <p className="text-xs text-primary-700/70 dark:text-primary-300/60 leading-tight">Sincroniza tus registros en tiempo real con Supabase.</p>
                                     </div>
-                                </div>
 
-                                {/* Profile Fields */}
-                                <div className="space-y-3">
-                                    <div>
-                                        <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase ml-2 mb-1 block">{t('lbl_name')}</label>
-                                        <input
-                                            type="text"
-                                            value={profile.name}
-                                            onChange={e => setProfile({ ...profile, name: e.target.value })}
-                                            className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-xl px-4 py-3 text-zinc-900 dark:text-white font-medium outline-none focus:ring-2 focus:ring-primary-500/50"
-                                            placeholder={t('ph_name')}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase ml-2 mb-1 block">Email (Login)</label>
-                                        <input
-                                            type="email"
-                                            value={profile.email || ''}
-                                            onChange={e => {
-                                                const email = e.target.value;
-                                                setProfile({ ...profile, email });
-                                                const linkedId = getClientIdByEmail(email);
-                                                if (linkedId && linkedId !== googleClientId) {
-                                                    setGoogleClientId(linkedId);
-                                                    localStorage.setItem('google_client_id', linkedId);
-                                                    showToast("Configuración vinculada cargada", "info");
-                                                }
-                                            }}
-                                            className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-xl px-4 py-3 text-zinc-900 dark:text-white font-medium outline-none focus:ring-2 focus:ring-primary-500/50"
-                                            placeholder="tu@email.com"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase ml-2 mb-1 block">{t('lbl_role')}</label>
-                                        <input
-                                            type="text"
-                                            value={profile.role}
-                                            onChange={e => setProfile({ ...profile, role: e.target.value })}
-                                            className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-xl px-4 py-3 text-zinc-900 dark:text-white font-medium outline-none focus:ring-2 focus:ring-primary-500/50"
-                                            placeholder={t('ph_role')}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase ml-2 mb-1 block">{t('lbl_store')}</label>
-                                        <input
-                                            type="text"
-                                            value={profile.store || ''}
-                                            onChange={e => setProfile({ ...profile, store: e.target.value })}
-                                            className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-xl px-4 py-3 text-zinc-900 dark:text-white font-medium outline-none focus:ring-2 focus:ring-primary-500/50"
-                                            placeholder={t('ph_store')}
-                                        />
-                                    </div>
-                                </div>
+                                    <form onSubmit={isAuthModeLogin ? handleLogin : handleSignup} className="space-y-3">
+                                        {!isAuthModeLogin && (
+                                            <div>
+                                                <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase ml-2 mb-1 block">{t('lbl_name')}</label>
+                                                <input
+                                                    type="text"
+                                                    value={profile.name}
+                                                    onChange={e => setProfile({ ...profile, name: e.target.value })}
+                                                    className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-xl px-4 py-3 text-zinc-900 dark:text-white font-medium outline-none focus:ring-2 focus:ring-primary-500/50"
+                                                    placeholder={t('ph_name')}
+                                                    required
+                                                />
+                                            </div>
+                                        )}
+                                        <div>
+                                            <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase ml-2 mb-1 block">{t('lbl_email')}</label>
+                                            <input
+                                                type="email"
+                                                value={email}
+                                                onChange={e => setEmail(e.target.value)}
+                                                className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-xl px-4 py-3 text-zinc-900 dark:text-white font-medium outline-none focus:ring-2 focus:ring-primary-500/50"
+                                                placeholder="tu@email.com"
+                                                required
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase ml-2 mb-1 block">{t('lbl_password')}</label>
+                                            <input
+                                                type="password"
+                                                value={password}
+                                                onChange={e => setPassword(e.target.value)}
+                                                className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-xl px-4 py-3 text-zinc-900 dark:text-white font-medium outline-none focus:ring-2 focus:ring-primary-500/50"
+                                                placeholder="••••••••"
+                                                required
+                                            />
+                                        </div>
 
-                                {/* Language */}
-                                <div className="grid grid-cols-3 gap-2 pt-2">
-                                    {['pt', 'es', 'en'].map((lang) => (
                                         <button
-                                            key={lang}
-                                            onClick={() => setLanguage(lang as any)}
-                                            className={`py-2 rounded-lg text-xs font-bold uppercase transition-colors ${language === lang ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400'}`}
+                                            type="submit"
+                                            disabled={isAuthLoading}
+                                            className="w-full py-4 bg-zinc-900 dark:bg-white text-white dark:text-black font-bold rounded-xl mt-2 hover:scale-[1.02] active:scale-95 transition-all shadow-xl disabled:opacity-50"
                                         >
-                                            {lang}
+                                            {isAuthLoading ? t('btn_analyzing') : (isAuthModeLogin ? t('btn_signin') : t('btn_signup'))}
                                         </button>
-                                    ))}
+
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsAuthModeLogin(!isAuthModeLogin)}
+                                            className="w-full text-center text-xs font-bold text-primary-500 hover:text-primary-600 py-2"
+                                        >
+                                            {isAuthModeLogin ? t('lbl_signup') : t('lbl_login')}
+                                        </button>
+                                    </form>
+
+                                    <div className="h-px bg-zinc-200 dark:bg-zinc-800 my-4"></div>
+                                    <div className="flex justify-center gap-2">
+                                        {['pt', 'es', 'en'].map((lang) => (
+                                            <button
+                                                key={lang}
+                                                onClick={() => setLanguage(lang as any)}
+                                                className={`px-4 py-2 rounded-lg text-xs font-bold uppercase transition-colors ${language === lang ? 'bg-primary-500 text-white' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500'}`}
+                                            >
+                                                {lang}
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
+                            ) : (
+                                <div className="space-y-5">
+                                    <div className="flex justify-center mb-4">
+                                        <div className="relative group cursor-pointer" onClick={() => profileInputRef.current?.click()}>
+                                            <div className="w-24 h-24 rounded-full overflow-hidden bg-zinc-100 dark:bg-zinc-800 border-4 border-white dark:border-zinc-800 shadow-xl">
+                                                {profile.photo ? (
+                                                    <img src={profile.photo} alt="Profile" className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center text-zinc-300 dark:text-zinc-600">
+                                                        <span className="material-icons-round text-4xl">person</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="absolute inset-0 bg-black/30 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <span className="material-icons-round text-white">edit</span>
+                                            </div>
+                                            <div className="absolute bottom-0 right-0 bg-primary-500 rounded-full p-1.5 border-2 border-white dark:border-zinc-900 shadow-md">
+                                                <span className="material-icons-round text-white text-xs block">photo_camera</span>
+                                            </div>
+                                        </div>
+                                    </div>
 
-                                {/* Divider */}
-                                <div className="h-px bg-zinc-200 dark:bg-zinc-800 my-4"></div>
+                                    <div className="space-y-3">
+                                        <div>
+                                            <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase ml-2 mb-1 block">{t('lbl_name')}</label>
+                                            <input
+                                                type="text"
+                                                value={profile.name}
+                                                onChange={e => setProfile({ ...profile, name: e.target.value })}
+                                                className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-xl px-4 py-3 text-zinc-900 dark:text-white font-medium outline-none focus:ring-2 focus:ring-primary-500/50"
+                                                placeholder={t('ph_name')}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase ml-2 mb-1 block">Email</label>
+                                            <input
+                                                type="email"
+                                                value={session.user.email}
+                                                disabled
+                                                className="w-full bg-zinc-50 dark:bg-zinc-800/50 rounded-xl px-4 py-3 text-zinc-400 dark:text-zinc-500 font-medium cursor-not-allowed border border-zinc-200 dark:border-zinc-800"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase ml-2 mb-1 block">{t('lbl_role')}</label>
+                                            <input
+                                                type="text"
+                                                value={profile.role}
+                                                onChange={e => setProfile({ ...profile, role: e.target.value })}
+                                                className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-xl px-4 py-3 text-zinc-900 dark:text-white font-medium outline-none focus:ring-2 focus:ring-primary-500/50"
+                                                placeholder={t('ph_role')}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase ml-2 mb-1 block">{t('lbl_store')}</label>
+                                            <input
+                                                type="text"
+                                                value={profile.store || ''}
+                                                onChange={e => setProfile({ ...profile, store: e.target.value })}
+                                                className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-xl px-4 py-3 text-zinc-900 dark:text-white font-medium outline-none focus:ring-2 focus:ring-primary-500/50"
+                                                placeholder={t('ph_store')}
+                                            />
+                                        </div>
+                                    </div>
 
-                                {/* Backup Section */}
-                                <div className="bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-xl border border-zinc-200 dark:border-zinc-700 space-y-3">
-                                    <h4 className="text-xs font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400 flex items-center gap-2">
-                                        <span className="material-icons-round text-sm">cloud_sync</span> Copia de Seguridad
-                                    </h4>
+                                    <div className="grid grid-cols-3 gap-2 pt-2">
+                                        {['pt', 'es', 'en'].map((lang) => (
+                                            <button
+                                                key={lang}
+                                                onClick={() => setLanguage(lang as any)}
+                                                className={`py-2 rounded-lg text-xs font-bold uppercase transition-colors ${language === lang ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400'}`}
+                                            >
+                                                {lang}
+                                            </button>
+                                        ))}
+                                    </div>
 
-                                    <div>
-                                        <label className="text-[10px] font-bold uppercase text-zinc-400 mb-1 block">{t('lbl_client_id')}</label>
-                                        <input
-                                            type="text"
-                                            value={googleClientId}
-                                            onChange={handleSaveClientId}
-                                            placeholder={t('ph_client_id')}
-                                            className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-2 text-xs font-mono text-zinc-600 dark:text-zinc-300 outline-none focus:ring-1 focus:ring-blue-500"
-                                        />
+                                    <div className="bg-emerald-50 dark:bg-emerald-900/10 p-3 rounded-xl border border-emerald-100 dark:border-emerald-800/20 flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <span className="material-icons-round text-emerald-500 text-sm">check_circle</span>
+                                            <span className="text-[10px] font-black uppercase text-emerald-700 dark:text-emerald-400">{t('lbl_cloud_sync')}</span>
+                                        </div>
+                                        <span className="text-[10px] font-bold text-emerald-600/70 dark:text-emerald-500/60 uppercase">Cloud Active</span>
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-3">
-                                        <button onClick={handleDriveUpload} disabled={isDriveSyncing || !googleClientId} className="py-2.5 px-3 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl flex flex-col items-center justify-center gap-1 shadow-sm hover:shadow-md transition-all active:scale-95 group disabled:opacity-50">
-                                            <span className={`material-icons-round text-blue-500 ${isDriveSyncing ? 'animate-spin' : ''}`}>{isDriveSyncing ? 'sync' : 'cloud_upload'}</span>
-                                            <span className="text-[9px] font-bold uppercase text-zinc-500">Backup</span>
+                                        <button onClick={handleSignOut} className="py-4 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 font-bold rounded-xl hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all">
+                                            {t('btn_signout')}
                                         </button>
-                                        <button onClick={handleDriveRestore} disabled={isDriveSyncing || !googleClientId} className="py-2.5 px-3 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl flex flex-col items-center justify-center gap-1 shadow-sm hover:shadow-md transition-all active:scale-95 group disabled:opacity-50">
-                                            <span className={`material-icons-round text-emerald-500 ${isDriveSyncing ? 'animate-spin' : ''}`}>{isDriveSyncing ? 'sync' : 'cloud_download'}</span>
-                                            <span className="text-[9px] font-bold uppercase text-zinc-500">Restaurar</span>
+                                        <button onClick={handleSaveProfile} className="py-4 bg-zinc-900 dark:bg-white text-white dark:text-black font-bold rounded-xl hover:scale-[1.02] active:scale-95 transition-all shadow-xl">
+                                            {t('btn_save')}
                                         </button>
                                     </div>
-
-                                    <button onClick={() => backupInputRef.current?.click()} className="w-full py-2 bg-transparent text-zinc-400 hover:text-zinc-600 text-xs font-medium border border-dashed border-zinc-300 dark:border-zinc-700 rounded-lg">
-                                        Restaurar Archivo Local (.json)
-                                    </button>
                                 </div>
-
-                                <button onClick={handleSaveProfile} className="w-full py-4 bg-zinc-900 dark:bg-white text-white dark:text-black font-bold rounded-xl mt-2 hover:scale-[1.02] active:scale-95 transition-all shadow-xl">
-                                    {t('btn_save')}
-                                </button>
-                            </div>
+                            )}
                         </div>
                     </div>
                 )}

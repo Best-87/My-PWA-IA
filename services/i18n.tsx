@@ -6,7 +6,7 @@ const translations = {
         // ... (previous translations kept)
         app_name: 'Conferente',
         app_subtitle: 'Pro Assistant',
-        
+
         // Profile
         lbl_profile: 'Perfil do Usuário',
         lbl_name: 'Nome',
@@ -16,11 +16,11 @@ const translations = {
         ph_name: 'Seu Nome',
         ph_role: 'Ex: Conferente Líder',
         ph_store: 'Ex: Loja 01 - Centro',
-        
+
         // Tabs
         tab_weigh: 'Pesar',
         tab_history: 'Histórico',
-        
+
         // Form
         assistant_default: 'Olá 👋 Selecione um fornecedor.',
         assistant_supplier: '👋 Olá! Comece indicando quem é o fornecedor.',
@@ -31,7 +31,7 @@ const translations = {
         assistant_ok: '✅ Perfeito! Peso dentro da margem. Tudo pronto para salvar.',
         assistant_high: '⚠️ Sobram {diff}kg. Esqueceu alguma tara?',
         assistant_low: '⚠️ Faltam {diff}kg. Verifique caixas ou mermas.',
-        
+
         lbl_identity: 'Identificação',
         ph_supplier: 'Fornecedor',
         ph_product: 'Produto',
@@ -39,11 +39,11 @@ const translations = {
         ph_expiration: 'Validade',
         ph_production: 'Fabricação',
         btn_suggestion: 'Sugestão para {supplier}:',
-        
+
         lbl_weighing: 'Pesagem',
         lbl_note_weight: 'Peso Nota',
         lbl_gross_weight: 'Peso Bruto',
-        
+
         lbl_tara_section: 'Tara e Embalagens',
         lbl_ai_pattern: 'IA detectou patrón',
         btn_apply_tara: 'Usar Tara de {supplier}: {weight}g',
@@ -57,7 +57,7 @@ const translations = {
         btn_remove_photo: 'Remover',
         lbl_photo_attached: 'Foto Anexada',
         lbl_analyzing_img: '🔍 Lendo Rótulo (IA)...',
-        
+
         // Smart Tips
         tip_title_quality: 'Qualidade Visual',
         tip_quality_visual: 'Confira aspecto da embalagem, cor e cheiro.',
@@ -72,14 +72,14 @@ const translations = {
         tip_title_batch: 'Rastreabilidade',
         tip_batch_found: 'Lote {batch} registrado.',
         tip_title_alert: 'ALERTA CRÍTICO',
-        
+
         btn_save: 'Salvar',
         btn_clear: 'Limpar',
         btn_erase: 'Apagar',
         btn_delete_all_history: 'Apagar Tudo',
         btn_analyzing: 'Analisando...',
         btn_consult_ai: 'Consultar Supervisão IA',
-        
+
         alert_saved: 'Pesagem salva com sucesso.',
         msg_confirm_clear: 'Deseja limpar todo o formulário?',
         msg_confirm_delete: 'Deseja excluir este registro?',
@@ -88,7 +88,7 @@ const translations = {
         msg_form_cleared: 'Formulário limpo.',
         msg_history_cleared: 'Histórico apagado.',
         msg_profile_saved: 'Perfil atualizado com sucesso!',
-        
+
         // History & Filters
         hist_recent: 'Histórico',
         hist_empty: 'Sem registros.',
@@ -101,7 +101,7 @@ const translations = {
         filter_month: 'Mês',
         filter_year: 'Año',
         btn_export: 'Exportar CSV',
-        
+
         // WhatsApp Report
         rpt_title: '*Relatório de Pesagem - Conferente Pro*',
         rpt_supplier: '🏭 *Fornecedor:*',
@@ -118,7 +118,7 @@ const translations = {
         rpt_valid: 'Validado',
         rpt_review: 'Revisão Necessária',
         rpt_ai_obs: '📝 *Obs IA:*',
-        
+
         // Install
         install_modal_title: 'Instalar App',
         install_modal_desc: 'Instale o Conferente Pro para acesso offline e melhor desempenho.',
@@ -127,18 +127,20 @@ const translations = {
         update_available: 'Nova versão disponível',
         btn_update: 'Atualizar',
 
-        // Backup
-        lbl_backup: 'Google Drive Backup',
-        lbl_client_id: 'Google Client ID (OAuth)',
-        ph_client_id: 'Insira seu Client ID',
-        btn_connect_drive: 'Conectar e Fazer Backup',
-        btn_restore_drive: 'Restaurar do Drive',
-        drive_connected: 'Drive Conectado',
-        drive_syncing: 'Sincronizando...',
-        backup_success: 'Backup salvo no Google Drive!',
-        restore_success: 'Dados restaurados do Drive!',
-        restore_not_found: 'Nenhum backup encontrado no Drive.',
-        
+        // Authentication & Cloud
+        lbl_auth_title: 'Autenticação em Nuvem',
+        lbl_login: 'Entrar',
+        lbl_signup: 'Criar Conta',
+        lbl_email: 'E-mail',
+        lbl_password: 'Senha',
+        btn_signin: 'Entrar',
+        btn_signup: 'Cadastrar',
+        btn_signout: 'Sair da Conta',
+        msg_auth_error: 'Erro na autenticação. Verifique os dados.',
+        msg_account_created: 'Conta criada com sucesso!',
+        lbl_cloud_sync: 'Sincronização Supabase',
+        msg_sync_enabled: 'Sincronização em tempo real ativa.',
+
         // Logic
         ai_prompt_lang: 'Português'
     },
@@ -146,7 +148,7 @@ const translations = {
         // ... (previous translations kept)
         app_name: 'Conferente',
         app_subtitle: 'Pro Assistant',
-        
+
         // Profile
         lbl_profile: 'Perfil de Usuario',
         lbl_name: 'Nombre',
@@ -168,7 +170,7 @@ const translations = {
         assistant_ok: '✅ ¡Perfecto! Peso dentro del margen. Todo listo para guardar.',
         assistant_high: '⚠️ Sobran {diff}kg. ¿Olvidaste alguna tara?',
         assistant_low: '⚠️ Faltan {diff}kg. Verifica cajas o mermas.',
-        
+
         lbl_identity: 'Identificación',
         ph_supplier: 'Proveedor',
         ph_product: 'Producto',
@@ -176,11 +178,11 @@ const translations = {
         ph_expiration: 'Vencimiento',
         ph_production: 'Fabricación',
         btn_suggestion: 'Sugerencia para {supplier}:',
-        
+
         lbl_weighing: 'Pesaje',
         lbl_note_weight: 'Peso Nota',
         lbl_gross_weight: 'Peso Bruto',
-        
+
         lbl_tara_section: 'Tara y Envases',
         lbl_ai_pattern: 'IA detectó patrón',
         btn_apply_tara: 'Usar Tara de {supplier}: {weight}g',
@@ -216,7 +218,7 @@ const translations = {
         btn_delete_all_history: 'Borrar Todo',
         btn_analyzing: 'Analizando...',
         btn_consult_ai: 'Consultar Supervisión IA',
-        
+
         alert_saved: 'Pesaje guardado con éxito.',
         msg_confirm_clear: '¿Deseas limpiar todo el formulario?',
         msg_confirm_delete: '¿Deseas eliminar este registro?',
@@ -225,7 +227,7 @@ const translations = {
         msg_form_cleared: 'Formulario limpio.',
         msg_history_cleared: 'Historial borrado.',
         msg_profile_saved: '¡Perfil actualizado con éxito!',
-        
+
         // History & Filters
         hist_recent: 'Historial',
         hist_empty: 'Sin registros.',
@@ -264,18 +266,20 @@ const translations = {
         update_available: 'Nueva versión disponible',
         btn_update: 'Actualizar',
 
-        // Backup
-        lbl_backup: 'Copia de Seguridad (Google Drive)',
-        lbl_client_id: 'Google Client ID (OAuth)',
-        ph_client_id: 'Ingresa tu Client ID',
-        btn_connect_drive: 'Conectar y Guardar',
-        btn_restore_drive: 'Restaurar desde Drive',
-        drive_connected: 'Drive Conectado',
-        drive_syncing: 'Sincronizando...',
-        backup_success: '¡Copia guardada en Google Drive!',
-        restore_success: '¡Datos restaurados desde Drive!',
-        restore_not_found: 'No se encontró copia en Drive.',
-        
+        // Authentication & Cloud
+        lbl_auth_title: 'Autenticación en la Nube',
+        lbl_login: 'Iniciar Sesión',
+        lbl_signup: 'Crear Cuenta',
+        lbl_email: 'Correo electrónico',
+        lbl_password: 'Contraseña',
+        btn_signin: 'Entrar',
+        btn_signup: 'Registrarse',
+        btn_signout: 'Cerrar Sesión',
+        msg_auth_error: 'Error de autenticación. Revisa los datos.',
+        msg_account_created: '¡Cuenta creada con éxito!',
+        lbl_cloud_sync: 'Sincronización Supabase',
+        msg_sync_enabled: 'Sincronización en tiempo real activa.',
+
         // Logic
         ai_prompt_lang: 'Español'
     },
@@ -283,7 +287,7 @@ const translations = {
         // ... (previous translations kept)
         app_name: 'Conferente',
         app_subtitle: 'Pro Assistant',
-        
+
         // Profile
         lbl_profile: 'User Profile',
         lbl_name: 'Name',
@@ -305,7 +309,7 @@ const translations = {
         assistant_ok: '✅ Perfect! Weight within tolerance. Ready to save.',
         assistant_high: '⚠️ {diff}kg over. Did you miss any tare?',
         assistant_low: '⚠️ {diff}kg missing. Check for boxes or waste.',
-        
+
         lbl_identity: 'Identification',
         ph_supplier: 'Supplier',
         ph_product: 'Product',
@@ -313,11 +317,11 @@ const translations = {
         ph_expiration: 'Expiration',
         ph_production: 'Production',
         btn_suggestion: 'Suggestion for {supplier}:',
-        
+
         lbl_weighing: 'Weighing',
         lbl_note_weight: 'Invoice Weight',
         lbl_gross_weight: 'Gross Weight',
-        
+
         lbl_tara_section: 'Tare & Packaging',
         lbl_ai_pattern: 'AI detected pattern',
         btn_apply_tara: 'Use {supplier} Tare: {weight}g',
@@ -353,7 +357,7 @@ const translations = {
         btn_delete_all_history: 'Delete All',
         btn_analyzing: 'Analyzing...',
         btn_consult_ai: 'Ask AI Supervisor',
-        
+
         alert_saved: 'Weighing saved successfully.',
         msg_confirm_clear: 'Clear the entire form?',
         msg_confirm_delete: 'Delete this record?',
@@ -362,7 +366,7 @@ const translations = {
         msg_form_cleared: 'Form cleared.',
         msg_history_cleared: 'History cleared.',
         msg_profile_saved: 'Profile updated successfully!',
-        
+
         // History & Filters
         hist_recent: 'History',
         hist_empty: 'No records.',
@@ -401,18 +405,20 @@ const translations = {
         update_available: 'New version available',
         btn_update: 'Update',
 
-        // Backup
-        lbl_backup: 'Google Drive Backup',
-        lbl_client_id: 'Google Client ID (OAuth)',
-        ph_client_id: 'Enter your Client ID',
-        btn_connect_drive: 'Connect & Backup',
-        btn_restore_drive: 'Restore from Drive',
-        drive_connected: 'Drive Connected',
-        drive_syncing: 'Syncing...',
-        backup_success: 'Backup saved to Google Drive!',
-        restore_success: 'Data restored from Drive!',
-        restore_not_found: 'No backup found in Drive.',
-        
+        // Authentication & Cloud
+        lbl_auth_title: 'Cloud Authentication',
+        lbl_login: 'Login',
+        lbl_signup: 'Create Account',
+        lbl_email: 'Email',
+        lbl_password: 'Password',
+        btn_signin: 'Sign In',
+        btn_signup: 'Sign Up',
+        btn_signout: 'Sign Out',
+        msg_auth_error: 'Authentication error. Please check your credentials.',
+        msg_account_created: 'Account created successfully!',
+        lbl_cloud_sync: 'Supabase Sync',
+        msg_sync_enabled: 'Real-time synchronization enabled.',
+
         // Logic
         ai_prompt_lang: 'English'
     }

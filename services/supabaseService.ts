@@ -11,14 +11,44 @@ export const supabase = isSupabaseConfigured()
     ? createClient(supabaseUrl, supabaseAnonKey)
     : null as any;
 
+// --- Auth Functions ---
+export const signUp = async (email: string, password: string, metadata: any) => {
+    return await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: metadata }
+    });
+};
+
+export const signIn = async (email: string, password: string) => {
+    return await supabase.auth.signInWithPassword({ email, password });
+};
+
+export const signOut = async () => {
+    return await supabase.auth.signOut();
+};
+
+export const getSession = async () => {
+    return await supabase.auth.getSession();
+};
+
+export const onAuthStateChange = (callback: (event: any, session: any) => void) => {
+    return supabase.auth.onAuthStateChange(callback);
+};
+
+// --- Sync Functions ---
 export const syncRecordToSupabase = async (record: WeighingRecord) => {
     if (!isSupabaseConfigured()) return;
 
     try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const userId = session?.user?.id;
+
         const { error } = await supabase
             .from('weighing_records')
             .upsert({
                 id: record.id,
+                user_id: userId, // Bind to authenticated user
                 timestamp: record.timestamp,
                 supplier: record.supplier,
                 product: record.product,
@@ -47,19 +77,21 @@ export const syncProfileToSupabase = async (profile: UserProfile) => {
     if (!isSupabaseConfigured()) return;
 
     try {
-        // Since we don't have user auth yet, we'll use a fixed ID or email as key
-        // For now, let's upsert by email if available, otherwise we'd need auth
-        if (!profile.email) return;
+        const { data: { session } } = await supabase.auth.getSession();
+        const userId = session?.user?.id;
+        if (!userId) return;
 
         const { error } = await supabase
             .from('profiles')
             .upsert({
-                email: profile.email,
+                id: userId,
+                email: session.user.email,
                 name: profile.name,
                 role: profile.role,
                 store: profile.store,
-                photo: profile.photo
-            }, { onConflict: 'email' });
+                photo: profile.photo,
+                updated_at: new Date().toISOString()
+            });
 
         if (error) console.error('Supabase Profile Sync Error:', error.message);
     } catch (err) {
@@ -67,27 +99,23 @@ export const syncProfileToSupabase = async (profile: UserProfile) => {
     }
 };
 
-export const syncKnowledgeBaseToSupabase = async (kb: KnowledgeBase, email: string) => {
-    if (!isSupabaseConfigured() || !email) return;
+export const syncKnowledgeBaseToSupabase = async (kb: KnowledgeBase) => {
+    if (!isSupabaseConfigured()) return;
 
     try {
-        // Get user profile id first
-        const { data: profile } = await supabase
-            .from('profiles')
-            .select('id')
-            .eq('email', email)
-            .single();
+        const { data: { session } } = await supabase.auth.getSession();
+        const userId = session?.user?.id;
+        if (!userId) return;
 
-        if (profile) {
-            const { error } = await supabase
-                .from('knowledge_base')
-                .upsert({
-                    user_id: profile.id,
-                    data: kb
-                }, { onConflict: 'user_id' });
+        const { error } = await supabase
+            .from('knowledge_base')
+            .upsert({
+                user_id: userId,
+                data: kb,
+                updated_at: new Date().toISOString()
+            }, { onConflict: 'user_id' });
 
-            if (error) console.error('Supabase KB Sync Error:', error.message);
-        }
+        if (error) console.error('Supabase KB Sync Error:', error.message);
     } catch (err) {
         console.error('Supabase caught error:', err);
     }
@@ -126,3 +154,4 @@ export const fetchRecordsFromSupabase = async () => {
         store: item.store
     })) as WeighingRecord[];
 };
+
