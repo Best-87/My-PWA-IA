@@ -1,32 +1,25 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <!-- Solid Blue Background -->
-  <rect width="512" height="512" fill="#2563eb"/>
-  
-  <!-- White Weighing Scale Icon -->
-  <g fill="#ffffff">
-    <!-- Center Post -->
-    <rect x="236" y="80" width="40" height="340" rx="8" />
-    
-    <!-- Base -->
-    <path d="M156,420 H356 A20,20 0 0,0 376,400 V380 H136 V400 A20,20 0 0,0 156,420 Z" />
-    <rect x="136" y="380" width="240" height="20" rx="4" />
-
-    <!-- Top Beam -->
-    <rect x="86" y="100" width="340" height="30" rx="15" />
-    
-    <!-- Center Pivot Circle -->
-    <circle cx="256" cy="115" r="40" />
-    
-    <!-- Left Pan (Triangle Style) -->
-    <path d="M126 140 L 86 280 A 15 15 0 0 0 100 300 H 200 A 15 15 0 0 0 214 280 L 174 140 Z" />
-    <!-- Pan Hangers Left -->
-    <rect x="120" y="120" width="10" height="30" rx="2" transform="rotate(-15 125 135)" />
-    <rect x="170" y="120" width="10" height="30" rx="2" transform="rotate(15 175 135)" />
-
-    <!-- Right Pan (Triangle Style) -->
-    <path d="M386 140 L 346 280 A 15 15 0 0 0 360 300 H 460 A 15 15 0 0 0 474 280 L 434 140 Z" />
-    <!-- Pan Hangers Right -->
-    <rect x="380" y="120" width="10" height="30" rx="2" transform="rotate(-15 385 135)" />
-    <rect x="430" y="120" width="10" height="30" rx="2" transform="rotate(15 435 135)" />
-  </g>
+<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="iconGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#3b82f6" />
+      <stop offset="100%" stopColor="#1d4ed8" />
+    </linearGradient>
+    <filter id="iconGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="10" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+  <!-- Squircle Shape -->
+  <rect x="56" y="56" width="400" height="400" rx="100" fill="url(#iconGrad)" />
+  <!-- Checkmark -->
+  <path d="M360 180 L210 360 L140 280" 
+    fill="none" 
+    stroke="white" 
+    strokeWidth="45" 
+    strokeLinecap="round" 
+    strokeLinejoin="round" 
+    filter="url(#iconGlow)"
+  />
+  <!-- Top Dot -->
+  <circle cx="390" cy="150" r="25" fill="white" />
 </svg>
