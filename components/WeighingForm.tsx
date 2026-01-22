@@ -22,12 +22,13 @@ export interface WeighingFormHandle {
 export interface WeighingFormProps {
     onViewHistory: () => void;
     onDataChange?: (hasData: boolean) => void;
+    onRecordSaved?: () => void;
 }
 
 // Persistent state outside component to survive tab switches
 let persistentFormState: any = null;
 
-export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({ onViewHistory, onDataChange }, ref) => {
+export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({ onViewHistory, onDataChange, onRecordSaved }, ref) => {
     const { t, language } = useTranslation();
     const { showToast } = useToast();
 
@@ -409,6 +410,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
         });
 
         handleReset();
+        onRecordSaved?.(); // Notify parent to refresh records list
         trackEvent('weighing_saved', { netWeight });
         const kb = getKnowledgeBase();
         setSuggestions({ products: kb.products, suppliers: kb.suppliers });

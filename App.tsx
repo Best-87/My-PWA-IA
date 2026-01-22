@@ -431,6 +431,7 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                                 ref={formRef}
                                 onViewHistory={() => handleTabChange('history')}
                                 onDataChange={setHasUnsavedWeighingData}
+                                onRecordSaved={() => setRecords(getRecords())}
                             />
                         </div>
                     )}
@@ -598,7 +599,13 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                 {/* Delete Confirmation Modal (Single Record) */}
                 {
                     recordToDelete && (
-                        <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in" style={{ touchAction: 'none' }} role="dialog" aria-modal="true" aria-labelledby="modal-delete-title">
+                        <div
+                            className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in"
+                            role="dialog"
+                            aria-modal="true"
+                            aria-labelledby="modal-delete-title"
+                            onClick={() => setRecordToDelete(null)}
+                        >
                             <div className="bg-white dark:bg-zinc-900 rounded-[2rem] w-full max-w-sm p-6 shadow-2xl animate-slide-up ring-1 ring-white/10 relative overflow-hidden" onClick={e => e.stopPropagation()}>
                                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-red-500/10 blur-[60px] pointer-events-none"></div>
                                 <div className="flex flex-col items-center text-center relative z-10">
@@ -623,7 +630,13 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                 {/* Delete All Confirmation Modal */}
                 {
                     showDeleteAllModal && (
-                        <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in" style={{ touchAction: 'none' }} role="dialog" aria-modal="true" aria-labelledby="modal-delete-all-title">
+                        <div
+                            className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in"
+                            role="dialog"
+                            aria-modal="true"
+                            aria-labelledby="modal-delete-all-title"
+                            onClick={() => setShowDeleteAllModal(false)}
+                        >
                             <div className="bg-white dark:bg-zinc-900 rounded-[2rem] w-full max-w-sm p-6 shadow-2xl animate-slide-up ring-1 ring-white/10 relative overflow-hidden" onClick={e => e.stopPropagation()}>
                                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-red-500/10 blur-[60px] pointer-events-none"></div>
                                 <div className="flex flex-col items-center text-center relative z-10">
