@@ -49,47 +49,68 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     return (
-        <div className="px-4 py-8 max-w-md mx-auto space-y-4 pb-24 animate-slide-up-fade">
-            {/* COMPACT PROFILE CARD */}
-            <div className="glass dark:glass-dark p-5 rounded-[2rem] card-shadow-lg relative overflow-hidden text-center">
-                <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-tr from-blue-500/10 to-purple-500/10"></div>
-                <div className="relative z-10">
-                    <div className="w-20 h-20 mx-auto rounded-full p-1 bg-white dark:bg-zinc-800 shadow-xl overflow-hidden cursor-pointer group mb-3 relative" onClick={() => fileInputRef.current?.click()}>
-                        {profile.photo ? (
-                            <img src={profile.photo} alt="Profile" className="w-full h-full object-cover rounded-full" />
-                        ) : (
-                            <div className="flex items-center justify-center w-full h-full bg-zinc-100 dark:bg-zinc-700 text-zinc-300 dark:text-zinc-500">
-                                <span className="material-icons-round text-3xl">person</span>
-                            </div>
+        <div className="px-4 py-8 max-w-md mx-auto space-y-6 pb-24 animate-ios-slide">
+            {/* VISIONOS STYLE PROFILE CARD */}
+            <div className="glass-dark p-6 rounded-[2.5rem] card-shadow-lg relative overflow-hidden text-center group">
+                {/* Dynamic Background Blur (VisionOS Style) */}
+                {profile.photo ? (
+                    <div className="absolute inset-0 z-0 opacity-40 blur-3xl scale-150 transition-all duration-1000">
+                        <img src={profile.photo} alt="Background" className="w-full h-full object-cover" />
+                    </div>
+                ) : (
+                    <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-tr from-blue-500/10 to-purple-500/10 opacity-50"></div>
+                )}
+
+                <div className="relative z-10 flex flex-col items-center">
+                    {/* Avatar Container with Outer Glow */}
+                    <div className="relative mb-4 group cursor-pointer active:scale-95 transition-all duration-300" onClick={() => fileInputRef.current?.click()}>
+                        {/* Glow effect matching photo */}
+                        {profile.photo && (
+                            <div className="absolute -inset-4 bg-white/20 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                         )}
-                        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-full">
-                            <span className="material-icons-round text-white">edit</span>
+
+                        <div className="w-24 h-24 rounded-full p-1.5 bg-white/5 backdrop-blur-md border border-white/20 shadow-2xl overflow-hidden relative z-10">
+                            {profile.photo ? (
+                                <img src={profile.photo} alt="Profile" className="w-full h-full object-cover rounded-full shadow-inner" />
+                            ) : (
+                                <div className="flex items-center justify-center w-full h-full bg-zinc-800 text-zinc-500 rounded-full">
+                                    <span className="material-icons-round text-4xl">person</span>
+                                </div>
+                            )}
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center rounded-full backdrop-blur-sm">
+                                <span className="material-icons-round text-white text-xl">camera_alt</span>
+                            </div>
                         </div>
                     </div>
+
                     <input ref={fileInputRef} type="file" className="hidden" accept="image/*" onChange={onPhotoUpload} />
 
-                    {/* Compact Inputs */}
-                    <div className="space-y-2">
+                    {/* Premium Typography & Inputs */}
+                    <div className="space-y-1 w-full px-4">
                         <input
                             value={profile.name}
                             onChange={e => onProfileChange('name', e.target.value)}
-                            className="text-xl font-black text-center bg-transparent border-none outline-none text-zinc-900 dark:text-white w-full placeholder:text-zinc-300"
-                            placeholder="Tu Nombre"
+                            className="text-2xl font-black text-center bg-transparent border-none outline-none text-white w-full placeholder:text-zinc-600 tracking-tight"
+                            placeholder={t('ph_name')}
                         />
-                        <div className="flex justify-center gap-2 text-xs font-bold uppercase tracking-wider">
-                            <input
-                                value={profile.role}
-                                onChange={e => onProfileChange('role', e.target.value)}
-                                className="text-right text-zinc-500 bg-transparent border-none outline-none w-24"
-                                placeholder="Cargo"
-                            />
-                            <span className="text-zinc-300">|</span>
-                            <input
-                                value={profile.store || ''}
-                                onChange={e => onProfileChange('store', e.target.value)}
-                                className="text-left text-primary-500 bg-transparent border-none outline-none w-24"
-                                placeholder="Tienda"
-                            />
+                        <div className="flex items-center justify-center gap-2">
+                            <div className="flex items-center bg-white/5 border border-white/5 px-3 py-1 rounded-full backdrop-blur-sm">
+                                <input
+                                    value={profile.role}
+                                    onChange={e => onProfileChange('role', e.target.value)}
+                                    className="text-[10px] font-black uppercase text-zinc-400 bg-transparent border-none outline-none w-20 text-center tracking-widest"
+                                    placeholder={t('ph_role')}
+                                />
+                            </div>
+                            <div className="w-1 h-1 rounded-full bg-white/20"></div>
+                            <div className="flex items-center bg-blue-500/10 border border-blue-500/10 px-3 py-1 rounded-full backdrop-blur-sm">
+                                <input
+                                    value={profile.store || ''}
+                                    onChange={e => onProfileChange('store', e.target.value)}
+                                    className="text-[10px] font-black uppercase text-blue-400 bg-transparent border-none outline-none w-20 text-center tracking-widest"
+                                    placeholder={t('ph_store')}
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -252,6 +252,24 @@ const AppContent = () => {
         trackEvent('data_exported', { count: records.length });
     };
 
+    const handleBackup = () => {
+        try {
+            const data = generateBackupData();
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `conferente_backup_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            trackEvent('backup_created');
+            showToast(t('msg_backup_success') || "Copia de seguridad creada", 'success');
+        } catch (e) {
+            showToast("Error al crear backup", 'error');
+        }
+    };
+
     const handleShareWhatsapp = (rec: WeighingRecord, e?: React.MouseEvent) => {
         e?.stopPropagation();
         const diff = rec.netWeight - rec.noteWeight;
@@ -378,52 +396,52 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
         <>
             {isLoading && <SplashScreen onFinish={() => setIsLoading(false)} />}
 
-            <div className={`min-h-screen bg-gradient-to-br from-zinc-50 via-white to-zinc-100 dark:from-zinc-950 dark:via-black dark:to-zinc-900 transition-all duration-700 pb-20 font-sans selection:bg-primary-500/30 ${isLoading ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
+            <div className={`min-h-screen bg-zinc-50 dark:bg-black transition-all duration-700 pb-20 font-sans selection:bg-blue-500/30 ${isLoading ? 'opacity-0 scale-98' : 'opacity-100 scale-100'}`}>
+                <div className="fixed inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,122,255,0.05),transparent_50%)] dark:bg-[radial-gradient(circle_at_top_right,rgba(0,122,255,0.1),transparent_50%)] pointer-events-none" />
                 <InstallManager />
                 <input ref={backupInputRef} type="file" accept=".json" className="hidden" onChange={handleRestore} />
                 <input ref={profileInputRef} type="file" accept="image/*" className="hidden" onChange={handleProfilePhotoUpload} />
 
                 {/* Header */}
-                <header className="fixed top-0 w-full z-50 glass dark:glass-dark border-b border-zinc-200/50 dark:border-zinc-800/50 transition-colors animate-slide-down safe-top">
+                <header className="fixed top-0 w-full z-50 glass-dark border-b border-white/5 transition-all animate-ios-fade safe-top">
                     <div className="max-w-3xl mx-auto px-4 h-16 flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <div className="bg-gradient-to-br from-primary-500 to-primary-700 w-9 h-9 rounded-xl flex items-center justify-center shadow-lg shadow-primary-500/30">
                                 <span className="material-icons-round text-white text-lg">scale</span>
                             </div>
                             <div>
-                                <h1 className="text-lg font-bold text-zinc-900 dark:text-white leading-none tracking-tight">{t('app_name')}</h1>
-                                <span className="text-[10px] font-bold text-primary-500 dark:text-primary-400 tracking-widest uppercase">{t('app_subtitle')}</span>
+                                <h1 className="text-lg font-black text-white leading-none tracking-tight">{t('app_name')}</h1>
+                                <span className="text-[10px] font-bold text-blue-400 tracking-widest uppercase opacity-80">{t('app_subtitle')}</span>
                             </div>
                         </div>
 
                         <div className="flex items-center gap-2">
                             {session && (
-                                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800/30 rounded-full">
-                                    <span className="material-icons-round text-[10px] text-emerald-500">cloud_done</span>
-                                    <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-tight">{profile.name || 'Cloud Active'}</span>
+                                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
+                                    <span className="material-icons-round text-[10px] text-emerald-400">cloud_done</span>
+                                    <span className="text-[10px] font-black text-emerald-400 uppercase tracking-tight">{profile.name || 'Cloud Active'}</span>
                                 </div>
                             )}
 
                             {/* Profile Section in Header */}
-                            <div className="flex items-center gap-3 pl-2 ml-1 border-l border-zinc-200 dark:border-zinc-800 cursor-pointer group" onClick={() => setActiveTab('profile')}>
-                                {/* Text Info - Visible on all screens now */}
+                            <div className="flex items-center gap-3 pl-3 ml-1 border-l border-white/10 cursor-pointer group active:opacity-70 transition-all" onClick={() => setActiveTab('profile')}>
                                 <div className="flex flex-col items-end text-right">
-                                    <span className="text-xs font-bold text-zinc-900 dark:text-white leading-none mb-0.5">{profile.name}</span>
-                                    <div className="flex items-center gap-1.5">
-                                        <span className="text-[10px] text-zinc-500 dark:text-zinc-400 leading-none">{profile.role}</span>
-                                        {profile.store && <span className="text-[9px] font-black text-primary-500 uppercase tracking-wider bg-primary-50 dark:bg-primary-900/20 px-1 rounded">{profile.store}</span>}
+                                    <span className="text-xs font-bold text-white leading-none mb-0.5">{profile.name}</span>
+                                    <div className="flex items-center gap-1.5 opacity-60">
+                                        <span className="text-[10px] text-zinc-300 leading-none">{profile.role}</span>
+                                        {profile.store && <span className="text-[9px] font-black text-blue-400 uppercase tracking-wider bg-blue-500/10 px-1 rounded">{profile.store}</span>}
                                     </div>
                                 </div>
 
-                                <button className="w-9 h-9 rounded-full overflow-hidden border border-zinc-200 dark:border-zinc-700 shadow-sm relative group-hover:ring-2 group-hover:ring-primary-500/30 transition-all">
+                                <div className="w-9 h-9 rounded-full overflow-hidden border border-white/10 shadow-sm relative transition-all group-active:scale-95">
                                     {profile.photo ? (
                                         <img src={profile.photo} alt="Profile" className="w-full h-full object-cover" />
                                     ) : (
-                                        <div className="w-full h-full bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center text-zinc-400">
+                                        <div className="w-full h-full bg-zinc-800 flex items-center justify-center text-zinc-500">
                                             <span className="material-icons-round text-lg">person</span>
                                         </div>
                                     )}
-                                </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -441,8 +459,11 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                             <div className="mb-4 flex items-center justify-between">
                                 <h2 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">{t('hist_recent')}</h2>
                                 <div className="flex gap-2">
-                                    <button onClick={handleExportCSV} className="p-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400">
-                                        <span className="material-icons-round">download</span>
+                                    <button onClick={handleExportCSV} title="Exportar CSV" className="p-2.5 rounded-2xl bg-white/5 border border-white/5 text-zinc-400 hover:text-white transition-all active:scale-90">
+                                        <span className="material-icons-round text-xl">download</span>
+                                    </button>
+                                    <button onClick={handleBackup} title="Descargar Backup" className="p-2.5 rounded-2xl bg-white/5 border border-white/5 text-zinc-400 hover:text-white transition-all active:scale-90">
+                                        <span className="material-icons-round text-xl">save_alt</span>
                                     </button>
                                 </div>
                             </div>

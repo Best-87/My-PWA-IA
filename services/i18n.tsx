@@ -88,6 +88,8 @@ const translations = {
         msg_form_cleared: 'Formulário limpo.',
         msg_history_cleared: 'Histórico apagado.',
         msg_profile_saved: 'Perfil atualizado com sucesso!',
+        msg_backup_success: 'Cópia de segurança criada com sucesso!',
+        restore_success: 'Dados restaurados com sucesso!',
 
         // History & Filters
         hist_recent: 'Histórico',
@@ -232,6 +234,8 @@ const translations = {
         msg_form_cleared: 'Formulario limpio.',
         msg_history_cleared: 'Historial borrado.',
         msg_profile_saved: '¡Perfil actualizado con éxito!',
+        msg_backup_success: 'Copia de seguridad creada con éxito!',
+        restore_success: '¡Datos restaurados con éxito!',
 
         // History & Filters
         hist_recent: 'Historial',
@@ -376,6 +380,8 @@ const translations = {
         msg_form_cleared: 'Form cleared.',
         msg_history_cleared: 'History cleared.',
         msg_profile_saved: 'Profile updated successfully!',
+        msg_backup_success: 'Backup created successfully!',
+        restore_success: 'Data restored successfully!',
 
         // History & Filters
         hist_recent: 'History',

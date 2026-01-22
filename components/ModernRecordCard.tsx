@@ -33,7 +33,7 @@ export const ModernRecordCard: React.FC<ModernRecordCardProps> = ({
     return (
         <>
             <div
-                className="glass dark:glass-dark rounded-3xl overflow-hidden card-shadow-lg transition-all duration-300 hover:scale-[1.02] animate-slide-up-fade"
+                className="glass-dark rounded-3xl overflow-hidden card-shadow-lg transition-all duration-500 hover:scale-[1.01] animate-ios-slide active:scale-[0.98]"
             >
 
                 {/* Main content */}
@@ -85,21 +85,21 @@ export const ModernRecordCard: React.FC<ModernRecordCardProps> = ({
 
                     {/* Metrics Grid - Expanded to include detailed info */}
                     <div className="grid grid-cols-4 gap-2 mb-4">
-                        <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-xl p-2 text-center">
-                            <p className="text-[9px] text-zinc-400 dark:text-zinc-500 font-black uppercase mb-0.5">Tara ({record.boxes.qty})</p>
-                            <p className="text-xs font-bold text-zinc-700 dark:text-zinc-300 font-mono">{record.taraTotal.toFixed(2)}</p>
+                        <div className="bg-white/5 rounded-2xl p-2 text-center border border-white/5">
+                            <p className="text-[8px] text-zinc-500 font-black uppercase mb-0.5 tracking-wider">Tara ({record.boxes.qty})</p>
+                            <p className="text-xs font-bold text-zinc-300 font-mono">{record.taraTotal.toFixed(2)}</p>
                         </div>
-                        <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-xl p-2 text-center">
-                            <p className="text-[9px] text-zinc-400 dark:text-zinc-500 font-black uppercase mb-0.5">Bruto</p>
-                            <p className="text-xs font-bold text-zinc-700 dark:text-zinc-300 font-mono">{record.grossWeight.toFixed(2)}</p>
+                        <div className="bg-white/5 rounded-2xl p-2 text-center border border-white/5">
+                            <p className="text-[8px] text-zinc-500 font-black uppercase mb-0.5 tracking-wider">Bruto</p>
+                            <p className="text-xs font-bold text-zinc-300 font-mono">{record.grossWeight.toFixed(2)}</p>
                         </div>
-                        <div className="bg-zinc-100 dark:bg-zinc-800 rounded-xl p-2 text-center border border-zinc-200 dark:border-zinc-700">
-                            <p className="text-[9px] text-zinc-500 dark:text-zinc-400 font-black uppercase mb-0.5">Líquido</p>
-                            <p className="text-sm font-black text-zinc-900 dark:text-white font-mono">{record.netWeight.toFixed(2)}</p>
+                        <div className="bg-white/10 rounded-2xl p-2 text-center border border-white/10">
+                            <p className="text-[8px] text-zinc-400 font-black uppercase mb-0.5 tracking-wider">Líquido</p>
+                            <p className="text-sm font-black text-white font-mono">{record.netWeight.toFixed(2)}</p>
                         </div>
-                        <div className={`rounded-xl p-2 text-center border ${isError ? 'bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-900/30' : 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-900/30'}`}>
-                            <p className={`text-[9px] font-black uppercase mb-0.5 ${isError ? 'text-red-400' : 'text-emerald-400'}`}>Dif.</p>
-                            <p className={`text-sm font-black font-mono ${isError ? 'text-red-500 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                        <div className={`rounded-2xl p-2 text-center border ${isError ? 'bg-red-500/10 border-red-500/20' : 'bg-emerald-500/10 border-emerald-500/20'}`}>
+                            <p className={`text-[8px] font-black uppercase mb-0.5 tracking-wider ${isError ? 'text-red-400' : 'text-emerald-400'}`}>Dif.</p>
+                            <p className={`text-sm font-black font-mono ${isError ? 'text-red-400' : 'text-emerald-400'}`}>
                                 {diff > 0 ? '+' : ''}{diff.toFixed(2)}
                             </p>
                         </div>
@@ -107,14 +107,14 @@ export const ModernRecordCard: React.FC<ModernRecordCardProps> = ({
 
                     {/* Expanded content */}
                     {isExpanded && (
-                        <div className="space-y-3 pt-3 border-t border-zinc-200 dark:border-zinc-800 animate-slide-up-fade">
+                        <div className="space-y-3 pt-4 border-t border-white/5 animate-ios-fade">
                             {/* Logistics info */}
                             {(record.batch || record.expirationDate || record.recommendedTemperature) && (
-                                <div className="bg-blue-50 dark:bg-blue-900/10 rounded-xl p-3 border border-blue-100 dark:border-blue-900/30">
-                                    <p className="text-[10px] text-blue-600 dark:text-blue-400 font-black uppercase mb-2 tracking-wide">
-                                        Datos Logísticos
+                                <div className="bg-white/5 rounded-2xl p-4 border border-white/5">
+                                    <p className="text-[9px] text-blue-400 font-black uppercase mb-3 tracking-widest">
+                                        Detalles de Envío
                                     </p>
-                                    <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                                    <div className="grid grid-cols-2 gap-x-4 gap-y-3">
                                         {record.batch && (
                                             <div className="text-xs">
                                                 <span className="text-zinc-400 font-semibold block text-[10px] uppercase">Lote</span>

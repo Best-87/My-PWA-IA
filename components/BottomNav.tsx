@@ -13,9 +13,9 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange }) 
     ];
 
     return (
-        <nav className="fixed bottom-0 left-0 right-0 z-50 safe-bottom">
-            <div className="glass dark:glass-dark border-t border-zinc-200/50 dark:border-zinc-800/50">
-                <div className="max-w-3xl mx-auto px-2 py-2">
+        <nav className="fixed bottom-6 left-4 right-4 z-50 safe-bottom">
+            <div className="max-w-md mx-auto">
+                <div className="glass-dark rounded-[2.5rem] border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.3)] px-2 py-2 animate-ios-spring">
                     <div className="flex items-center justify-around">
                         {tabs.map((tab) => {
                             const isActive = activeTab === tab.id;
@@ -23,35 +23,30 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange }) 
                                 <button
                                     key={tab.id}
                                     onClick={() => onTabChange(tab.id)}
-                                    className="flex flex-col items-center gap-1 px-6 py-2 rounded-2xl transition-all duration-300 btn-press relative group"
+                                    className="flex flex-col items-center gap-1 px-5 py-2 rounded-[2rem] transition-all duration-300 btn-press relative group"
                                 >
                                     {/* Active indicator */}
                                     {isActive && (
-                                        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20 rounded-2xl animate-bounce-in" />
+                                        <div className="absolute inset-x-2 inset-y-1 bg-white/10 rounded-[1.5rem] animate-ios-fade" />
                                     )}
 
                                     {/* Icon */}
-                                    <div className={`relative transition-all duration-300 ${isActive
-                                        ? 'scale-110'
+                                    <div className={`relative transition-all duration-500 ${isActive
+                                        ? 'scale-110 -translate-y-0.5'
                                         : 'scale-100 group-hover:scale-105'
                                         }`}>
-                                        <span className={`material-icons-round text-2xl transition-colors duration-300 ${isActive
-                                            ? 'text-blue-600 dark:text-blue-400'
-                                            : 'text-zinc-400 dark:text-zinc-500'
+                                        <span className={`material-icons-round text-2xl transition-all duration-300 ${isActive
+                                            ? 'text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]'
+                                            : 'text-zinc-500'
                                             }`}>
                                             {tab.icon}
                                         </span>
-
-                                        {/* Glow effect on active */}
-                                        {isActive && (
-                                            <div className="absolute inset-0 blur-lg bg-blue-500/30 dark:bg-blue-400/30 -z-10 animate-pulse-glow" />
-                                        )}
                                     </div>
 
                                     {/* Label */}
-                                    <span className={`text-[10px] font-bold transition-all duration-300 ${isActive
-                                        ? 'text-blue-600 dark:text-blue-400 scale-100'
-                                        : 'text-zinc-500 dark:text-zinc-400 scale-95'
+                                    <span className={`text-[9px] font-black uppercase tracking-[0.05em] transition-all duration-300 ${isActive
+                                        ? 'text-white opacity-100'
+                                        : 'text-zinc-500 opacity-60'
                                         }`}>
                                         {tab.label}
                                     </span>

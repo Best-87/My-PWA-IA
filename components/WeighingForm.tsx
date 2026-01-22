@@ -457,13 +457,13 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
         return `${base} bg-white/40 dark:bg-zinc-900/40 border-white/20 dark:border-white/5 hover:bg-white/60 dark:hover:bg-zinc-900/60 shadow-sm`;
     };
 
-    const inputClass = "w-full bg-zinc-50/50 dark:bg-zinc-900/50 border border-zinc-200/50 dark:border-white/10 rounded-2xl px-5 py-4 text-zinc-900 dark:text-white font-semibold outline-none focus:bg-white dark:focus:bg-black/40 focus:ring-2 focus:ring-primary-500/50 transition-all placeholder:text-zinc-400 dark:placeholder:text-zinc-500 backdrop-blur-sm";
-    const suggestionClass = "ring-2 ring-purple-500/50 border-purple-500 dark:border-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.15)] animate-pulse";
+    const inputClass = "w-full bg-zinc-100/50 dark:bg-zinc-900/50 border border-black/5 dark:border-white/5 rounded-2xl px-5 py-4 text-zinc-900 dark:text-white font-semibold outline-none focus:bg-white dark:focus:bg-zinc-800 transition-all placeholder:text-zinc-400 dark:placeholder:text-zinc-500 backdrop-blur-sm ios-input-focus";
+    const suggestionClass = "ring-2 ring-blue-500/30 border-blue-500/50 shadow-[0_0_20px_rgba(59,130,246,0.15)]";
     const hasDataToSave = !!(supplier && product && grossWeight && noteWeight);
 
     return (
         <div className="space-y-4 relative pb-32">
-            <div className={`sticky top-20 z-40 p-4 rounded-[2rem] shadow-2xl transition-all duration-500 bg-gradient-to-br ${getStatusColor()} border border-white/10 backdrop-blur-xl overflow-hidden group mx-1`}>
+            <div className={`sticky top-20 z-40 p-4 rounded-[2rem] card-shadow-lg transition-all duration-500 bg-gradient-to-br ${getStatusColor()} border border-white/10 backdrop-blur-xl overflow-hidden group mx-1 animate-ios-spring`}>
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-10 -mt-10 blur-3xl pointer-events-none"></div>
                 <div className="relative z-10">
                     <div className="flex items-start gap-3 mb-2 select-none touch-pan-y min-h-[2.5rem]" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
@@ -503,7 +503,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                         </div>
                     </div>
                     {!aiAlert && Math.abs(difference) > TOLERANCE_KG && (
-                        <button onClick={analyzeWithAI} disabled={isAnalyzing} className="mt-3 w-full py-3 bg-white hover:bg-zinc-100 text-zinc-900 rounded-2xl text-xs font-bold shadow-lg transition-all flex items-center justify-center gap-2">
+                        <button onClick={analyzeWithAI} disabled={isAnalyzing} className="mt-3 w-full py-3 bg-white hover:bg-zinc-100 text-zinc-900 rounded-2xl text-xs font-black shadow-lg transition-all flex items-center justify-center gap-2 btn-press">
                             {isAnalyzing ? <span className="animate-spin material-icons-round text-sm pointer-events-none">refresh</span> : <span className="material-icons-round text-sm pointer-events-none">analytics</span>}
                             {isAnalyzing ? t('btn_analyzing') : t('btn_consult_ai')}
                         </button>
@@ -512,19 +512,19 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
             </div>
 
             {evidence && (
-                <div className={`rounded-xl relative overflow-hidden group transition-all duration-300 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm flex items-center h-20 pl-2 pr-4 gap-4 ${activeSection === 'evidence' ? 'ring-2 ring-primary-500/20' : ''}`} onClick={() => setActiveSection('evidence')}>
-                    <div className="relative w-16 h-16 shrink-0 rounded-lg overflow-hidden border border-zinc-100 dark:border-zinc-700">
+                <div className={`rounded-3xl relative overflow-hidden group transition-all duration-300 glass-dark border-white/5 shadow-lg flex items-center h-20 pl-2 pr-4 gap-4 animate-ios-slide ${activeSection === 'evidence' ? 'ring-2 ring-blue-500/20' : ''}`} onClick={() => setActiveSection('evidence')}>
+                    <div className="relative w-16 h-16 shrink-0 rounded-2xl overflow-hidden border border-white/10">
                         <img src={evidence} alt="Evidence" className="w-full h-full object-cover" />
-                        <div className="absolute inset-0 bg-primary-500/10 animate-pulse pointer-events-none"></div>
+                        <div className="absolute inset-0 bg-blue-500/10 animate-pulse pointer-events-none"></div>
                     </div>
                     <div className="flex-1 min-w-0 flex flex-col justify-center">
                         <div className="flex items-center gap-2 mb-1">
-                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                            <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">IA Live Feed</span>
+                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></div>
+                            <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">IA Live Feed</span>
                         </div>
-                        <div className="text-xs text-zinc-500 dark:text-zinc-400 font-medium truncate">{t('lbl_analyzing_img')}</div>
+                        <div className="text-xs text-zinc-400 font-medium truncate">{t('lbl_analyzing_img')}</div>
                     </div>
-                    <button onClick={(e) => { e.stopPropagation(); setEvidence(null); setAiAlert(null); setIsReadingImage(false); }} className="w-8 h-8 flex items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"><span className="material-icons-round text-base">close</span></button>
+                    <button onClick={(e) => { e.stopPropagation(); setEvidence(null); setAiAlert(null); setIsReadingImage(false); }} className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-red-500/20 transition-all active:scale-90"><span className="material-icons-round text-base">close</span></button>
                 </div>
             )}
 
@@ -539,7 +539,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                     <div className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
                             <div className="relative group">
-                                <span className="absolute left-4 top-4 text-zinc-400 dark:text-zinc-500 material-icons-round text-lg group-focus-within:text-primary-500 transition-colors pointer-events-none">store</span>
+                                <span className="absolute left-4 top-4 text-zinc-500 material-icons-round text-lg group-focus-within:text-blue-500 transition-colors pointer-events-none">store</span>
                                 <input list="suppliers" type="text" value={supplier} onChange={e => setSupplier(e.target.value)} placeholder={t('ph_supplier')} className={inputClass + " pl-12 text-sm"} />
                                 <datalist id="suppliers">{suggestions.suppliers.map(s => <option key={s} value={s} />)}</datalist>
                             </div>
