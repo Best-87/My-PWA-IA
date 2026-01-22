@@ -41,7 +41,8 @@
 
   /* Smart Home Card Styles */
   .smart-card {
-    @apply bg-white dark:bg-[#1E1E20] rounded-[2rem] shadow-[0_10px_30px_rgba(0, 0, 0, 0.05)] border border-white/50 dark:border-white/5;
+    @apply bg-white dark:bg-[#1E1E20] rounded-[2rem] border border-white/50 dark:border-white/5;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
   }
 
   .smart-shadow {
