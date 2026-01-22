@@ -463,12 +463,12 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
 
     return (
         <div className="space-y-4 relative pb-32">
-            <div className={`sticky top-20 z-40 p-5 rounded-[2.5rem] shadow-2xl transition-all duration-500 bg-gradient-to-br ${getStatusColor()} border border-white/10 backdrop-blur-xl overflow-hidden group mx-1`}>
+            <div className={`sticky top-20 z-40 p-4 rounded-[2rem] shadow-2xl transition-all duration-500 bg-gradient-to-br ${getStatusColor()} border border-white/10 backdrop-blur-xl overflow-hidden group mx-1`}>
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-10 -mt-10 blur-3xl pointer-events-none"></div>
                 <div className="relative z-10">
-                    <div className="flex items-start gap-4 mb-3 select-none touch-pan-y min-h-[3.5rem]" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
-                        <div className={`w-12 h-12 rounded-2xl backdrop-blur-md flex items-center justify-center shrink-0 border border-white/20 shadow-inner transition-colors duration-500 ${activeTip.bg || 'bg-white/10'}`}>
-                            <span className="material-icons-round text-2xl pointer-events-none text-white transition-all duration-500">{activeTip.icon}</span>
+                    <div className="flex items-start gap-3 mb-2 select-none touch-pan-y min-h-[2.5rem]" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
+                        <div className={`w-10 h-10 rounded-2xl backdrop-blur-md flex items-center justify-center shrink-0 border border-white/20 shadow-inner transition-colors duration-500 ${activeTip.bg || 'bg-white/10'}`}>
+                            <span className="material-icons-round text-xl pointer-events-none text-white transition-all duration-500">{activeTip.icon}</span>
                         </div>
                         <div className="flex-1 overflow-hidden relative pt-1">
                             <div className={`flex flex-col justify-center relative transition-all duration-300`}>
@@ -488,16 +488,16 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                         <div className="text-white relative z-10">
                             {/* HERO WEIGHT DISPLAY */}
                             <div className="flex items-baseline">
-                                <span className="text-[5.5rem] leading-none font-black tracking-tighter tabular-nums text-transparent bg-clip-text bg-gradient-to-b from-white to-white/80 drop-shadow-sm">
+                                <span className="text-6xl leading-none font-black tracking-tighter tabular-nums text-transparent bg-clip-text bg-gradient-to-b from-white to-white/80 drop-shadow-sm">
                                     {Math.floor(netWeight)}
-                                    <span className="text-[3.5rem] opacity-90">.{netWeight.toFixed(3).split('.')[1]}</span>
+                                    <span className="text-4xl opacity-90">.{netWeight.toFixed(3).split('.')[1]}</span>
                                 </span>
-                                <span className="text-xl font-bold opacity-60 ml-2 mb-4">kg</span>
+                                <span className="text-lg font-bold opacity-60 ml-2 mb-2">kg</span>
                             </div>
                         </div>
-                        <div className="text-right text-white relative z-10 mb-4">
+                        <div className="text-right text-white relative z-10 mb-2">
                             <span className="text-[10px] uppercase tracking-widest opacity-60 font-black mb-1 block">Diferencia</span>
-                            <div className={`text-xl font-bold font-mono bg-white/10 px-3 py-1.5 rounded-xl backdrop-blur-md inline-block border border-white/10 ${Math.abs(difference) > TOLERANCE_KG ? 'animate-pulse text-red-200 bg-red-500/20' : ''}`}>
+                            <div className={`text-lg font-bold font-mono bg-white/10 px-3 py-1 rounded-xl backdrop-blur-md inline-block border border-white/10 ${Math.abs(difference) > TOLERANCE_KG ? 'animate-pulse text-red-200 bg-red-500/20' : ''}`}>
                                 {difference > 0 ? '+' : ''}{difference.toFixed(3)}
                             </div>
                         </div>
@@ -531,8 +531,8 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
             <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleImageUpload} />
             <input ref={galleryInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
 
-            <div className={`rounded-[2.5rem] border transition-all duration-300 overflow-hidden ${getSectionStyle('identity')}`} onFocus={() => setActiveSection('identity')}>
-                <div className="p-8 space-y-6">
+            <div className={`rounded-3xl border transition-all duration-300 overflow-hidden ${getSectionStyle('identity')}`} onFocus={() => setActiveSection('identity')}>
+                <div className="p-6 space-y-4">
                     <div className="flex items-center gap-3 mb-2">
                         <span className="text-xs font-black uppercase tracking-widest text-zinc-400 dark:text-zinc-500">{t('lbl_identity')}</span>
                     </div>
@@ -573,21 +573,21 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                 </div>
             </div>
 
-            <div className={`rounded-[2.5rem] border transition-all duration-300 overflow-hidden ${getSectionStyle('weights')}`} onFocus={() => setActiveSection('weights')}>
-                <div className="p-8 space-y-4">
+            <div className={`rounded-3xl border transition-all duration-300 overflow-hidden ${getSectionStyle('weights')}`} onFocus={() => setActiveSection('weights')}>
+                <div className="p-6 space-y-3">
                     <div className="flex items-center gap-3 mb-2">
                         <span className="text-xs font-black uppercase tracking-widest text-zinc-400 dark:text-zinc-500">{t('lbl_weighing')}</span>
                     </div>
                     <div className="grid grid-cols-1 gap-6">
                         <div className="relative group">
                             <label className="text-[10px] uppercase font-bold text-zinc-400 dark:text-zinc-500 mb-1.5 block ml-1">{t('lbl_gross_weight')}</label>
-                            <input ref={grossInputRef} type="text" inputMode="decimal" value={grossWeight} onChange={e => setGrossWeight(e.target.value)} placeholder="0.000" className="text-4xl font-black tracking-tight text-zinc-900 dark:text-white bg-transparent outline-none w-full placeholder:text-zinc-200 dark:placeholder:text-zinc-800 transition-all border-b border-zinc-200 dark:border-zinc-800 focus:border-primary-500 pb-2 tabular-nums" />
-                            <span className="absolute right-0 bottom-4 text-zinc-400 font-bold text-xl pointer-events-none">kg</span>
+                            <input ref={grossInputRef} type="text" inputMode="decimal" value={grossWeight} onChange={e => setGrossWeight(e.target.value)} placeholder="0.000" className="text-3xl font-black tracking-tight text-zinc-900 dark:text-white bg-transparent outline-none w-full placeholder:text-zinc-200 dark:placeholder:text-zinc-800 transition-all border-b border-zinc-200 dark:border-zinc-800 focus:border-primary-500 pb-2 tabular-nums" />
+                            <span className="absolute right-0 bottom-4 text-zinc-400 font-bold text-lg pointer-events-none">kg</span>
                         </div>
                         <div className="relative group">
                             <label className="text-[10px] uppercase font-bold text-zinc-400 dark:text-zinc-500 mb-1.5 block ml-1">{t('lbl_note_weight')}</label>
-                            <input ref={noteInputRef} type="number" inputMode="decimal" step="0.01" value={noteWeight} onChange={e => setNoteWeight(e.target.value)} placeholder="0.000" className="text-4xl font-black tracking-tight text-zinc-900 dark:text-white bg-transparent outline-none w-full placeholder:text-zinc-200 dark:placeholder:text-zinc-800 transition-all border-b border-zinc-200 dark:border-zinc-800 focus:border-primary-500 pb-2 tabular-nums" />
-                            <span className="absolute right-0 bottom-4 text-zinc-400 font-bold text-xl pointer-events-none">kg</span>
+                            <input ref={noteInputRef} type="number" inputMode="decimal" step="0.01" value={noteWeight} onChange={e => setNoteWeight(e.target.value)} placeholder="0.000" className="text-3xl font-black tracking-tight text-zinc-900 dark:text-white bg-transparent outline-none w-full placeholder:text-zinc-200 dark:placeholder:text-zinc-800 transition-all border-b border-zinc-200 dark:border-zinc-800 focus:border-primary-500 pb-2 tabular-nums" />
+                            <span className="absolute right-0 bottom-4 text-zinc-400 font-bold text-lg pointer-events-none">kg</span>
                         </div>
                     </div>
                 </div>

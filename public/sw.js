@@ -1,7 +1,7 @@
 
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.4.1/workbox-sw.js');
 
-const CACHE_NAME = 'conferente-pro-v33';
+const CACHE_NAME = 'conferente-pro-v34';
 const OFFLINE_PAGE = '/offline.html';
 
 const bgSyncPlugin = new workbox.backgroundSync.BackgroundSyncPlugin('conferente-queue', {

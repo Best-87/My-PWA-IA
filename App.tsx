@@ -430,16 +430,9 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                 </header>
 
                 {/* Main Content */}
-                <main className="max-w-3xl mx-auto pt-24 px-4">
+                <main className="max-w-3xl mx-auto pt-16 px-4">
                     {activeTab === 'weigh' && (
                         <div className="animate-fade-in">
-                            <div className="mb-6 flex items-center justify-between">
-                                <div className="flex flex-col">
-                                    <h2 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">{t('lbl_weighing')}</h2>
-                                    <p className="text-sm text-zinc-500 dark:text-zinc-400">Nova conferência</p>
-                                </div>
-                            </div>
-
                             <WeighingForm ref={formRef} onViewHistory={() => handleTabChange('history')} />
                         </div>
                     )}
