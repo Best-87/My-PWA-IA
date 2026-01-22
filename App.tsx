@@ -68,6 +68,7 @@ const AppContent = () => {
     const [password, setPassword] = useState('');
     const [isAuthModeLogin, setIsAuthModeLogin] = useState(true);
     const [isAuthLoading, setIsAuthLoading] = useState(false);
+    const [isOnline, setIsOnline] = useState(navigator.onLine);
 
     const backupInputRef = useRef<HTMLInputElement>(null);
     const profileInputRef = useRef<HTMLInputElement>(null);
@@ -91,7 +92,18 @@ const AppContent = () => {
         // Listen for updates via focus
         const handleFocus = () => setRecords(getRecords());
         window.addEventListener('focus', handleFocus);
-        return () => window.removeEventListener('focus', handleFocus);
+
+        // Listen for online/offline status changes
+        const handleOnline = () => setIsOnline(true);
+        const handleOffline = () => setIsOnline(false);
+        window.addEventListener('online', handleOnline);
+        window.addEventListener('offline', handleOffline);
+
+        return () => {
+            window.removeEventListener('focus', handleFocus);
+            window.removeEventListener('online', handleOnline);
+            window.removeEventListener('offline', handleOffline);
+        };
     }, []);
 
     // Screen Wake Lock
@@ -403,9 +415,9 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                 <input ref={backupInputRef} type="file" accept=".json" className="hidden" onChange={handleRestore} />
                 <input ref={profileInputRef} type="file" accept="image/*" className="hidden" onChange={handleProfilePhotoUpload} />
 
-                {/* Curved Gradient Header */}
-                <header className="relative bg-gradient-header header-curve pt-[calc(env(safe-area-inset-top)+1.5rem)] pb-32 px-8 shadow-2xl z-10 text-white animate-fade-in-up">
-                    <div className="flex items-start justify-between">
+                {/* Curved Gradient Header - FIXED */}
+                <header className="fixed top-0 left-0 right-0 bg-gradient-header header-curve pt-[calc(env(safe-area-inset-top)+1.5rem)] pb-32 px-8 shadow-2xl z-50 text-white animate-fade-in-up">
+                    <div className="flex items-start justify-between mb-3">
                         <div>
                             <span className="block text-blue-100 font-medium text-sm mb-1 tracking-wider uppercase">{t('app_subtitle')}</span>
                             <h1 className="text-3xl font-bold tracking-tight">{t('app_name')}</h1>
@@ -421,10 +433,24 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                             />
                         </div>
                     </div>
+
+                    {/* Online Status Indicators */}
+                    <div className="flex items-center gap-2">
+                        <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider ${isOnline ? 'bg-emerald-500/20 text-emerald-100' : 'bg-red-500/20 text-red-100'}`}>
+                            <div className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-300 animate-pulse' : 'bg-red-300'}`}></div>
+                            {isOnline ? 'Online' : 'Offline'}
+                        </div>
+                        {session && (
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-500/20 text-blue-100 text-[9px] font-bold uppercase tracking-wider">
+                                <span className="material-icons-round text-xs">cloud</span>
+                                Nube
+                            </div>
+                        )}
+                    </div>
                 </header>
 
-                {/* Main Content - Overlapping Header */}
-                <main className="relative z-20 -mt-24 px-6 pb-32 max-w-lg mx-auto">
+                {/* Main Content - Overlapping Header with top padding for fixed header */}
+                <main className="relative z-20 pt-32 px-6 pb-32 max-w-lg mx-auto">
                     {activeTab === 'weigh' && (
                         <div className="animate-fade-in">
                             <WeighingForm

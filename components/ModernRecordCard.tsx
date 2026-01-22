@@ -68,6 +68,24 @@ export const ModernRecordCard: React.FC<ModernRecordCardProps> = ({
                         </div>
                     )}
 
+                    {/* Batch & Production Date Info */}
+                    {(record.batch || record.productionDate) && (
+                        <div className="flex items-center gap-2 mb-3">
+                            {record.batch && (
+                                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-50 dark:bg-white/5 border border-zinc-100 dark:border-white/5">
+                                    <span className="material-icons-round text-xs text-zinc-400">tag</span>
+                                    <span className="text-[9px] font-bold text-zinc-600 dark:text-zinc-300 uppercase tracking-wider">Lote: {record.batch}</span>
+                                </div>
+                            )}
+                            {record.productionDate && (
+                                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20">
+                                    <span className="material-icons-round text-xs text-blue-500">factory</span>
+                                    <span className="text-[9px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">{record.productionDate}</span>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
                     {/* Metrics Grid - Smart Tiles */}
                     <div className="grid grid-cols-2 gap-3">
                         <div className="bg-zinc-50 dark:bg-white/5 rounded-2xl p-3 flex items-center gap-3 border border-zinc-100/50 dark:border-white/5">
