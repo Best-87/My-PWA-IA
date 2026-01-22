@@ -69,6 +69,32 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
     // Floating notification system
     const [floatingMessage, setFloatingMessage] = useState<{ text: string, type: 'info' | 'success' | 'warning' | 'ai' } | null>(null);
 
+    // AI Tips Carousel Logic
+    const [carouselTip, setCarouselTip] = useState<string>("");
+
+    useEffect(() => {
+        // Load initial translation safely
+        const initialTip = t('tips_carousel.0', { returnObjects: true }) as string;
+        setCarouselTip(typeof initialTip === 'string' ? initialTip : t('assistant_default'));
+
+        // Get carousel array from translations - handling safety in case it returns string or array
+        const rawTips = t('tips_carousel', { returnObjects: true });
+        const tips = Array.isArray(rawTips) ? rawTips as string[] : [];
+
+        if (tips.length === 0) return;
+
+        let index = 0;
+        const interval = setInterval(() => {
+            // Only rotate if there's no active high-priority notification
+            if (!floatingMessage && !isReadingImage) {
+                index = (index + 1) % tips.length;
+                setCarouselTip(tips[index]);
+            }
+        }, 8000); // Rotate every 8 seconds
+
+        return () => clearInterval(interval);
+    }, [t, floatingMessage, isReadingImage]);
+
     const [currentTipIndex, setCurrentTipIndex] = useState(0);
     const [touchStart, setTouchStart] = useState<number | null>(null);
     const [touchEnd, setTouchEnd] = useState<number | null>(null);
@@ -607,7 +633,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                                                     'text-blue-700 dark:text-blue-300')
                                         : 'text-zinc-500 dark:text-zinc-400'}`}
                                 >
-                                    {floatingMessage ? floatingMessage.text : t('assistant_default')}
+                                    {floatingMessage ? floatingMessage.text : carouselTip}
                                 </p>
                             </div>
                         </div>

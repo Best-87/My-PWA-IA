@@ -149,7 +149,20 @@ const translations = {
         lbl_settings: 'Configurações',
 
         // Logic
-        ai_prompt_lang: 'Português'
+        ai_prompt_lang: 'Português',
+
+        // Carousel Tips
+        tips_carousel: [
+            "💡 Dica: Use a câmera para escanear rótulos automaticamente.",
+            "🌡️ Mantenha produtos congelados sempre abaixo de -18°C.",
+            "📦 Separe as taras antes de pesar para maior precisão.",
+            "📝 Registre sempre o lote para melhor rastreabilidade.",
+            "⚡ Toque em 'Ver tudo' para expandir os detalhes do fornecedor.",
+            "🔄 O aplicativo funciona offline! Seus dados sincronizam depois.",
+            "📸 Adicione fotos como evidência em caso de divergência.",
+            "🧹 Mantenha a balança sempre limpa e calibrada.",
+            "📊 Verifique o histórico para identificar padrões de erro."
+        ]
     },
     es: {
         // ... (previous translations kept)
@@ -295,7 +308,20 @@ const translations = {
         lbl_settings: 'Configuración',
 
         // Logic
-        ai_prompt_lang: 'Español'
+        ai_prompt_lang: 'Español',
+
+        // Carousel Tips
+        tips_carousel: [
+            "💡 Tip: Usa la cámara para leer etiquetas automáticamente.",
+            "🌡️ Mantén productos congelados siempre bajo -18°C.",
+            "📦 Separa las taras antes de pesar para mayor precisión.",
+            "📝 Registra siempre el lote para mejor trazabilidad.",
+            "⚡ Toca 'Ver todo' para expandir detalles del proveedor.",
+            "🔄 ¡La app funciona offline! Tus datos se sincronizan luego.",
+            "📸 Adjunta fotos como evidencia en caso de diferencias.",
+            "🧹 Mantén la balanza siempre limpia y calibrada.",
+            "📊 Revisa el historial para identificar patrones de error."
+        ]
     },
     en: {
         // ... (previous translations kept)
