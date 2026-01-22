@@ -503,24 +503,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
     return (
         <div className="space-y-6 pb-32">
 
-            {/* Ticker Notification Banner - Scrolls Right to Left */}
-            {floatingMessage && (
-                <div className="fixed top-20 left-0 right-0 z-40 overflow-hidden">
-                    <div className={`
-                        py-2 backdrop-blur-xl border-y
-                        ${floatingMessage.type === 'success' ? 'bg-emerald-500/90 border-emerald-400/50' : ''}
-                        ${floatingMessage.type === 'info' ? 'bg-blue-500/90 border-blue-400/50' : ''}
-                        ${floatingMessage.type === 'warning' ? 'bg-orange-500/90 border-orange-400/50' : ''}
-                        ${floatingMessage.type === 'ai' ? 'bg-purple-500/90 border-purple-400/50' : ''}
-                    `}>
-                        <div className="animate-ticker whitespace-nowrap">
-                            <span className="text-sm font-bold text-white inline-block px-4">
-                                {floatingMessage.text}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            )}
+
 
             {/* 1. Floating Metrics Card - Overlaps Header */}
             <div className="smart-card relative z-30 p-6 flex flex-col gap-6 smart-shadow animate-fade-in-up">
@@ -592,9 +575,43 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
 
             {/* 3. Input Lists (Rooms style) */}
             <div className="space-y-4 px-1 stagger-2 animate-fade-in-up">
-                <div className="flex items-center justify-between px-2">
-                    <h3 className="text-zinc-900 dark:text-white font-bold text-lg">Detalles</h3>
-                    <span className="text-xs text-blue-500 font-medium cursor-pointer" onClick={() => setActiveSection('identity')}>Ver todo</span>
+                {/* AI Assistant Dialog */}
+                <div className="mx-2 mb-2 relative">
+                    <div className={`
+                        p-4 rounded-2xl transition-all duration-300 border
+                        ${floatingMessage
+                            ? (floatingMessage.type === 'success' ? 'bg-emerald-50 border-emerald-100 dark:bg-emerald-900/10 dark:border-emerald-900/30' :
+                                floatingMessage.type === 'warning' ? 'bg-orange-50 border-orange-100 dark:bg-orange-900/10 dark:border-orange-900/30' :
+                                    floatingMessage.type === 'ai' ? 'bg-purple-50 border-purple-100 dark:bg-purple-900/10 dark:border-purple-900/30' :
+                                        'bg-blue-50 border-blue-100 dark:bg-blue-900/10 dark:border-blue-900/30')
+                            : 'bg-zinc-50 border-zinc-100 dark:bg-zinc-900/50 dark:border-white/5'}
+                    `}>
+                        <div className="flex items-start gap-3">
+                            <div className={`mt-0.5 w-8 h-8 rounded-full flex items-center justify-center shrink-0 shadow-sm transition-colors duration-300
+                                ${floatingMessage ? 'bg-white dark:bg-zinc-800' : 'bg-gradient-header'}`}
+                            >
+                                <span className={`material-icons-round text-sm ${floatingMessage ? '' : 'text-white'}`}>
+                                    {floatingMessage
+                                        ? (floatingMessage.type === 'success' ? 'check_circle' :
+                                            floatingMessage.type === 'warning' ? 'warning' :
+                                                floatingMessage.type === 'ai' ? 'auto_awesome' : 'info')
+                                        : 'smart_toy'}
+                                </span>
+                            </div>
+                            <div className="flex-1">
+                                <p className={`text-xs font-medium leading-relaxed transition-colors duration-300
+                                    ${floatingMessage
+                                        ? (floatingMessage.type === 'success' ? 'text-emerald-700 dark:text-emerald-300' :
+                                            floatingMessage.type === 'warning' ? 'text-orange-700 dark:text-orange-300' :
+                                                floatingMessage.type === 'ai' ? 'text-purple-700 dark:text-purple-300' :
+                                                    'text-blue-700 dark:text-blue-300')
+                                        : 'text-zinc-500 dark:text-zinc-400'}`}
+                                >
+                                    {floatingMessage ? floatingMessage.text : t('assistant_default')}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Identity Card */}
@@ -710,20 +727,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                     )}
                 </div>
 
-                {/* Evidence / AI Feed */}
-                {evidence && (
-                    <div className="smart-card p-4 flex items-center gap-4 relative overflow-hidden">
-                        <img src={evidence} alt="Evidence" className="w-16 h-16 rounded-xl object-cover" />
-                        <div className="flex-1">
-                            <h4 className="text-sm font-bold text-zinc-900 dark:text-white flex items-center gap-2">
-                                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                                IA Analysis
-                            </h4>
-                            <p className="text-xs text-zinc-500 truncate">{aiAlert || "Procesando imagen..."}</p>
-                        </div>
-                        <button onClick={() => setEvidence(null)} className="w-8 h-8 bg-zinc-100 dark:bg-zinc-800 rounded-full flex items-center justify-center text-zinc-500"><span className="material-icons-round text-sm">close</span></button>
-                    </div>
-                )}
+
             </div>
 
             <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleImageUpload} />
