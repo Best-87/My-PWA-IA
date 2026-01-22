@@ -66,6 +66,9 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
     const [isReadingImage, setIsReadingImage] = useState(false);
     const [aiAlert, setAiAlert] = useState<string | null>(null);
 
+    // Floating notification system
+    const [floatingMessage, setFloatingMessage] = useState<{ text: string, type: 'info' | 'success' | 'warning' | 'ai' } | null>(null);
+
     const [currentTipIndex, setCurrentTipIndex] = useState(0);
     const [touchStart, setTouchStart] = useState<number | null>(null);
     const [touchEnd, setTouchEnd] = useState<number | null>(null);
@@ -321,10 +324,12 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
 
     const analyzeImageContent = async (base64Image: string) => {
         if (!navigator.onLine) {
-            setAiAlert("Modo Offline: IA no disponible.");
+            setFloatingMessage({ text: "Modo Offline: IA no disponible", type: 'warning' });
+            setTimeout(() => setFloatingMessage(null), 3000);
             return;
         }
         setIsReadingImage(true);
+        setFloatingMessage({ text: "🔍 Leyendo rótulo...", type: 'info' });
         isAiPopulating.current = true;
         setAiAlert(null);
         setCriticalWarning(null);
@@ -358,14 +363,34 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
 
             const cleanJson = text.replace(/```json|```/g, '').trim();
             const data = JSON.parse(cleanJson);
+
+            // Show success message
+            setFloatingMessage({ text: "✓ Rótulo leído correctamente", type: 'success' });
+            setTimeout(() => setFloatingMessage(null), 2000);
+
             if (data.supplier && !supplier) setSupplier(data.supplier);
             if (data.product && !product) setProduct(data.product);
             if (data.batch && !batch) setBatch(data.batch);
             if (data.expiration && !expirationDate) setExpirationDate(data.expiration);
             if (data.production && !productionDate) setProductionDate(data.production);
             if (data.storage) setStorageType(data.storage);
-            if (data.temperature_range) setRecommendedTemp(data.temperature_range);
-            if (data.warning) setCriticalWarning(data.warning);
+
+            if (data.temperature_range) {
+                setRecommendedTemp(data.temperature_range);
+                setTimeout(() => {
+                    setFloatingMessage({ text: `🌡️ Temperatura: ${data.temperature_range}`, type: 'ai' });
+                    setTimeout(() => setFloatingMessage(null), 4000);
+                }, 2500);
+            }
+
+            if (data.warning) {
+                setCriticalWarning(data.warning);
+                setTimeout(() => {
+                    setFloatingMessage({ text: `⚠️ ${data.warning}`, type: 'warning' });
+                    setTimeout(() => setFloatingMessage(null), 5000);
+                }, data.temperature_range ? 7000 : 2500);
+            }
+
             if (data.tara) {
                 let val = parseFloat(String(data.tara));
                 if (!isNaN(val)) {
@@ -373,11 +398,16 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                     setBoxTara(Math.round(val).toString());
                     if (!boxQty || boxQty === '0') setBoxQty('0');
                     setShowBoxes(true);
+                    setTimeout(() => {
+                        setFloatingMessage({ text: `📦 Tara sugerida: ${Math.round(val)}g`, type: 'ai' });
+                        setTimeout(() => setFloatingMessage(null), 4000);
+                    }, data.warning ? 12500 : (data.temperature_range ? 7000 : 2500));
                 }
             }
         } catch (error: any) {
             console.error("AI Analysis Error:", error);
-            setAiAlert("Error al leer imagen.");
+            setFloatingMessage({ text: "Error al leer imagen", type: 'warning' });
+            setTimeout(() => setFloatingMessage(null), 3000);
         } finally {
             setIsReadingImage(false);
             setTimeout(() => { isAiPopulating.current = false; }, 1500);
@@ -472,6 +502,21 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
 
     return (
         <div className="space-y-6 pb-32">
+
+            {/* Floating Notification Banner */}
+            {floatingMessage && (
+                <div className={`
+                    fixed top-24 left-1/2 -translate-x-1/2 z-40 
+                    px-6 py-3 rounded-2xl shadow-2xl backdrop-blur-xl
+                    animate-slide-down max-w-sm w-auto
+                    ${floatingMessage.type === 'success' ? 'bg-emerald-500/90 text-white' : ''}
+                    ${floatingMessage.type === 'info' ? 'bg-blue-500/90 text-white' : ''}
+                    ${floatingMessage.type === 'warning' ? 'bg-orange-500/90 text-white' : ''}
+                    ${floatingMessage.type === 'ai' ? 'bg-purple-500/90 text-white' : ''}
+                `}>
+                    <p className="text-sm font-bold text-center whitespace-nowrap">{floatingMessage.text}</p>
+                </div>
+            )}
 
             {/* 1. Floating Metrics Card - Overlaps Header */}
             <div className="smart-card relative z-30 p-6 flex flex-col gap-6 smart-shadow animate-fade-in-up">
