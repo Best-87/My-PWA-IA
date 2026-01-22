@@ -6,8 +6,9 @@
   body {
     -webkit-tap-highlight-color: transparent;
     overscroll-behavior-y: contain;
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
-    @apply bg-zinc-50 dark:bg-black;
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    @apply bg-[#F2F5F8] dark:bg-[#121214];
+    /* Light gray-blueish background from reference */
   }
 
   * {
@@ -18,56 +19,75 @@
 
 @layer utilities {
 
-  /* iOS Spring-like animations */
-  @keyframes ios-spring-in {
-    0% { transform: scale(0.95) translateY(10px); opacity: 0; }
-    100% { transform: scale(1) translateY(0); opacity: 1; }
+  /* Reference Gradients */
+  .bg-gradient-header {
+    background: linear-gradient(135deg, #7F7FD5 0%, #86A8E7 50%, #91EAE4 100%);
+    /* Violet-Blue aesthetic */
+    background: linear-gradient(120deg, #667eea 0%, #764ba2 100%);
+    /* Deep Purple-Blue */
   }
 
-  @keyframes ios-fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
+  .bg-gradient-primary {
+    background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 99%, #FECFEF 100%);
+    /* Pink-ish like "Morning" button */
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    /* Vibrant Pink-Orange */
   }
 
-  @keyframes ios-slide-up {
-    from { transform: translateY(30px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
+  .bg-gradient-accent {
+    background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+    /* Soft Purple */
   }
 
-  /* Refined Micro-interactions */
-  .animate-ios-spring {
-    animation: ios-spring-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.1) both;
+  /* Smart Home Card Styles */
+  .smart-card {
+    @apply bg-white dark:bg-[#1E1E20] rounded-[2rem] shadow-[0_10px_30px_rgba(0, 0, 0, 0.05)] border border-white/50 dark:border-white/5;
   }
 
-  .animate-ios-fade {
-    animation: ios-fade-in 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+  .smart-shadow {
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08), 0 5px 15px rgba(0, 0, 0, 0.04);
   }
 
-  .animate-ios-slide {
-    animation: ios-slide-up 0.5s cubic-bezier(0.23, 1, 0.32, 1) both;
+  .smart-shadow-sm {
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
   }
 
-  /* Enhanced Stagger for lists */
-  .stagger-1 { animation-delay: 40ms; }
-  .stagger-2 { animation-delay: 80ms; }
-  .stagger-3 { animation-delay: 120ms; }
-
-  /* Premium Glassmorphism */
-  .glass {
-    background: rgba(255, 255, 255, 0.65);
-    backdrop-filter: blur(25px) saturate(200%);
-    -webkit-backdrop-filter: blur(25px) saturate(200%);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+  /* Header Curve */
+  .header-curve {
+    border-bottom-left-radius: 2.5rem;
+    border-bottom-right-radius: 2.5rem;
   }
 
-  .glass-dark {
-    background: rgba(28, 28, 30, 0.7);
-    backdrop-filter: blur(25px) saturate(180%);
-    -webkit-backdrop-filter: blur(25px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+  /* Animations */
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
-  /* iOS Semantic Shadows */
+  .animate-fade-in-up {
+    animation: fade-in-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .stagger-1 {
+    animation-delay: 100ms;
+  }
+
+  .stagger-2 {
+    animation-delay: 200ms;
+  }
+
+  .stagger-3 {
+    animation-delay: 300ms;
+  }
+
+  /* iOS Semantic Shadows - Kept for compatibility */
   .card-shadow {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 10px 20px rgba(0, 0, 0, 0.06);
   }
@@ -76,29 +96,25 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 24px 48px rgba(0, 0, 0, 0.12);
   }
 
-  /* Dynamic Input States */
-  .ios-input-focus:focus-within {
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
-    border-color: rgba(59, 130, 246, 0.5);
-    transform: scale(1.005);
+  /* Native button press effect */
+  .btn-press {
+    transition: transform 0.2s cubic-bezier(0.33, 1, 0.68, 1), box-shadow 0.2s ease;
   }
 
-  @keyframes pulse-glow {
-    0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.2); }
-    50% { box-shadow: 0 0 40px rgba(59, 130, 246, 0.4); }
+  .btn-press:active {
+    transform: scale(0.96);
+    opacity: 0.9;
   }
 
-  .animate-pulse-glow {
-    animation: pulse-glow 3s ease-in-out infinite;
+  /* Safe area padding */
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
   }
 
-  /* Smooth scroll */
-  .smooth-scroll {
-    scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
   }
 
-  /* Hide scrollbar but keep functionality */
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
@@ -106,32 +122,5 @@
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
-  }
-
-  /* Native button press effect */
-  .btn-press {
-    transition: transform 0.2s cubic-bezier(0.33, 1, 0.68, 1), background-color 0.2s ease;
-  }
-
-  .btn-press:active {
-    transform: scale(0.94);
-    opacity: 0.8;
-  }
-
-  /* Gradient text */
-  .gradient-text {
-    background: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  /* Safe area padding for notched devices */
-  .safe-top {
-    padding-top: env(safe-area-inset-top);
-  }
-
-  .safe-bottom {
-    padding-bottom: env(safe-area-inset-bottom);
   }
 }

@@ -403,53 +403,28 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                 <input ref={backupInputRef} type="file" accept=".json" className="hidden" onChange={handleRestore} />
                 <input ref={profileInputRef} type="file" accept="image/*" className="hidden" onChange={handleProfilePhotoUpload} />
 
-                {/* Header */}
-                <header className="fixed top-0 w-full z-50 glass dark:glass-dark border-b border-zinc-200/50 dark:border-white/5 transition-all animate-ios-fade safe-top">
-                    <div className="max-w-3xl mx-auto px-4 h-16 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="bg-gradient-to-br from-primary-500 to-primary-700 w-9 h-9 rounded-xl flex items-center justify-center shadow-lg shadow-primary-500/30">
-                                <span className="material-icons-round text-white text-lg">scale</span>
-                            </div>
-                            <div>
-                                <h1 className="text-lg font-black text-zinc-900 dark:text-white leading-none tracking-tight">{t('app_name')}</h1>
-                                <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 tracking-widest uppercase opacity-80">{t('app_subtitle')}</span>
-                            </div>
+                {/* Curved Gradient Header */}
+                <header className="relative bg-gradient-header header-curve pt-[calc(env(safe-area-inset-top)+1.5rem)] pb-32 px-8 shadow-2xl z-10 text-white animate-fade-in-up">
+                    <div className="flex items-start justify-between">
+                        <div>
+                            <span className="block text-blue-100 font-medium text-sm mb-1 tracking-wider uppercase">{t('app_subtitle')}</span>
+                            <h1 className="text-3xl font-bold tracking-tight">{t('app_name')}</h1>
                         </div>
-
-                        <div className="flex items-center gap-2">
-                            {session && (
-                                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
-                                    <span className="material-icons-round text-[10px] text-emerald-400">cloud_done</span>
-                                    <span className="text-[10px] font-black text-emerald-400 uppercase tracking-tight">{profile.name || 'Cloud Active'}</span>
-                                </div>
-                            )}
-
-                            {/* Profile Section in Header */}
-                            <div className="flex items-center gap-3 pl-3 ml-1 border-l border-zinc-200 dark:border-white/10 cursor-pointer group active:opacity-70 transition-all" onClick={() => setActiveTab('profile')}>
-                                <div className="flex flex-col items-end text-right">
-                                    <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest leading-none mb-0.5">{profile.name}</span>
-                                    <div className="flex items-center">
-                                        <span className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 leading-none">{profile.role}</span>
-                                        {profile.store && <span className="text-[8px] font-black text-blue-500 uppercase tracking-wider bg-blue-500/10 px-1 rounded ml-1">{profile.store}</span>}
-                                    </div>
-                                </div>
-
-                                <div className="w-9 h-9 rounded-full overflow-hidden border border-zinc-200 dark:border-white/10 shadow-sm relative transition-all group-active:scale-95">
-                                    {profile.photo ? (
-                                        <img src={profile.photo} alt="Profile" className="w-full h-full object-cover" />
-                                    ) : (
-                                        <div className="w-full h-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-400 dark:text-zinc-500">
-                                            <span className="material-icons-round text-lg">person</span>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
+                        <div
+                            className="w-12 h-12 rounded-full border-2 border-white/30 p-0.5 cursor-pointer hover:border-white transition-colors"
+                            onClick={() => setActiveTab('profile')}
+                        >
+                            <img
+                                src={profile.photo || "https://ui-avatars.com/api/?name=User&background=random"}
+                                alt="Profile"
+                                className="w-full h-full rounded-full object-cover"
+                            />
                         </div>
                     </div>
                 </header>
 
-                {/* Main Content */}
-                <main className="max-w-3xl mx-auto pt-16 px-4">
+                {/* Main Content - Overlapping Header */}
+                <main className="relative z-20 -mt-24 px-6 pb-32 max-w-lg mx-auto">
                     {activeTab === 'weigh' && (
                         <div className="animate-fade-in">
                             <WeighingForm
@@ -693,43 +668,7 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                 <BottomNav
                     activeTab={activeTab}
                     onTabChange={setActiveTab}
-                >
-                    {activeTab === 'weigh' && (
-                        <div className="flex items-center gap-2 p-2 bg-[#1C1C1E]/90 backdrop-blur-xl rounded-[2.5rem] shadow-2xl shadow-black/50 ring-1 ring-white/10 select-none">
-                            <button
-                                onClick={() => formRef.current?.openCamera()}
-                                className="w-12 h-12 rounded-full bg-zinc-800/50 flex items-center justify-center text-white hover:bg-white/20 hover:scale-110 transition-all active:scale-90 shadow-inner group relative overflow-hidden"
-                            >
-                                <span className="material-icons-round text-xl group-hover:text-blue-400 transition-colors relative z-10">photo_camera</span>
-                            </button>
-
-                            <button
-                                onClick={() => formRef.current?.openGallery()}
-                                className="w-12 h-12 rounded-full bg-zinc-800/50 flex items-center justify-center text-white hover:bg-white/20 hover:scale-110 transition-all active:scale-90 shadow-inner group relative overflow-hidden"
-                            >
-                                <span className="material-icons-round text-xl group-hover:text-purple-400 transition-colors relative z-10">collections</span>
-                            </button>
-
-                            <div className="w-[1px] h-6 bg-white/10 mx-1"></div>
-
-                            <button
-                                onClick={() => formRef.current?.clear()}
-                                className="w-12 h-12 rounded-full flex items-center justify-center transition-all active:scale-75 group relative overflow-hidden hover:bg-red-500/10"
-                                title={t('btn_clear')}
-                            >
-                                <span className="material-icons-round text-[22px] text-[#FF453A] drop-shadow-[0_0_8px_rgba(255,69,58,0.3)] transition-transform group-hover:scale-110 group-hover:-rotate-12">delete_sweep</span>
-                            </button>
-
-                            <button
-                                onClick={() => formRef.current?.save()}
-                                className={`w-20 h-14 ml-1 rounded-full flex items-center justify-center text-white shadow-lg transition-all active:scale-90 ${hasUnsavedWeighingData ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 shadow-emerald-500/30 animate-pulse-slow hover:scale-105' : 'bg-zinc-700 shadow-zinc-900/50 opacity-80'}`}
-                            >
-                                <span className="material-icons-round text-2xl">save</span>
-                                {hasUnsavedWeighingData && <span className="text-[10px] font-black uppercase ml-1 tracking-wider opacity-90 hidden sm:inline">Save</span>}
-                            </button>
-                        </div>
-                    )}
-                </BottomNav>
+                />
             </div >
         </>
     );

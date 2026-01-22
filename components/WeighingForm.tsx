@@ -469,163 +469,215 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
     };
 
     return (
-        <div className="space-y-4 relative pb-32">
-            <div className={`sticky top-20 z-40 p-4 rounded-[2rem] card-shadow-lg transition-all duration-500 bg-gradient-to-br ${getStatusColor()} border border-white/10 backdrop-blur-xl overflow-hidden group mx-1 animate-ios-spring`}>
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-10 -mt-10 blur-3xl pointer-events-none"></div>
-                <div className="relative z-10">
-                    <div className="flex items-start gap-3 mb-2 select-none touch-pan-y min-h-[2.5rem]" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
-                        <div className={`w-10 h-10 rounded-2xl backdrop-blur-md flex items-center justify-center shrink-0 border border-white/20 shadow-inner transition-colors duration-500 ${activeTip.bg || 'bg-white/10'}`}>
-                            <span className="material-icons-round text-xl pointer-events-none text-white transition-all duration-500">{activeTip.icon}</span>
+        <div className="space-y-6 pb-32">
+
+            {/* 1. Floating Metrics Card - Overlaps Header */}
+            <div className="smart-card relative z-30 p-6 flex flex-col gap-6 smart-shadow animate-fade-in-up">
+                <div className="grid grid-cols-2 gap-4 divide-x divide-zinc-100 dark:divide-white/5">
+                    <div className="flex flex-col items-center">
+                        <span className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest mb-1">{t('lbl_net')}</span>
+                        <div className="flex items-baseline text-zinc-800 dark:text-white">
+                            <span className="text-5xl font-black tracking-tighter tabular-nums">{Math.floor(netWeight)}</span>
+                            <span className="text-2xl font-bold opacity-60">.{netWeight.toFixed(3).split('.')[1]}</span>
+                            <span className="text-sm font-bold opacity-40 ml-1">kg</span>
                         </div>
-                        <div className="flex-1 overflow-hidden relative pt-1">
-                            <div className={`flex flex-col justify-center relative transition-all duration-300`}>
-                                {activeTip.id !== 'assistant' && <span className={`text-[10px] uppercase font-black tracking-widest mb-1 ${activeTip.color || 'text-white/80'}`}>{activeTip.title}</span>}
-                                <div className="text-sm font-medium opacity-95 text-white leading-snug">
-                                    {isReadingImage ? <span className="animate-pulse">{t('lbl_analyzing_img')}</span> : activeTip.component}
-                                </div>
+                    </div>
+                    <div className="flex flex-col items-center justify-center pl-4">
+                        <span className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest mb-1">Diferencia</span>
+                        <div className={`text-2xl font-bold font-mono px-3 py-1 rounded-xl transition-colors ${Math.abs(difference) > TOLERANCE_KG ? 'text-red-500 bg-red-50 dark:bg-red-900/20' : 'text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20'}`}>
+                            {difference > 0 ? '+' : ''}{difference.toFixed(3)}
+                        </div>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 pt-4 border-t border-zinc-50 dark:border-white/5">
+                    <div className="flex flex-col items-center">
+                        <span className="text-zinc-400 text-[9px] font-bold uppercase tracking-widest mb-0.5">{t('lbl_gross_weight')}</span>
+                        <span className="text-lg font-bold text-zinc-600 dark:text-zinc-300 tabular-nums">{parsedGrossWeight.toFixed(3)}</span>
+                    </div>
+                    <div className="flex flex-col items-center">
+                        <span className="text-zinc-400 text-[9px] font-bold uppercase tracking-widest mb-0.5">{t('lbl_tara_section')}</span>
+                        <span className="text-lg font-bold text-zinc-600 dark:text-zinc-300 tabular-nums">{totalTara.toFixed(3)}</span>
+                    </div>
+                </div>
+            </div>
+
+            {/* 2. Action Buttons (Routines) */}
+            <div className="flex items-center justify-between gap-3 px-2 stagger-1 animate-fade-in-up">
+                <h3 className="text-zinc-900 dark:text-white font-bold text-lg hidden">Acciones</h3>
+
+                <button
+                    onClick={() => cameraInputRef.current?.click()}
+                    className="flex-1 aspect-square rounded-[1.5rem] bg-gradient-primary shadow-lg shadow-pink-500/20 flex flex-col items-center justify-center gap-1 text-white btn-press"
+                >
+                    <span className="material-icons-round text-3xl">photo_camera</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wide">Scan</span>
+                </button>
+
+                <button
+                    onClick={() => galleryInputRef.current?.click()}
+                    className="flex-1 aspect-square rounded-[1.5rem] bg-white dark:bg-zinc-800 shadow-md flex flex-col items-center justify-center gap-1 text-zinc-600 dark:text-zinc-300 btn-press border border-zinc-100 dark:border-white/5"
+                >
+                    <span className="material-icons-round text-3xl text-purple-400">collections</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wide">Galeria</span>
+                </button>
+
+                <button
+                    onClick={() => setShowConfirmReset(true)}
+                    className="flex-1 aspect-square rounded-[1.5rem] bg-white dark:bg-zinc-800 shadow-md flex flex-col items-center justify-center gap-1 text-zinc-600 dark:text-zinc-300 btn-press border border-zinc-100 dark:border-white/5"
+                >
+                    <span className="material-icons-round text-3xl text-zinc-400">delete_sweep</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wide">{t('btn_clear')}</span>
+                </button>
+
+                <button
+                    onClick={handleSave}
+                    className={`flex-1 aspect-square rounded-[1.5rem] shadow-lg flex flex-col items-center justify-center gap-1 text-white btn-press transition-all ${hasDataToSave ? 'bg-gradient-header shadow-blue-500/30' : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-400 shadow-none'}`}
+                >
+                    <span className="material-icons-round text-3xl">save</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wide">Save</span>
+                </button>
+            </div>
+
+            {/* 3. Input Lists (Rooms style) */}
+            <div className="space-y-4 px-1 stagger-2 animate-fade-in-up">
+                <div className="flex items-center justify-between px-2">
+                    <h3 className="text-zinc-900 dark:text-white font-bold text-lg">Detalles</h3>
+                    <span className="text-xs text-blue-500 font-medium cursor-pointer" onClick={() => setActiveSection('identity')}>Ver todo</span>
+                </div>
+
+                {/* Identity Card */}
+                <div className={`smart-card p-4 flex items-center gap-4 transition-all ${activeSection === 'identity' ? 'ring-2 ring-blue-500/20' : ''}`} onClick={() => setActiveSection('identity')}>
+                    <div className="w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center shrink-0 text-blue-500">
+                        <span className="material-icons-round text-2xl">store</span>
+                    </div>
+                    <div className="flex-1 min-w-0 grid grid-cols-1 gap-2">
+                        <div className="relative">
+                            <label className="text-[9px] font-bold text-zinc-400 uppercase">Proveedor</label>
+                            <input
+                                list="suppliers" value={supplier} onChange={e => setSupplier(e.target.value)}
+                                className="w-full bg-transparent border-b border-zinc-100 dark:border-white/10 py-1 text-sm font-semibold text-zinc-900 dark:text-white outline-none focus:border-blue-500 placeholder:text-zinc-300"
+                                placeholder={t('ph_supplier')}
+                            />
+                            <datalist id="suppliers">{suggestions.suppliers.map(s => <option key={s} value={s} />)}</datalist>
+                        </div>
+                        <div className="relative">
+                            <label className="text-[9px] font-bold text-zinc-400 uppercase">Producto</label>
+                            <input
+                                list="products" value={product} onChange={e => setProduct(e.target.value)}
+                                className="w-full bg-transparent border-b border-zinc-100 dark:border-white/10 py-1 text-sm font-semibold text-zinc-900 dark:text-white outline-none focus:border-blue-500 placeholder:text-zinc-300"
+                                placeholder={t('ph_product')}
+                            />
+                            <datalist id="products">{suggestions.products.map(p => <option key={p} value={p} />)}</datalist>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Logistics Row */}
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="smart-card p-4 flex flex-col justify-between h-24">
+                        <div className="flex items-center gap-2 text-zinc-400">
+                            <div className="w-8 h-8 rounded-full bg-zinc-50 dark:bg-zinc-800 flex items-center justify-center"><span className="material-icons-round text-sm">factory</span></div>
+                            <span className="text-[10px] font-bold uppercase">{t('ph_production')}</span>
+                        </div>
+                        <input type="text" value={productionDate} onChange={e => setProductionDate(e.target.value)} placeholder="DD/MM/YYYY" className="bg-transparent font-bold text-zinc-700 dark:text-zinc-200 outline-none w-full text-sm" />
+                    </div>
+                    <div className="smart-card p-4 flex flex-col justify-between h-24">
+                        <div className="flex items-center gap-2 text-zinc-400">
+                            <div className="w-8 h-8 rounded-full bg-zinc-50 dark:bg-zinc-800 flex items-center justify-center"><span className="material-icons-round text-sm">event_busy</span></div>
+                            <span className="text-[10px] font-bold uppercase">{t('ph_expiration')}</span>
+                        </div>
+                        <input type="text" value={expirationDate} onChange={e => setExpirationDate(e.target.value)} placeholder="DD/MM/YYYY" className="bg-transparent font-bold text-zinc-700 dark:text-zinc-200 outline-none w-full text-sm" />
+                    </div>
+                </div>
+
+                {/* Weighing Inputs */}
+                <div className={`smart-card p-4 flex items-center gap-4 transition-all ${activeSection === 'weights' ? 'ring-2 ring-blue-500/20' : ''}`} onClick={() => setActiveSection('weights')}>
+                    <div className="w-12 h-12 rounded-full bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center shrink-0 text-purple-500">
+                        <span className="material-icons-round text-2xl">scale</span>
+                    </div>
+                    <div className="flex-1 min-w-0 grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="text-[9px] font-bold text-zinc-400 uppercase">{t('lbl_gross_weight')}</label>
+                            <div className="flex items-baseline gap-1 border-b border-zinc-100 dark:border-white/10 focus-within:border-purple-500 transition-colors">
+                                <input
+                                    ref={grossInputRef} type="text" inputMode="decimal" value={grossWeight} onChange={e => setGrossWeight(e.target.value)}
+                                    className="w-full bg-transparent py-1 text-lg font-bold text-zinc-900 dark:text-white outline-none tabular-nums"
+                                    placeholder="0.00"
+                                />
+                                <span className="text-xs text-zinc-400 font-medium">kg</span>
                             </div>
-                            {tips.length > 1 && (
-                                <div className="flex gap-1.5 mt-2.5">
-                                    {tips.map((_, idx) => (<div key={idx} className={`h-1 rounded-full transition-all duration-300 ${idx === currentTipIndex ? 'w-5 bg-white' : 'w-1.5 bg-white/30'}`} />))}
-                                </div>
+                        </div>
+                        <div>
+                            <label className="text-[9px] font-bold text-zinc-400 uppercase">{t('lbl_note_weight')}</label>
+                            <div className="flex items-baseline gap-1 border-b border-zinc-100 dark:border-white/10 focus-within:border-purple-500 transition-colors">
+                                <input
+                                    ref={noteInputRef} type="number" inputMode="decimal" step="0.01" value={noteWeight} onChange={e => setNoteWeight(e.target.value)}
+                                    className="w-full bg-transparent py-1 text-lg font-bold text-zinc-900 dark:text-white outline-none tabular-nums"
+                                    placeholder="0.00"
+                                />
+                                <span className="text-xs text-zinc-400 font-medium">kg</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Tara Section */}
+                <div className={`smart-card p-4 transition-all ${activeSection === 'tara' ? 'ring-2 ring-blue-500/20' : ''}`} onClick={() => setActiveSection('tara')}>
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-full bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center shrink-0 text-orange-500">
+                                <span className="material-icons-round text-2xl">inventory_2</span>
+                            </div>
+                            <div>
+                                <h4 className="text-sm font-bold text-zinc-900 dark:text-white">{t('lbl_tara_section')}</h4>
+                                <p className="text-xs text-zinc-500">Cajas y empaques</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <input type="checkbox" checked={showBoxes} onChange={() => setShowBoxes(!showBoxes)} className="w-5 h-5 accent-orange-500 rounded-md" />
+                        </div>
+                    </div>
+
+                    {showBoxes && (
+                        <div className="grid grid-cols-2 gap-4 animate-fade-in pl-16">
+                            <div className="relative group">
+                                <label className="text-[9px] font-bold text-zinc-400 uppercase">{t('lbl_unit_weight')} (g)</label>
+                                <input type="tel" value={boxTara} onChange={e => setBoxTara(e.target.value)} className="w-full bg-zinc-50 dark:bg-zinc-800 rounded-xl px-3 py-2 text-sm font-bold outline-none" placeholder="0" />
+                            </div>
+                            <div className="relative group">
+                                <label className="text-[9px] font-bold text-zinc-400 uppercase">{t('lbl_qty')}</label>
+                                <input type="tel" value={boxQty} onChange={e => setBoxQty(e.target.value)} className="w-full bg-zinc-50 dark:bg-zinc-800 rounded-xl px-3 py-2 text-sm font-bold outline-none" placeholder="0" />
+                            </div>
+                            {prediction.suggestedTaraBox && (
+                                <button onClick={() => { setBoxTara(Math.round(prediction.suggestedTaraBox! * 1000).toString()); setBoxQty('0'); }} className="col-span-2 text-xs text-orange-500 font-bold bg-orange-50 dark:bg-orange-900/20 py-2 rounded-xl flex items-center justify-center gap-2">
+                                    <span className="material-icons-round text-sm">auto_fix_high</span>
+                                    Usar sugerencia IA: {Math.round(prediction.suggestedTaraBox! * 1000)}g
+                                </button>
                             )}
                         </div>
-                    </div>
-                    <div className="flex justify-between items-end border-t border-white/10 pt-4 mt-2">
-                        <div className="text-white relative z-10">
-                            {/* HERO WEIGHT DISPLAY */}
-                            <div className="flex items-baseline">
-                                <span className="text-6xl leading-none font-black tracking-tighter tabular-nums text-transparent bg-clip-text bg-gradient-to-b from-white to-white/80 drop-shadow-sm">
-                                    {Math.floor(netWeight)}
-                                    <span className="text-4xl opacity-90">.{netWeight.toFixed(3).split('.')[1]}</span>
-                                </span>
-                                <span className="text-lg font-bold opacity-60 ml-2 mb-2">kg</span>
-                            </div>
-                        </div>
-                        <div className="text-right text-white relative z-10 mb-2">
-                            <span className="text-[10px] uppercase tracking-widest opacity-60 font-black mb-1 block">Diferencia</span>
-                            <div className={`text-lg font-bold font-mono bg-white/10 px-3 py-1 rounded-xl backdrop-blur-md inline-block border border-white/10 ${Math.abs(difference) > TOLERANCE_KG ? 'animate-pulse text-red-200 bg-red-500/20' : ''}`}>
-                                {difference > 0 ? '+' : ''}{difference.toFixed(3)}
-                            </div>
-                        </div>
-                    </div>
-                    {!aiAlert && Math.abs(difference) > TOLERANCE_KG && (
-                        <button onClick={analyzeWithAI} disabled={isAnalyzing} className="mt-3 w-full py-3 bg-white hover:bg-zinc-100 text-zinc-900 rounded-2xl text-xs font-black shadow-lg transition-all flex items-center justify-center gap-2 btn-press">
-                            {isAnalyzing ? <span className="animate-spin material-icons-round text-sm pointer-events-none">refresh</span> : <span className="material-icons-round text-sm pointer-events-none">analytics</span>}
-                            {isAnalyzing ? t('btn_analyzing') : t('btn_consult_ai')}
-                        </button>
                     )}
                 </div>
-            </div>
 
-            {evidence && (
-                <div className={`rounded-3xl relative overflow-hidden group transition-all duration-300 glass-dark border-white/5 shadow-lg flex items-center h-20 pl-2 pr-4 gap-4 animate-ios-slide ${activeSection === 'evidence' ? 'ring-2 ring-blue-500/20' : ''}`} onClick={() => setActiveSection('evidence')}>
-                    <div className="relative w-16 h-16 shrink-0 rounded-2xl overflow-hidden border border-white/10">
-                        <img src={evidence} alt="Evidence" className="w-full h-full object-cover" />
-                        <div className="absolute inset-0 bg-blue-500/10 animate-pulse pointer-events-none"></div>
-                    </div>
-                    <div className="flex-1 min-w-0 flex flex-col justify-center">
-                        <div className="flex items-center gap-2 mb-1">
-                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></div>
-                            <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">IA Live Feed</span>
+                {/* Evidence / AI Feed */}
+                {evidence && (
+                    <div className="smart-card p-4 flex items-center gap-4 relative overflow-hidden">
+                        <img src={evidence} alt="Evidence" className="w-16 h-16 rounded-xl object-cover" />
+                        <div className="flex-1">
+                            <h4 className="text-sm font-bold text-zinc-900 dark:text-white flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                                IA Analysis
+                            </h4>
+                            <p className="text-xs text-zinc-500 truncate">{aiAlert || "Procesando imagen..."}</p>
                         </div>
-                        <div className="text-xs text-zinc-400 font-medium truncate">{t('lbl_analyzing_img')}</div>
-                    </div>
-                    <button onClick={(e) => { e.stopPropagation(); setEvidence(null); setAiAlert(null); setIsReadingImage(false); }} className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-red-500/20 transition-all active:scale-90"><span className="material-icons-round text-base">close</span></button>
-                </div>
-            )}
-
-            <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleImageUpload} />
-            <input ref={galleryInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
-
-            <div className={`rounded-3xl border transition-all duration-300 overflow-hidden ${getSectionStyle('identity')}`} onFocus={() => setActiveSection('identity')}>
-                <div className="p-6 space-y-4">
-                    <div className="flex items-center gap-3 mb-2">
-                        <span className="text-xs font-black uppercase tracking-widest text-zinc-400 dark:text-zinc-500">{t('lbl_identity')}</span>
-                    </div>
-                    <div className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="relative group">
-                                <span className="absolute left-4 top-4 text-zinc-500 material-icons-round text-lg group-focus-within:text-blue-500 transition-colors pointer-events-none">store</span>
-                                <input list="suppliers" type="text" value={supplier} onChange={e => setSupplier(e.target.value)} placeholder={t('ph_supplier')} className={inputClass + " pl-12 text-sm"} />
-                                <datalist id="suppliers">{suggestions.suppliers.map(s => <option key={s} value={s} />)}</datalist>
-                            </div>
-                            <div className="relative group">
-                                <span className={`absolute left-4 top-4 material-icons-round text-lg transition-colors pointer-events-none ${prediction.suggestedProduct && !product ? 'text-purple-500 animate-pulse' : 'text-zinc-400 dark:text-zinc-500 group-focus-within:text-primary-500'}`}>inventory_2</span>
-                                <input list="products" type="text" value={product} onChange={e => setProduct(e.target.value)} placeholder={t('ph_product')} className={`${inputClass} pl-12 text-sm ${prediction.suggestedProduct && !product ? suggestionClass : ''}`} />
-                                <datalist id="products">{suggestions.products.map(p => <option key={p} value={p} />)}</datalist>
-                            </div>
-                        </div>
-                        {prediction.suggestedProduct && !product && (
-                            <button onClick={() => setProduct(prediction.suggestedProduct!)} className="w-full animate-fade-in text-left px-6 py-4 bg-zinc-50 dark:bg-zinc-800/50 border border-dashed border-primary-300 dark:border-primary-700 rounded-2xl flex items-center justify-between group hover:bg-white dark:hover:bg-zinc-800 transition-all">
-                                <span className="text-xs text-primary-700 dark:text-primary-300">{t('btn_suggestion', { supplier })}<br /><span className="font-bold text-sm">{prediction.suggestedProduct}</span></span>
-                                <span className="material-icons-round text-primary-500 group-hover:scale-110 transition-transform pointer-events-none bg-white dark:bg-zinc-900 rounded-full p-1.5 shadow-sm">add</span>
-                            </button>
-                        )}
-                        <div className="relative group">
-                            <span className="absolute left-5 top-4 text-zinc-400 dark:text-zinc-500 material-icons-round text-xl group-focus-within:text-primary-500 transition-colors pointer-events-none">qr_code_2</span>
-                            <input type="text" value={batch} onChange={e => setBatch(e.target.value)} placeholder={t('ph_batch')} className={inputClass + " pl-14"} />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="relative group">
-                                <span className="absolute left-4 top-4 text-zinc-400 dark:text-zinc-500 material-icons-round text-lg group-focus-within:text-primary-500 transition-colors pointer-events-none">factory</span>
-                                <input type="text" value={productionDate} onChange={e => setProductionDate(e.target.value)} placeholder={t('ph_production')} className={inputClass + " pl-12 text-sm"} />
-                            </div>
-                            <div className="relative group">
-                                <span className="absolute left-4 top-4 text-zinc-400 dark:text-zinc-500 material-icons-round text-lg group-focus-within:text-primary-500 transition-colors pointer-events-none">event_busy</span>
-                                <input type="text" value={expirationDate} onChange={e => setExpirationDate(e.target.value)} placeholder={t('ph_expiration')} className={inputClass + " pl-12 text-sm"} />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div className={`rounded-3xl border transition-all duration-300 overflow-hidden ${getSectionStyle('weights')}`} onFocus={() => setActiveSection('weights')}>
-                <div className="p-6 space-y-3">
-                    <div className="flex items-center gap-3 mb-2">
-                        <span className="text-xs font-black uppercase tracking-widest text-zinc-400 dark:text-zinc-500">{t('lbl_weighing')}</span>
-                    </div>
-                    <div className="grid grid-cols-1 gap-6">
-                        <div className="relative group">
-                            <label className="text-[10px] uppercase font-bold text-zinc-400 dark:text-zinc-500 mb-1.5 block ml-1">{t('lbl_gross_weight')}</label>
-                            <input ref={grossInputRef} type="text" inputMode="decimal" value={grossWeight} onChange={e => setGrossWeight(e.target.value)} placeholder="0.000" className="text-3xl font-black tracking-tight text-zinc-900 dark:text-white bg-transparent outline-none w-full placeholder:text-zinc-200 dark:placeholder:text-zinc-800 transition-all border-b border-zinc-200 dark:border-zinc-800 focus:border-primary-500 pb-2 tabular-nums" />
-                            <span className="absolute right-0 bottom-4 text-zinc-400 font-bold text-lg pointer-events-none">kg</span>
-                        </div>
-                        <div className="relative group">
-                            <label className="text-[10px] uppercase font-bold text-zinc-400 dark:text-zinc-500 mb-1.5 block ml-1">{t('lbl_note_weight')}</label>
-                            <input ref={noteInputRef} type="number" inputMode="decimal" step="0.01" value={noteWeight} onChange={e => setNoteWeight(e.target.value)} placeholder="0.000" className="text-3xl font-black tracking-tight text-zinc-900 dark:text-white bg-transparent outline-none w-full placeholder:text-zinc-200 dark:placeholder:text-zinc-800 transition-all border-b border-zinc-200 dark:border-zinc-800 focus:border-primary-500 pb-2 tabular-nums" />
-                            <span className="absolute right-0 bottom-4 text-zinc-400 font-bold text-lg pointer-events-none">kg</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div className={`rounded-[2rem] border transition-all duration-300 overflow-hidden ${getSectionStyle('tara')} ${prediction.suggestedTaraBox ? suggestionClass : ''}`} onFocus={() => setActiveSection('tara')}>
-                <div className="px-8 py-4 cursor-pointer flex justify-between items-center" onClick={() => setShowBoxes(!showBoxes)}>
-                    <div className="flex items-center gap-2">
-                        <span className={`text-xs font-black uppercase tracking-widest ${prediction.suggestedTaraBox ? 'text-purple-600 dark:text-purple-400' : 'text-zinc-400 dark:text-zinc-500'}`}>{t('lbl_tara_section')}</span>
-                        {totalTara > 0 && <div className="flex items-center gap-1"><span className="text-[10px] font-bold text-zinc-500 bg-zinc-100 dark:bg-zinc-800 dark:text-zinc-400 px-1.5 py-0.5 rounded-md flex items-center gap-0.5"><span>📦</span>{boxQty} x {parsedBoxTara.toFixed(0)}g</span><span className="text-xs font-bold text-primary-600 bg-primary-100 dark:bg-primary-900/30 dark:text-primary-300 px-2 py-0.5 rounded-md">-{totalTara.toFixed(3)} kg</span></div>}
-                        {prediction.suggestedTaraBox && <span className="material-icons-round text-purple-500 text-sm animate-bounce">smart_toy</span>}
-                    </div>
-                    <span className={`material-icons-round text-zinc-400 transition-transform ${showBoxes ? 'rotate-180' : ''}`}>expand_more</span>
-                </div>
-                {showBoxes && (
-                    <div className="px-8 pb-8 pt-0 animate-slide-down">
-                        {prediction.suggestedTaraBox && (
-                            <div className="mb-6 bg-purple-50 dark:bg-purple-900/10 border border-purple-100 dark:border-purple-800/30 rounded-xl p-3 flex items-center justify-between">
-                                <div className="text-xs text-purple-700 dark:text-purple-300 flex items-center gap-2"><span className="material-icons-round text-sm">smart_toy</span>{t('lbl_ai_pattern')}</div>
-                                <button onClick={() => { setBoxTara(Math.round(prediction.suggestedTaraBox! * 1000).toString()); setBoxQty('0'); }} className="text-[10px] font-bold bg-white dark:bg-purple-800/50 px-3 py-1.5 rounded-lg shadow-sm hover:shadow-md transition-all text-purple-700 dark:text-purple-200">{t('btn_apply_tara', { supplier, weight: Math.round(prediction.suggestedTaraBox! * 1000).toString() })}</button>
-                            </div>
-                        )}
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="relative group"><span className="absolute left-4 top-4 text-zinc-400 dark:text-zinc-500 material-icons-round text-lg group-focus-within:text-primary-500 transition-colors pointer-events-none">fitness_center</span><input type="tel" inputMode="numeric" pattern="[0-9]*" value={boxTara} onChange={e => setBoxTara(e.target.value.replace(/[^0-9]/g, ''))} className={inputClass + " pl-12 text-sm"} placeholder={t('lbl_unit_weight')} /></div>
-                            <div className="relative group"><span className="absolute left-4 top-4 text-zinc-400 dark:text-zinc-500 material-icons-round text-lg group-focus-within:text-primary-500 transition-colors pointer-events-none">tag</span><input type="tel" inputMode="numeric" pattern="[0-9]*" value={boxQty} onChange={e => setBoxQty(e.target.value.replace(/[^0-9]/g, ''))} className={inputClass + " pl-12 text-sm"} placeholder={t('lbl_qty')} /></div>
-                        </div>
+                        <button onClick={() => setEvidence(null)} className="w-8 h-8 bg-zinc-100 dark:bg-zinc-800 rounded-full flex items-center justify-center text-zinc-500"><span className="material-icons-round text-sm">close</span></button>
                     </div>
                 )}
             </div>
 
-            {/* Floating Action Bar removed - handled by BottomNav */}
+            <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleImageUpload} />
+            <input ref={galleryInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+
 
             {showConfirmReset && createPortal(
                 <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in" style={{ touchAction: 'none' }} role="dialog" aria-modal="true" aria-labelledby="modal-title">
