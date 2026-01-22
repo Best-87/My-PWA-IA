@@ -416,7 +416,7 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                 <input ref={profileInputRef} type="file" accept="image/*" className="hidden" onChange={handleProfilePhotoUpload} />
 
                 {/* Curved Gradient Header - FIXED */}
-                <header className="fixed top-0 left-0 right-0 bg-gradient-header header-curve pt-[calc(env(safe-area-inset-top)+1.5rem)] pb-32 px-8 shadow-2xl z-50 text-white animate-fade-in-up">
+                <header className="fixed top-0 left-0 right-0 bg-gradient-header header-curve pt-[calc(env(safe-area-inset-top)+1.5rem)] pb-32 px-8 shadow-2xl z-10 text-white animate-fade-in-up">
                     <div className="flex items-start justify-between mb-3">
                         <div>
                             <span className="block text-blue-100 font-medium text-sm mb-1 tracking-wider uppercase">{t('app_subtitle')}</span>
@@ -450,7 +450,7 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                 </header>
 
                 {/* Main Content - Overlapping Header with top padding for fixed header */}
-                <main className="relative z-20 pt-32 px-6 pb-32 max-w-lg mx-auto">
+                <main className="relative z-20 pt-40 px-6 pb-32 max-w-lg mx-auto">
                     {activeTab === 'weigh' && (
                         <div className="animate-fade-in">
                             <WeighingForm
