@@ -2,12 +2,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { InstallManager } from './components/InstallManager';
 import { WeighingForm, WeighingFormHandle } from './components/WeighingForm';
+import { BottomNav } from './components/BottomNav';
+import { ModernRecordCard } from './components/ModernRecordCard';
+import { ProfileView } from './components/ProfileView';
 import { getRecords, deleteRecord, clearAllRecords, getUserProfile, saveUserProfile, getTheme, saveTheme, generateBackupData, restoreBackupData } from './services/storageService';
 import { WeighingRecord, UserProfile } from './types';
 import { LanguageProvider, useTranslation } from './services/i18n';
 import { ToastProvider, useToast } from './components/Toast';
-import { AnalyticsDashboard } from './components/AnalyticsDashboard';
-import { initAnalytics, trackEvent } from './services/analyticsService';
+import { trackEvent } from './services/analyticsService';
 import { ChatInterface } from './components/ChatInterface';
 import { isSupabaseConfigured, signIn, signUp, signOut, onAuthStateChange, fetchRecordsFromSupabase } from './services/supabaseService';
 import { SplashScreen } from './components/SplashScreen';
@@ -44,12 +46,11 @@ const AppContent = () => {
     const { t, language, setLanguage } = useTranslation();
     const { showToast } = useToast();
     const [isLoading, setIsLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<'weigh' | 'history'>('weigh');
+    const [activeTab, setActiveTab] = useState<'weigh' | 'history' | 'profile'>('weigh');
     const [records, setRecords] = useState<WeighingRecord[]>([]);
     const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
     const [profile, setProfile] = useState<UserProfile>(getUserProfile());
     const [showProfileModal, setShowProfileModal] = useState(false);
-    const [showAnalytics, setShowAnalytics] = useState(false);
     const [showChat, setShowChat] = useState(false);
     const [theme, setThemeState] = useState(getTheme());
 
@@ -377,13 +378,13 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
         <>
             {isLoading && <SplashScreen onFinish={() => setIsLoading(false)} />}
 
-            <div className={`min-h-screen bg-[#F0F2F5] dark:bg-black transition-all duration-700 pb-20 font-sans selection:bg-primary-500/30 ${isLoading ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
+            <div className={`min-h-screen bg-gradient-to-br from-zinc-50 via-white to-zinc-100 dark:from-zinc-950 dark:via-black dark:to-zinc-900 transition-all duration-700 pb-20 font-sans selection:bg-primary-500/30 ${isLoading ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
                 <InstallManager />
                 <input ref={backupInputRef} type="file" accept=".json" className="hidden" onChange={handleRestore} />
                 <input ref={profileInputRef} type="file" accept="image/*" className="hidden" onChange={handleProfilePhotoUpload} />
 
                 {/* Header */}
-                <header className="fixed top-0 w-full z-50 bg-white/80 dark:bg-black/80 backdrop-blur-xl border-b border-zinc-200 dark:border-zinc-800 transition-colors animate-slide-down">
+                <header className="fixed top-0 w-full z-50 glass dark:glass-dark border-b border-zinc-200/50 dark:border-zinc-800/50 transition-colors animate-slide-down safe-top">
                     <div className="max-w-3xl mx-auto px-4 h-16 flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <div className="bg-gradient-to-br from-primary-500 to-primary-700 w-9 h-9 rounded-xl flex items-center justify-center shadow-lg shadow-primary-500/30">
@@ -403,12 +404,8 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                                 </div>
                             )}
 
-                            <button onClick={() => setShowAnalytics(true)} className="w-9 h-9 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 flex items-center justify-center hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors">
-                                <span className="material-icons-round text-lg">bar_chart</span>
-                            </button>
-
                             {/* Profile Section in Header */}
-                            <div className="flex items-center gap-3 pl-2 ml-1 border-l border-zinc-200 dark:border-zinc-800 cursor-pointer group" onClick={() => setShowProfileModal(true)}>
+                            <div className="flex items-center gap-3 pl-2 ml-1 border-l border-zinc-200 dark:border-zinc-800 cursor-pointer group" onClick={() => setActiveTab('profile')}>
                                 {/* Text Info - Visible on all screens now */}
                                 <div className="flex flex-col items-end text-right">
                                     <span className="text-xs font-bold text-zinc-900 dark:text-white leading-none mb-0.5">{profile.name}</span>
@@ -434,21 +431,22 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
 
                 {/* Main Content */}
                 <main className="max-w-3xl mx-auto pt-24 px-4">
-                    {activeTab === 'weigh' ? (
+                    {activeTab === 'weigh' && (
                         <div className="animate-fade-in">
                             <div className="mb-6 flex items-center justify-between">
                                 <div className="flex flex-col">
-                                    <h2 className="text-2xl font-black text-zinc-900 dark:text-white">{t('lbl_weighing')}</h2>
+                                    <h2 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">{t('lbl_weighing')}</h2>
                                     <p className="text-sm text-zinc-500 dark:text-zinc-400">Nova conferência</p>
                                 </div>
                             </div>
 
                             <WeighingForm ref={formRef} onViewHistory={() => handleTabChange('history')} />
                         </div>
-                    ) : (
+                    )}
+                    {activeTab === 'history' && (
                         <div className="animate-fade-in pb-24">
                             <div className="mb-4 flex items-center justify-between">
-                                <h2 className="text-2xl font-black text-zinc-900 dark:text-white">{t('hist_recent')}</h2>
+                                <h2 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">{t('hist_recent')}</h2>
                                 <div className="flex gap-2">
                                     <button onClick={handleExportCSV} className="p-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400">
                                         <span className="material-icons-round">download</span>
@@ -500,163 +498,49 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                                     No se encontraron resultados.
                                 </div>
                             ) : (
-                                <div className="space-y-4">
-                                    {filteredRecords.map((rec) => {
-                                        const diff = rec.netWeight - rec.noteWeight;
-                                        const isError = Math.abs(diff) > TOLERANCE_KG;
-                                        const risk = checkExpirationRisk(rec.expirationDate);
-                                        const isExpanded = expandedIds.has(rec.id);
+                                <div className="space-y-6">
+                                    {(() => {
+                                        const grouped = filteredRecords.reduce((acc, rec) => {
+                                            const date = new Date(rec.timestamp);
+                                            const today = new Date();
+                                            const yesterday = new Date(today);
+                                            yesterday.setDate(yesterday.getDate() - 1);
 
-                                        return (
-                                            <div key={rec.id} className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-zinc-100 dark:border-zinc-800 relative overflow-hidden transition-all duration-300">
-                                                {/* Main Clickable Header */}
-                                                <div onClick={() => toggleExpand(rec.id)} className="p-5 relative cursor-pointer select-none">
-                                                    {/* Status Bar */}
-                                                    <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${isError ? 'bg-red-500' : 'bg-emerald-500'}`}></div>
+                                            let key = date.toLocaleDateString();
+                                            if (date.toDateString() === today.toDateString()) key = "Hoy";
+                                            else if (date.toDateString() === yesterday.toDateString()) key = "Ayer";
 
-                                                    <div className="pl-3 flex justify-between items-start">
-                                                        {/* Left: Info */}
-                                                        <div>
-                                                            <h3 className="font-bold text-zinc-900 dark:text-white text-lg leading-tight">{rec.product}</h3>
-                                                            <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wide mt-0.5">{rec.supplier}</p>
-                                                        </div>
+                                            if (!acc[key]) acc[key] = [];
+                                            acc[key].push(rec);
+                                            return acc;
+                                        }, {} as Record<string, WeighingRecord[]>);
 
-                                                        {/* Right: Toggle Icon & Time */}
-                                                        <div className="flex flex-col items-end gap-1">
-                                                            <span className="text-[10px] font-mono text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded-md">
-                                                                {new Date(rec.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                            </span>
-                                                            <span className={`material-icons-round text-zinc-400 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>expand_more</span>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* GRID: 6 Metrics for Unexpanded View */}
-                                                    <div className="pl-3 mt-4 grid grid-cols-3 gap-y-3 gap-x-2">
-                                                        {/* 1. Gross */}
-                                                        <div className="flex flex-col">
-                                                            <span className="text-[9px] text-zinc-400 uppercase font-black truncate">{t('lbl_gross_weight')}</span>
-                                                            <span className="font-mono text-sm font-bold text-zinc-800 dark:text-zinc-200">{rec.grossWeight.toFixed(3)}</span>
-                                                        </div>
-                                                        {/* 2. Note */}
-                                                        <div className="flex flex-col">
-                                                            <span className="text-[9px] text-zinc-400 uppercase font-black truncate">{t('lbl_note_weight')}</span>
-                                                            <span className="font-mono text-sm font-bold text-zinc-800 dark:text-zinc-200">{rec.noteWeight.toFixed(3)}</span>
-                                                        </div>
-                                                        {/* 3. Net (Liquid) */}
-                                                        <div className="flex flex-col">
-                                                            <span className="text-[9px] text-zinc-400 uppercase font-black truncate">{t('hist_liquid')}</span>
-                                                            <span className="font-mono text-sm font-bold text-zinc-800 dark:text-zinc-200">{rec.netWeight.toFixed(3)}</span>
-                                                        </div>
-                                                        {/* 4. Tara */}
-                                                        <div className="flex flex-col">
-                                                            <span className="text-[9px] text-zinc-400 uppercase font-black truncate">Tara</span>
-                                                            <span className="font-mono text-sm font-bold text-zinc-800 dark:text-zinc-200">{rec.taraTotal.toFixed(3)}</span>
-                                                        </div>
-                                                        {/* 5. Boxes */}
-                                                        <div className="flex flex-col">
-                                                            <span className="text-[9px] text-zinc-400 uppercase font-black truncate">{t('lbl_qty')}</span>
-                                                            <span className="font-mono text-sm font-bold text-zinc-800 dark:text-zinc-200">{rec.boxes.qty}</span>
-                                                        </div>
-                                                        {/* 6. Diff */}
-                                                        <div className="flex flex-col">
-                                                            <span className="text-[9px] text-zinc-400 uppercase font-black truncate">{t('hist_diff')}</span>
-                                                            <span className={`font-mono text-sm font-bold ${diff >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
-                                                                {diff > 0 ? '+' : ''}{diff.toFixed(3)}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Collapsed indicators (below grid if present) */}
-                                                    {!isExpanded && (risk || rec.aiAnalysis || rec.evidence) && (
-                                                        <div className="pl-3 mt-3 flex items-center gap-2 pt-2 border-t border-zinc-50 dark:border-zinc-800/50">
-                                                            {(risk || rec.aiAnalysis) && (
-                                                                <div className="flex gap-1.5">
-                                                                    {risk && <span className="material-icons-round text-red-500 text-sm" title="Riesgo">warning</span>}
-                                                                    {rec.aiAnalysis && <span className="material-icons-round text-purple-500 text-sm" title="IA">smart_toy</span>}
-                                                                </div>
-                                                            )}
-                                                            {rec.evidence && (
-                                                                <div className="w-6 h-6 rounded-md bg-zinc-100 dark:bg-zinc-800 overflow-hidden border border-zinc-200 dark:border-zinc-700 cursor-pointer hover:opacity-80 transition-opacity" onClick={(e) => { e.stopPropagation(); setViewImage(rec.evidence!); }}>
-                                                                    <img src={rec.evidence} className="w-full h-full object-cover" alt="Thumb" />
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    )}
+                                        return Object.entries(grouped).map(([dateLabel, groupRecords]) => (
+                                            <div key={dateLabel} className="animate-slide-up-fade">
+                                                <h3 className="sticky top-0 bg-zinc-50/95 dark:bg-black/95 backdrop-blur-md py-2 px-4 z-10 text-xl font-bold text-zinc-900 dark:text-white mb-2 ml-1">
+                                                    {dateLabel}
+                                                </h3>
+                                                <div className="space-y-3">
+                                                    {groupRecords.map((rec) => (
+                                                        <ModernRecordCard
+                                                            key={rec.id}
+                                                            record={rec}
+                                                            isExpanded={expandedIds.has(rec.id)}
+                                                            onExpand={() => toggleExpand(rec.id)}
+                                                            onDelete={(e) => handleDelete(rec.id, e)}
+                                                            onShare={(e) => handleShareWhatsapp(rec, e)}
+                                                        />
+                                                    ))}
                                                 </div>
-
-                                                {/* Expanded Content */}
-                                                {isExpanded && (
-                                                    <div className="border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/30 p-5 pl-8 animate-slide-down">
-                                                        {/* Expanded Details: Logistics */}
-                                                        {(rec.batch || rec.productionDate || rec.expirationDate || rec.recommendedTemperature) && (
-                                                            <div className="mb-6">
-                                                                <span className="text-[10px] font-bold text-zinc-400 uppercase block mb-2">Datos Logísticos</span>
-                                                                <div className="grid grid-cols-2 gap-3 text-xs bg-white dark:bg-zinc-900/50 p-3 rounded-xl border border-zinc-100 dark:border-zinc-800">
-                                                                    {rec.batch && <div><span className="text-zinc-500 block mb-0.5">Lote</span> <span className="font-mono font-bold text-zinc-800 dark:text-zinc-200">{rec.batch}</span></div>}
-                                                                    {rec.recommendedTemperature && <div><span className="text-zinc-500 block mb-0.5">Temp</span> <span className="font-mono font-bold text-zinc-800 dark:text-zinc-200">{rec.recommendedTemperature}</span></div>}
-                                                                    {rec.productionDate && <div><span className="text-zinc-500 block mb-0.5">Fabricación</span> <span className="font-mono font-bold text-zinc-800 dark:text-zinc-200">{rec.productionDate}</span></div>}
-                                                                    {rec.expirationDate && <div><span className="text-zinc-500 block mb-0.5">Vencimiento</span> <span className="font-mono font-bold text-zinc-800 dark:text-zinc-200">{rec.expirationDate}</span></div>}
-                                                                </div>
-                                                            </div>
-                                                        )}
-
-                                                        {/* AI & Risk Alerts */}
-                                                        <div className="space-y-3 mb-6">
-                                                            {risk && (
-                                                                <div className="bg-red-50 dark:bg-red-900/20 p-3 rounded-xl border border-red-100 dark:border-red-900/30 flex gap-3">
-                                                                    <span className="material-icons-round text-red-500">warning</span>
-                                                                    <div>
-                                                                        <h4 className="text-xs font-bold text-red-700 dark:text-red-300 uppercase mb-0.5">Alerta de Vencimiento</h4>
-                                                                        <p className="text-xs text-red-600 dark:text-red-400">{risk}</p>
-                                                                    </div>
-                                                                </div>
-                                                            )}
-                                                            {rec.aiAnalysis && (
-                                                                <div className="bg-purple-50 dark:bg-purple-900/20 p-3 rounded-xl border border-purple-100 dark:border-purple-900/30 flex gap-3">
-                                                                    <span className="material-icons-round text-purple-500">smart_toy</span>
-                                                                    <div>
-                                                                        <h4 className="text-xs font-bold text-purple-700 dark:text-purple-300 uppercase mb-0.5">Análisis IA</h4>
-                                                                        <p className="text-xs text-purple-600 dark:text-purple-400">{rec.aiAnalysis}</p>
-                                                                    </div>
-                                                                </div>
-                                                            )}
-                                                        </div>
-
-                                                        {/* Evidence Image */}
-                                                        {rec.evidence && (
-                                                            <div className="mb-6">
-                                                                <span className="text-[10px] font-bold text-zinc-400 uppercase block mb-2">{t('lbl_evidence_section')}</span>
-                                                                <div className="rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-700 h-48 bg-zinc-100 dark:bg-zinc-900 cursor-pointer hover:opacity-90 transition-opacity flex items-center justify-center relative" onClick={(e) => { e.stopPropagation(); setViewImage(rec.evidence!); }}>
-                                                                    <img src={rec.evidence} alt="Evidencia" className="h-full w-auto object-contain" />
-                                                                    <div className="absolute top-2 right-2 bg-black/50 p-1 rounded-full text-white">
-                                                                        <span className="material-icons-round text-sm">open_in_full</span>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        )}
-
-                                                        {/* Actions */}
-                                                        <div className="flex gap-3 pt-2">
-                                                            <button onClick={(e) => handleShareWhatsapp(rec, e)} className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-xl text-xs font-bold hover:bg-green-100 dark:hover:bg-green-900/40 transition-colors active:scale-95">
-                                                                <span className="text-lg">💬</span>
-                                                                WhatsApp
-                                                            </button>
-
-                                                            <button onClick={(e) => handleDelete(rec.id, e)} className="flex items-center justify-center gap-2 px-4 py-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl text-xs font-bold hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors active:scale-95">
-                                                                <span className="material-icons-round text-lg">delete</span>
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                )}
                                             </div>
-                                        );
-                                    })}
+                                        ));
+                                    })()}
                                 </div>
                             )}
 
-                            {/* Floating Action Island for History View */}
-                            <div className="fixed bottom-6 left-0 right-0 z-50 flex justify-center pointer-events-none">
-                                <div className="flex items-center gap-2 p-2.5 bg-[#1C1C1E] rounded-[3rem] shadow-2xl shadow-black/50 ring-1 ring-white/10 animate-slide-up select-none pointer-events-auto">
+                            {/* Floating Action Island for History View - Hidden when BottomNav is visible */}
+                            <div className="fixed bottom-24 left-0 right-0 z-40 flex justify-center pointer-events-none">
+                                <div className="flex items-center gap-2 p-2.5 glass dark:glass-dark rounded-[3rem] card-shadow-lg ring-1 ring-zinc-200/50 dark:ring-zinc-800/50 animate-bounce-in select-none pointer-events-auto">
                                     <button
                                         onClick={() => handleTabChange('weigh')}
                                         className="bg-white text-black px-6 py-3 rounded-full flex items-center gap-2 shadow-xl hover:scale-105 active:scale-95 transition-all group"
@@ -680,6 +564,43 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                                 </div>
                             </div>
                         </div>
+                    )}
+                    {activeTab === 'profile' && (
+                        <ProfileView
+                            profile={profile}
+                            session={session}
+                            email={email}
+                            isAuthLoading={isAuthLoading}
+                            onSaveProfile={() => {
+                                saveUserProfile(profile);
+                                showToast(t('profile_saved') || 'Guardado', 'success');
+                            }}
+                            onSignOut={handleSignOut}
+                            onPhotoUpload={handleProfilePhotoUpload}
+                            onThemeChange={() => {
+                                const newTheme = theme === 'dark' ? 'light' : 'dark';
+                                setThemeState(newTheme);
+                                saveTheme(newTheme);
+                                if (newTheme === 'dark') {
+                                    document.documentElement.classList.add('dark');
+                                } else {
+                                    document.documentElement.classList.remove('dark');
+                                }
+                            }}
+                            theme={theme}
+                            onLanguageChange={setLanguage}
+                            currentLanguage={language}
+                            onProfileChange={(field, value) => setProfile(prev => ({ ...prev, [field]: value }))}
+
+                            // Auth Props
+                            password={password}
+                            onPasswordChange={setPassword}
+                            onLogin={handleLogin}
+                            onSignup={handleSignup}
+                            isAuthModeLogin={isAuthModeLogin}
+                            onToggleAuthMode={() => setIsAuthModeLogin(!isAuthModeLogin)}
+                            onEmailChange={setEmail}
+                        />
                     )}
                 </main>
 
@@ -741,195 +662,7 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                     </div>
                 )}
 
-                {/* Profile & Settings Modal */}
-                {showProfileModal && (
-                    <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in" onClick={() => setShowProfileModal(false)}>
-                        <div className="bg-white dark:bg-zinc-900 w-full max-w-sm rounded-[2rem] p-6 shadow-2xl animate-slide-up max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-                            <div className="flex justify-between items-center mb-6">
-                                <h3 className="text-xl font-bold text-zinc-900 dark:text-white">{t('lbl_profile')}</h3>
-                                <div className="flex gap-2">
-                                    <button onClick={toggleTheme} className="p-2 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
-                                        <span className="material-icons-round">{theme === 'light' ? 'dark_mode' : 'light_mode'}</span>
-                                    </button>
-                                    <button onClick={() => setShowProfileModal(false)} className="p-2 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
-                                        <span className="material-icons-round">close</span>
-                                    </button>
-                                </div>
-                            </div>
 
-                            {!session ? (
-                                <div className="space-y-4">
-                                    <div className="bg-primary-50 dark:bg-primary-900/20 p-4 rounded-2xl border border-primary-100 dark:border-primary-800/30 mb-4">
-                                        <h4 className="text-sm font-bold text-primary-900 dark:text-primary-100 flex items-center gap-2 mb-1">
-                                            <span className="material-icons-round text-base">cloud</span> {t('lbl_auth_title')}
-                                        </h4>
-                                        <p className="text-xs text-primary-700/70 dark:text-primary-300/60 leading-tight">Sincroniza tus registros en tiempo real con Supabase.</p>
-                                    </div>
-
-                                    <form onSubmit={isAuthModeLogin ? handleLogin : handleSignup} className="space-y-3">
-                                        {!isAuthModeLogin && (
-                                            <div>
-                                                <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase ml-2 mb-1 block">{t('lbl_name')}</label>
-                                                <input
-                                                    type="text"
-                                                    value={profile.name}
-                                                    onChange={e => setProfile({ ...profile, name: e.target.value })}
-                                                    className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-xl px-4 py-3 text-zinc-900 dark:text-white font-medium outline-none focus:ring-2 focus:ring-primary-500/50"
-                                                    placeholder={t('ph_name')}
-                                                    required
-                                                />
-                                            </div>
-                                        )}
-                                        <div>
-                                            <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase ml-2 mb-1 block">{t('lbl_email')}</label>
-                                            <input
-                                                type="email"
-                                                value={email}
-                                                onChange={e => setEmail(e.target.value)}
-                                                className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-xl px-4 py-3 text-zinc-900 dark:text-white font-medium outline-none focus:ring-2 focus:ring-primary-500/50"
-                                                placeholder="tu@email.com"
-                                                required
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase ml-2 mb-1 block">{t('lbl_password')}</label>
-                                            <input
-                                                type="password"
-                                                value={password}
-                                                onChange={e => setPassword(e.target.value)}
-                                                className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-xl px-4 py-3 text-zinc-900 dark:text-white font-medium outline-none focus:ring-2 focus:ring-primary-500/50"
-                                                placeholder="••••••••"
-                                                required
-                                            />
-                                        </div>
-
-                                        <button
-                                            type="submit"
-                                            disabled={isAuthLoading}
-                                            className="w-full py-4 bg-zinc-900 dark:bg-white text-white dark:text-black font-bold rounded-xl mt-2 hover:scale-[1.02] active:scale-95 transition-all shadow-xl disabled:opacity-50"
-                                        >
-                                            {isAuthLoading ? t('btn_analyzing') : (isAuthModeLogin ? t('btn_signin') : t('btn_signup'))}
-                                        </button>
-
-                                        <button
-                                            type="button"
-                                            onClick={() => setIsAuthModeLogin(!isAuthModeLogin)}
-                                            className="w-full text-center text-xs font-bold text-primary-500 hover:text-primary-600 py-2"
-                                        >
-                                            {isAuthModeLogin ? t('lbl_signup') : t('lbl_login')}
-                                        </button>
-                                    </form>
-
-                                    <div className="h-px bg-zinc-200 dark:bg-zinc-800 my-4"></div>
-                                    <div className="flex justify-center gap-2">
-                                        {['pt', 'es', 'en'].map((lang) => (
-                                            <button
-                                                key={lang}
-                                                onClick={() => setLanguage(lang as any)}
-                                                className={`px-4 py-2 rounded-lg text-xs font-bold uppercase transition-colors ${language === lang ? 'bg-primary-500 text-white' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500'}`}
-                                            >
-                                                {lang}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="space-y-5">
-                                    <div className="flex justify-center mb-4">
-                                        <div className="relative group cursor-pointer" onClick={() => profileInputRef.current?.click()}>
-                                            <div className="w-24 h-24 rounded-full overflow-hidden bg-zinc-100 dark:bg-zinc-800 border-4 border-white dark:border-zinc-800 shadow-xl">
-                                                {profile.photo ? (
-                                                    <img src={profile.photo} alt="Profile" className="w-full h-full object-cover" />
-                                                ) : (
-                                                    <div className="w-full h-full flex items-center justify-center text-zinc-300 dark:text-zinc-600">
-                                                        <span className="material-icons-round text-4xl">person</span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <div className="absolute inset-0 bg-black/30 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <span className="material-icons-round text-white">edit</span>
-                                            </div>
-                                            <div className="absolute bottom-0 right-0 bg-primary-500 rounded-full p-1.5 border-2 border-white dark:border-zinc-900 shadow-md">
-                                                <span className="material-icons-round text-white text-xs block">photo_camera</span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-3">
-                                        <div>
-                                            <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase ml-2 mb-1 block">{t('lbl_name')}</label>
-                                            <input
-                                                type="text"
-                                                value={profile.name}
-                                                onChange={e => setProfile({ ...profile, name: e.target.value })}
-                                                className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-xl px-4 py-3 text-zinc-900 dark:text-white font-medium outline-none focus:ring-2 focus:ring-primary-500/50"
-                                                placeholder={t('ph_name')}
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase ml-2 mb-1 block">Email</label>
-                                            <input
-                                                type="email"
-                                                value={session.user.email}
-                                                disabled
-                                                className="w-full bg-zinc-50 dark:bg-zinc-800/50 rounded-xl px-4 py-3 text-zinc-400 dark:text-zinc-500 font-medium cursor-not-allowed border border-zinc-200 dark:border-zinc-800"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase ml-2 mb-1 block">{t('lbl_role')}</label>
-                                            <input
-                                                type="text"
-                                                value={profile.role}
-                                                onChange={e => setProfile({ ...profile, role: e.target.value })}
-                                                className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-xl px-4 py-3 text-zinc-900 dark:text-white font-medium outline-none focus:ring-2 focus:ring-primary-500/50"
-                                                placeholder={t('ph_role')}
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase ml-2 mb-1 block">{t('lbl_store')}</label>
-                                            <input
-                                                type="text"
-                                                value={profile.store || ''}
-                                                onChange={e => setProfile({ ...profile, store: e.target.value })}
-                                                className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-xl px-4 py-3 text-zinc-900 dark:text-white font-medium outline-none focus:ring-2 focus:ring-primary-500/50"
-                                                placeholder={t('ph_store')}
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-3 gap-2 pt-2">
-                                        {['pt', 'es', 'en'].map((lang) => (
-                                            <button
-                                                key={lang}
-                                                onClick={() => setLanguage(lang as any)}
-                                                className={`py-2 rounded-lg text-xs font-bold uppercase transition-colors ${language === lang ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400'}`}
-                                            >
-                                                {lang}
-                                            </button>
-                                        ))}
-                                    </div>
-
-                                    <div className="bg-emerald-50 dark:bg-emerald-900/10 p-3 rounded-xl border border-emerald-100 dark:border-emerald-800/20 flex items-center justify-between">
-                                        <div className="flex items-center gap-2">
-                                            <span className="material-icons-round text-emerald-500 text-sm">check_circle</span>
-                                            <span className="text-[10px] font-black uppercase text-emerald-700 dark:text-emerald-400">{t('lbl_cloud_sync')}</span>
-                                        </div>
-                                        <span className="text-[10px] font-bold text-emerald-600/70 dark:text-emerald-500/60 uppercase">Cloud Active</span>
-                                    </div>
-
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <button onClick={handleSignOut} className="py-4 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 font-bold rounded-xl hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all">
-                                            {t('btn_signout')}
-                                        </button>
-                                        <button onClick={handleSaveProfile} className="py-4 bg-zinc-900 dark:bg-white text-white dark:text-black font-bold rounded-xl hover:scale-[1.02] active:scale-95 transition-all shadow-xl">
-                                            {t('btn_save')}
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                )}
 
                 {/* Chat Modal */}
                 {showChat && (
@@ -948,7 +681,12 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                     </div>
                 )}
 
-                <AnalyticsDashboard isOpen={showAnalytics} onClose={() => setShowAnalytics(false)} />
+
+                {/* Modern Bottom Navigation */}
+                <BottomNav
+                    activeTab={activeTab}
+                    onTabChange={setActiveTab}
+                />
             </div>
         </>
     );

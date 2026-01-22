@@ -8,11 +8,19 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 export const isSupabaseConfigured = () => !!supabaseUrl && !!supabaseAnonKey;
 
 export const supabase = isSupabaseConfigured()
-    ? createClient(supabaseUrl, supabaseAnonKey)
+    ? createClient(supabaseUrl, supabaseAnonKey, {
+        auth: {
+            persistSession: true,
+            storage: window.localStorage,
+            autoRefreshToken: true,
+            detectSessionInUrl: true
+        }
+    })
     : null as any;
 
 // --- Auth Functions ---
 export const signUp = async (email: string, password: string, metadata: any) => {
+    if (!supabase) return { error: { message: 'Supabase not configured' } };
     return await supabase.auth.signUp({
         email,
         password,
@@ -21,24 +29,28 @@ export const signUp = async (email: string, password: string, metadata: any) => 
 };
 
 export const signIn = async (email: string, password: string) => {
+    if (!supabase) return { error: { message: 'Supabase not configured' } };
     return await supabase.auth.signInWithPassword({ email, password });
 };
 
 export const signOut = async () => {
+    if (!supabase) return;
     return await supabase.auth.signOut();
 };
 
 export const getSession = async () => {
+    if (!supabase) return { data: { session: null }, error: null };
     return await supabase.auth.getSession();
 };
 
 export const onAuthStateChange = (callback: (event: any, session: any) => void) => {
+    if (!supabase) return { data: { subscription: { unsubscribe: () => { } } } };
     return supabase.auth.onAuthStateChange(callback);
 };
 
 // --- Sync Functions ---
 export const syncRecordToSupabase = async (record: WeighingRecord) => {
-    if (!isSupabaseConfigured()) return;
+    if (!supabase) return { error: 'Not configured' };
 
     try {
         const { data: { session } } = await supabase.auth.getSession();
@@ -67,14 +79,19 @@ export const syncRecordToSupabase = async (record: WeighingRecord) => {
                 store: record.store
             });
 
-        if (error) console.error('Supabase Sync Error:', error.message);
-    } catch (err) {
+        if (error) {
+            console.error('Supabase Sync Error:', error.message);
+            return { error: error.message };
+        }
+        return { success: true };
+    } catch (err: any) {
         console.error('Supabase caught error:', err);
+        return { error: err.message };
     }
 };
 
 export const syncProfileToSupabase = async (profile: UserProfile) => {
-    if (!isSupabaseConfigured()) return;
+    if (!supabase) return;
 
     try {
         const { data: { session } } = await supabase.auth.getSession();
@@ -100,7 +117,7 @@ export const syncProfileToSupabase = async (profile: UserProfile) => {
 };
 
 export const syncKnowledgeBaseToSupabase = async (kb: KnowledgeBase) => {
-    if (!isSupabaseConfigured()) return;
+    if (!supabase) return;
 
     try {
         const { data: { session } } = await supabase.auth.getSession();
@@ -121,37 +138,125 @@ export const syncKnowledgeBaseToSupabase = async (kb: KnowledgeBase) => {
     }
 };
 
+export const deleteRecordFromSupabase = async (recordId: string) => {
+    if (!supabase) {
+        console.warn('Supabase not configured');
+        return { error: 'Not configured' };
+    }
+
+    try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const userId = session?.user?.id;
+
+        if (!userId) {
+            console.warn('No user ID found in session');
+            return { error: 'Not authenticated' };
+        }
+
+        const { error } = await supabase
+            .from('weighing_records')
+            .delete()
+            .eq('id', recordId)
+            .eq('user_id', userId); // Security: only delete own records
+
+        if (error) {
+            console.error('Supabase delete error:', error);
+            return { error: error.message };
+        }
+
+        console.log(`Successfully deleted record ${recordId} from cloud`);
+        return { success: true };
+    } catch (err: any) {
+        console.error('Delete record caught error:', err);
+        return { error: err.message };
+    }
+};
+
+export const clearAllRecordsFromSupabase = async () => {
+    if (!supabase) {
+        console.warn('Supabase not configured');
+        return { error: 'Not configured' };
+    }
+
+    try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const userId = session?.user?.id;
+
+        if (!userId) {
+            console.warn('No user ID found in session');
+            return { error: 'Not authenticated' };
+        }
+
+        const { error } = await supabase
+            .from('weighing_records')
+            .delete()
+            .eq('user_id', userId); // Delete all records for this user
+
+        if (error) {
+            console.error('Supabase clear all error:', error);
+            return { error: error.message };
+        }
+
+        console.log('Successfully cleared all records from cloud');
+        return { success: true };
+    } catch (err: any) {
+        console.error('Clear all records caught error:', err);
+        return { error: err.message };
+    }
+};
+
 export const fetchRecordsFromSupabase = async () => {
-    if (!isSupabaseConfigured()) return [];
-
-    const { data, error } = await supabase
-        .from('weighing_records')
-        .select('*')
-        .order('timestamp', { ascending: false });
-
-    if (error) {
-        console.error('Fetch error:', error);
+    if (!supabase) {
+        console.warn('Supabase not configured');
         return [];
     }
 
-    return data.map((item: any) => ({
-        id: item.id,
-        timestamp: Number(item.timestamp),
-        supplier: item.supplier,
-        product: item.product,
-        grossWeight: item.gross_weight,
-        noteWeight: item.note_weight,
-        netWeight: item.net_weight,
-        taraTotal: item.tara_total,
-        boxes: item.boxes,
-        status: item.status,
-        aiAnalysis: item.ai_analysis,
-        evidence: item.evidence,
-        batch: item.batch,
-        expirationDate: item.expiration_date,
-        productionDate: item.production_date,
-        recommendedTemperature: item.recommended_temperature,
-        store: item.store
-    })) as WeighingRecord[];
+    try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const userId = session?.user?.id;
+
+        console.log('Fetching records for user:', userId);
+
+        if (!userId) {
+            console.warn('No user ID found in session');
+            return [];
+        }
+
+        const { data, error } = await supabase
+            .from('weighing_records')
+            .select('*')
+            .eq('user_id', userId)
+            .order('timestamp', { ascending: false });
+
+        if (error) {
+            console.error('Supabase fetch error:', error);
+            return [];
+        }
+
+        console.log(`Successfully fetched ${data?.length || 0} records from cloud`);
+
+        return (data || []).map((item: any) => ({
+            id: item.id,
+            timestamp: Number(item.timestamp),
+            supplier: item.supplier,
+            product: item.product,
+            grossWeight: item.gross_weight,
+            noteWeight: item.note_weight,
+            netWeight: item.net_weight,
+            taraTotal: item.tara_total,
+            boxes: item.boxes,
+            status: item.status,
+            aiAnalysis: item.ai_analysis,
+            evidence: item.evidence,
+            batch: item.batch,
+            expirationDate: item.expiration_date,
+            productionDate: item.production_date,
+            recommendedTemperature: item.recommended_temperature,
+            store: item.store
+        })) as WeighingRecord[];
+    } catch (err) {
+        console.error('Fetch records caught error:', err);
+        return [];
+    }
 };
 

@@ -100,20 +100,25 @@ export const saveRecord = async (record: WeighingRecord) => {
     learnFromRecord(enrichedRecord);
 
     // Sync to Supabase
-    syncRecordToSupabase(enrichedRecord);
+    return await syncRecordToSupabase(enrichedRecord);
 };
 
-export const deleteRecord = (id: string) => {
+export const deleteRecord = async (id: string) => {
     const records = getRecords();
     const updatedRecords = records.filter(r => r.id !== id);
     localStorage.setItem(KEY_RECORDS, JSON.stringify(updatedRecords));
 
-    // Optional: Also delete from Supabase if needed
-    // For now we just sync creations/updates
+    // Also delete from Supabase
+    const { deleteRecordFromSupabase } = await import('./supabaseService');
+    await deleteRecordFromSupabase(id);
 };
 
-export const clearAllRecords = () => {
+export const clearAllRecords = async () => {
     localStorage.removeItem(KEY_RECORDS);
+
+    // Also clear from Supabase
+    const { clearAllRecordsFromSupabase } = await import('./supabaseService');
+    await clearAllRecordsFromSupabase();
 };
 
 export const getRecords = (): WeighingRecord[] => {

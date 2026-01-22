@@ -140,6 +140,11 @@ const translations = {
         msg_account_created: 'Conta criada com sucesso!',
         lbl_cloud_sync: 'Sincronização Supabase',
         msg_sync_enabled: 'Sincronização em tempo real ativa.',
+        msg_cloud_synced: 'Sincronizado na nuvem ✅',
+        btn_fetch_cloud: 'Recuperar da Nuvem',
+
+        lbl_edit_profile: 'Editar Perfil',
+        lbl_settings: 'Configurações',
 
         // Logic
         ai_prompt_lang: 'Português'
@@ -279,6 +284,11 @@ const translations = {
         msg_account_created: '¡Cuenta creada con éxito!',
         lbl_cloud_sync: 'Sincronización Supabase',
         msg_sync_enabled: 'Sincronización en tiempo real activa.',
+        msg_cloud_synced: 'Sincronizado en la nube ✅',
+        btn_fetch_cloud: 'Recuperar de la Nube',
+
+        lbl_edit_profile: 'Editar Perfil',
+        lbl_settings: 'Configuración',
 
         // Logic
         ai_prompt_lang: 'Español'
@@ -418,6 +428,11 @@ const translations = {
         msg_account_created: 'Account created successfully!',
         lbl_cloud_sync: 'Supabase Sync',
         msg_sync_enabled: 'Real-time synchronization enabled.',
+        msg_cloud_synced: 'Cloud Synced ✅',
+        btn_fetch_cloud: 'Recover from Cloud',
+
+        lbl_edit_profile: 'Edit Profile',
+        lbl_settings: 'Settings',
 
         // Logic
         ai_prompt_lang: 'English'

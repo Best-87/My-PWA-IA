@@ -133,6 +133,7 @@ export const InstallManager: React.FC = () => {
     const updateApp = () => {
         if (waitingWorker) {
             waitingWorker.postMessage({ type: 'SKIP_WAITING' });
+            // The controllerchange listener will reload the page
         } else {
             window.location.reload();
         }
@@ -144,7 +145,7 @@ export const InstallManager: React.FC = () => {
         <>
             {/* TOAST INSTALL PROMPT */}
             {showToast && (
-                <div className="fixed bottom-5 right-5 z-[100] bg-white dark:bg-zinc-800 rounded-2xl shadow-2xl p-4 max-w-sm w-[90%] border border-zinc-100 dark:border-zinc-700 animate-slide-up flex flex-col gap-3">
+                <div className="glass dark:glass-dark fixed bottom-5 right-5 z-[100] rounded-[1.5rem] shadow-2xl p-4 max-w-sm w-[90%] border border-white/20 dark:border-white/10 animate-slide-up flex flex-col gap-3">
                     <div className="flex items-start gap-3">
                         <div className="bg-blue-100 dark:bg-blue-900/30 p-2 rounded-xl text-blue-600 dark:text-blue-400">
                             <span className="material-icons-round text-2xl">install_mobile</span>

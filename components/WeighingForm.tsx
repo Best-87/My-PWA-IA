@@ -395,20 +395,28 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
         persistentFormState = null;
     };
 
-    const handleSave = () => {
+    const handleSave = async () => {
         if (!supplier || !product || !grossWeight || !noteWeight) { showToast(t('msg_validation_error'), 'error'); return; }
-        saveRecord({
+
+        const syncResult = await saveRecord({
             id: Date.now().toString(), timestamp: Date.now(), supplier, product,
             batch: batch || undefined, expirationDate: expirationDate || undefined, productionDate: productionDate || undefined,
             grossWeight: parsedGrossWeight, noteWeight: Number(noteWeight), netWeight, taraTotal: totalTara,
             boxes: { qty: Number(boxQty), unitTara: boxTaraKg }, status: Math.abs(difference) > TOLERANCE_KG ? 'error' : 'verified',
             aiAnalysis: aiAlert || undefined, evidence: evidence || undefined, recommendedTemperature: recommendedTemp || undefined
         });
+
         handleReset();
         trackEvent('weighing_saved', { netWeight });
         const kb = getKnowledgeBase();
         setSuggestions({ products: kb.products, suppliers: kb.suppliers });
-        showToast(t('alert_saved'), 'success');
+
+        if (syncResult && syncResult.success) {
+            showToast(t('msg_cloud_synced'), 'success');
+        } else {
+            showToast(t('alert_saved'), 'success');
+        }
+
         sendLocalNotification('Registro Guardado', `${supplier} - ${product}: ${netWeight.toFixed(3)}kg`);
     };
 
@@ -434,13 +442,22 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
 
     const getSectionStyle = (section: string) => {
         const isActive = activeSection === section;
+        const base = "transition-all duration-300 backdrop-blur-md border";
+
+        if (isActive) {
+            return `${base} bg-white/90 dark:bg-black/60 border-primary-500 ring-4 ring-primary-500/10 shadow-2xl scale-[1.01] z-10`;
+        }
+
         const hasData = section === 'identity' ? (supplier || product) : section === 'weights' ? (grossWeight || noteWeight) : section === 'evidence' ? !!evidence : (showBoxes || prediction.suggestedTaraBox);
-        if (isActive) return 'bg-white dark:bg-zinc-900 border-primary-500 ring-4 ring-primary-500/5 shadow-xl scale-[1.01] z-10';
-        if (hasData) return 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-sm';
-        return 'bg-zinc-50 dark:bg-zinc-900/50 border-transparent';
+
+        if (hasData) {
+            return `${base} bg-white/70 dark:bg-zinc-900/60 border-primary-500/30 dark:border-primary-500/20 shadow-lg`;
+        }
+
+        return `${base} bg-white/40 dark:bg-zinc-900/40 border-white/20 dark:border-white/5 hover:bg-white/60 dark:hover:bg-zinc-900/60 shadow-sm`;
     };
 
-    const inputClass = "w-full bg-zinc-100 dark:bg-zinc-800/80 border-0 rounded-2xl px-5 py-4 text-zinc-900 dark:text-white font-semibold outline-none focus:bg-white dark:focus:bg-zinc-800 focus:ring-2 focus:ring-primary-500/50 transition-all placeholder:text-zinc-400 dark:placeholder:text-zinc-500 shadow-inner";
+    const inputClass = "w-full bg-zinc-50/50 dark:bg-zinc-900/50 border border-zinc-200/50 dark:border-white/10 rounded-2xl px-5 py-4 text-zinc-900 dark:text-white font-semibold outline-none focus:bg-white dark:focus:bg-black/40 focus:ring-2 focus:ring-primary-500/50 transition-all placeholder:text-zinc-400 dark:placeholder:text-zinc-500 backdrop-blur-sm";
     const suggestionClass = "ring-2 ring-purple-500/50 border-purple-500 dark:border-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.15)] animate-pulse";
     const hasDataToSave = !!(supplier && product && grossWeight && noteWeight);
 
@@ -467,16 +484,20 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                             )}
                         </div>
                     </div>
-                    <div className="flex justify-between items-end border-t border-white/10 pt-3 mt-1">
-                        <div className="text-white">
-                            <span className="text-[10px] uppercase tracking-widest opacity-60 font-black mb-0.5 block">Líquido</span>
-                            <div className="text-3xl font-black tracking-tighter font-mono leading-none flex items-baseline">
-                                {netWeight.toFixed(3)}<span className="text-sm opacity-60 ml-1 font-sans font-bold">kg</span>
+                    <div className="flex justify-between items-end border-t border-white/10 pt-4 mt-2">
+                        <div className="text-white relative z-10">
+                            {/* HERO WEIGHT DISPLAY */}
+                            <div className="flex items-baseline">
+                                <span className="text-[5.5rem] leading-none font-black tracking-tighter tabular-nums text-transparent bg-clip-text bg-gradient-to-b from-white to-white/80 drop-shadow-sm">
+                                    {Math.floor(netWeight)}
+                                    <span className="text-[3.5rem] opacity-90">.{netWeight.toFixed(3).split('.')[1]}</span>
+                                </span>
+                                <span className="text-xl font-bold opacity-60 ml-2 mb-4">kg</span>
                             </div>
                         </div>
-                        <div className="text-right text-white">
-                            <span className="text-[10px] uppercase tracking-widest opacity-60 font-black mb-0.5 block">Diferencia</span>
-                            <div className={`text-xl font-bold font-mono bg-white/10 px-3 py-1.5 rounded-xl backdrop-blur-sm inline-block border border-white/10 ${Math.abs(difference) > TOLERANCE_KG ? 'animate-pulse' : ''}`}>
+                        <div className="text-right text-white relative z-10 mb-4">
+                            <span className="text-[10px] uppercase tracking-widest opacity-60 font-black mb-1 block">Diferencia</span>
+                            <div className={`text-xl font-bold font-mono bg-white/10 px-3 py-1.5 rounded-xl backdrop-blur-md inline-block border border-white/10 ${Math.abs(difference) > TOLERANCE_KG ? 'animate-pulse text-red-200 bg-red-500/20' : ''}`}>
                                 {difference > 0 ? '+' : ''}{difference.toFixed(3)}
                             </div>
                         </div>
@@ -557,15 +578,16 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                     <div className="flex items-center gap-3 mb-2">
                         <span className="text-xs font-black uppercase tracking-widest text-zinc-400 dark:text-zinc-500">{t('lbl_weighing')}</span>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-6">
                         <div className="relative group">
-                            <span className="absolute left-4 top-4 text-zinc-400 dark:text-zinc-500 material-icons-round text-lg group-focus-within:text-primary-500 transition-colors pointer-events-none">description</span>
-                            <input ref={noteInputRef} type="number" inputMode="decimal" step="0.01" value={noteWeight} onChange={e => setNoteWeight(e.target.value)} placeholder={t('lbl_note_weight')} className={inputClass + " pl-12 text-sm"} />
+                            <label className="text-[10px] uppercase font-bold text-zinc-400 dark:text-zinc-500 mb-1.5 block ml-1">{t('lbl_gross_weight')}</label>
+                            <input ref={grossInputRef} type="text" inputMode="decimal" value={grossWeight} onChange={e => setGrossWeight(e.target.value)} placeholder="0.000" className="text-4xl font-black tracking-tight text-zinc-900 dark:text-white bg-transparent outline-none w-full placeholder:text-zinc-200 dark:placeholder:text-zinc-800 transition-all border-b border-zinc-200 dark:border-zinc-800 focus:border-primary-500 pb-2 tabular-nums" />
+                            <span className="absolute right-0 bottom-4 text-zinc-400 font-bold text-xl pointer-events-none">kg</span>
                         </div>
                         <div className="relative group">
-                            {parsedGrossWeight > 0 && <div className="absolute -top-3 right-3 z-20 bg-emerald-500 dark:bg-emerald-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-lg shadow-lg animate-fade-in flex items-center gap-1">{parsedGrossWeight.toFixed(2)} kg</div>}
-                            <span className="absolute left-4 top-4 text-zinc-400 dark:text-zinc-500 material-icons-round text-lg group-focus-within:text-primary-500 transition-colors pointer-events-none">scale</span>
-                            <input ref={grossInputRef} type="text" inputMode="decimal" value={grossWeight} onChange={e => setGrossWeight(e.target.value)} placeholder={t('lbl_gross_weight')} className={inputClass + " pl-12 text-sm"} />
+                            <label className="text-[10px] uppercase font-bold text-zinc-400 dark:text-zinc-500 mb-1.5 block ml-1">{t('lbl_note_weight')}</label>
+                            <input ref={noteInputRef} type="number" inputMode="decimal" step="0.01" value={noteWeight} onChange={e => setNoteWeight(e.target.value)} placeholder="0.000" className="text-4xl font-black tracking-tight text-zinc-900 dark:text-white bg-transparent outline-none w-full placeholder:text-zinc-200 dark:placeholder:text-zinc-800 transition-all border-b border-zinc-200 dark:border-zinc-800 focus:border-primary-500 pb-2 tabular-nums" />
+                            <span className="absolute right-0 bottom-4 text-zinc-400 font-bold text-xl pointer-events-none">kg</span>
                         </div>
                     </div>
                 </div>
@@ -596,32 +618,34 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                 )}
             </div>
 
-            <div className="fixed bottom-6 left-0 right-0 z-50 flex justify-center pointer-events-none">
-                <div className="flex items-center gap-2 p-2.5 bg-[#1C1C1E] rounded-[3rem] shadow-2xl shadow-black/50 ring-1 ring-white/10 animate-slide-up select-none pointer-events-auto">
-                    <div className="bg-white text-black px-6 py-4 rounded-full flex items-center gap-2.5 shadow-xl hover:scale-105 active:scale-95 transition-all cursor-pointer group" onClick={() => setActiveSection('weights')}>
-                        <span className="material-icons-round text-xl group-hover:rotate-12 transition-transform">scale</span>
-                        <span className="font-bold text-sm tracking-tight">{t('tab_weigh')}</span>
-                    </div>
-                    <button onClick={onViewHistory} className="w-12 h-12 rounded-full flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 transition-all active:scale-90"><span className="material-icons-round text-xl">history</span></button>
-                    <div className="w-[1px] h-6 bg-white/10 mx-0.5"></div>
-                    <button onClick={() => cameraInputRef.current?.click()} className="w-12 h-12 rounded-full bg-[#2C2C2E] flex items-center justify-center text-white hover:bg-white/20 hover:scale-110 transition-all active:scale-90 shadow-inner group"><span className="material-icons-round text-xl group-hover:text-blue-400 transition-colors">photo_camera</span></button>
-                    <button onClick={() => galleryInputRef.current?.click()} className="w-12 h-12 rounded-full bg-[#2C2C2E] flex items-center justify-center text-white hover:bg-white/20 hover:scale-110 transition-all active:scale-90 shadow-inner group"><span className="material-icons-round text-xl group-hover:text-purple-400 transition-colors">collections</span></button>
-                    <div className="w-[1px] h-6 bg-white/10 mx-0.5"></div>
+            {/* Floating Action Bar - Adjusted for BottomNav overlap */}
+            <div className="fixed bottom-28 left-0 right-0 z-50 flex justify-center pointer-events-none">
+                <div className="flex items-center gap-2 p-2 bg-[#1C1C1E]/90 backdrop-blur-xl rounded-[2.5rem] shadow-2xl shadow-black/50 ring-1 ring-white/10 animate-slide-up select-none pointer-events-auto">
 
-                    {/* Redesigned Minimalist Modern Trash Icon */}
-                    <button
-                        onClick={() => setShowConfirmReset(true)}
-                        className="w-12 h-12 rounded-full flex items-center justify-center transition-all active:scale-75 group relative overflow-hidden"
-                        title={t('btn_clear')}
-                    >
-                        <div className="absolute inset-0 bg-gradient-to-tr from-red-500/20 to-orange-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                        <div className="relative flex flex-col items-center justify-center">
-                            <span className="material-icons-round text-[22px] text-[#FF453A] drop-shadow-[0_0_8px_rgba(255,69,58,0.3)] transition-transform group-hover:scale-110 group-hover:-rotate-12">delete_sweep</span>
-                            <div className="w-4 h-0.5 bg-[#FF453A] rounded-full mt-[-2px] opacity-0 group-hover:opacity-40 transition-all duration-300 scale-x-0 group-hover:scale-x-100"></div>
-                        </div>
+                    <button onClick={() => cameraInputRef.current?.click()} className="w-12 h-12 rounded-full bg-zinc-800/50 flex items-center justify-center text-white hover:bg-white/20 hover:scale-110 transition-all active:scale-90 shadow-inner group relative overflow-hidden">
+                        <span className="material-icons-round text-xl group-hover:text-blue-400 transition-colors relative z-10">photo_camera</span>
                     </button>
 
-                    <button onClick={handleSave} className={`w-16 h-16 ml-1 rounded-full flex items-center justify-center text-white shadow-lg transition-all active:scale-90 ${hasDataToSave ? 'bg-[#10B981] shadow-emerald-500/30 animate-pulse-slow hover:scale-105' : 'bg-[#10B981]/80 shadow-[#10B981]/10'}`}><span className="material-icons-round text-2xl">save</span></button>
+                    <button onClick={() => galleryInputRef.current?.click()} className="w-12 h-12 rounded-full bg-zinc-800/50 flex items-center justify-center text-white hover:bg-white/20 hover:scale-110 transition-all active:scale-90 shadow-inner group relative overflow-hidden">
+                        <span className="material-icons-round text-xl group-hover:text-purple-400 transition-colors relative z-10">collections</span>
+                    </button>
+
+                    <div className="w-[1px] h-6 bg-white/10 mx-1"></div>
+
+                    {/* Clear Button */}
+                    <button
+                        onClick={() => setShowConfirmReset(true)}
+                        className="w-12 h-12 rounded-full flex items-center justify-center transition-all active:scale-75 group relative overflow-hidden hover:bg-red-500/10"
+                        title={t('btn_clear')}
+                    >
+                        <span className="material-icons-round text-[22px] text-[#FF453A] drop-shadow-[0_0_8px_rgba(255,69,58,0.3)] transition-transform group-hover:scale-110 group-hover:-rotate-12">delete_sweep</span>
+                    </button>
+
+                    {/* Save Button - Large */}
+                    <button onClick={handleSave} className={`w-20 h-14 ml-1 rounded-full flex items-center justify-center text-white shadow-lg transition-all active:scale-90 ${hasDataToSave ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 shadow-emerald-500/30 animate-pulse-slow hover:scale-105' : 'bg-zinc-700 shadow-zinc-900/50 opacity-80'}`}>
+                        <span className="material-icons-round text-2xl">save</span>
+                        {hasDataToSave && <span className="text-[10px] font-black uppercase ml-1 tracking-wider opacity-90 hidden sm:inline">Save</span>}
+                    </button>
                 </div>
             </div>
 
