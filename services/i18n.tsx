@@ -471,7 +471,7 @@ const translations = {
     }
 };
 
-const LanguageContext = createContext<{ language: Language; setLanguage: (l: Language) => void; t: (key: string, params?: Record<string, string>) => string } | undefined>(undefined);
+const LanguageContext = createContext<{ language: Language; setLanguage: (l: Language) => void; t: (key: string, params?: any) => any } | undefined>(undefined);
 
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [language, setLanguage] = useState<Language>(() => {
@@ -483,13 +483,24 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
         localStorage.setItem('conferente_lang', language);
     }, [language]);
 
-    const t = (key: string, params?: Record<string, string>) => {
-        let text = (translations[language] as any)[key] || key;
-        if (params) {
+    const t = (key: string, params?: any) => {
+        let text = (translations[language] as any)[key];
+
+        // If key doesn't exist, return key
+        if (text === undefined) return key;
+
+        // If explicitly requesting objects (for arrays like carousel), return directly
+        if (params && params.returnObjects) {
+            return text;
+        }
+
+        // Standard string replacement
+        if (typeof text === 'string' && params) {
             Object.entries(params).forEach(([k, v]) => {
-                text = text.replace(`{${k}}`, v);
+                text = text.replace(`{${k}}`, String(v));
             });
         }
+
         return text;
     };
 

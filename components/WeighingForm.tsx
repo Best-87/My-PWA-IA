@@ -73,13 +73,16 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
     const [carouselTip, setCarouselTip] = useState<string>("");
 
     useEffect(() => {
-        // Load initial translation safely
-        const initialTip = t('tips_carousel.0', { returnObjects: true }) as string;
-        setCarouselTip(typeof initialTip === 'string' ? initialTip : t('assistant_default'));
-
-        // Get carousel array from translations - handling safety in case it returns string or array
+        // Get carousel array from translations
         const rawTips = t('tips_carousel', { returnObjects: true });
         const tips = Array.isArray(rawTips) ? rawTips as string[] : [];
+
+        // Set initial tip safely
+        if (tips.length > 0) {
+            setCarouselTip(tips[0]);
+        } else {
+            setCarouselTip(t('assistant_default'));
+        }
 
         if (tips.length === 0) return;
 
