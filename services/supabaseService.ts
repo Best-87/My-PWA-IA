@@ -56,6 +56,11 @@ export const syncRecordToSupabase = async (record: WeighingRecord) => {
         const { data: { session } } = await supabase.auth.getSession();
         const userId = session?.user?.id;
 
+        if (!userId) {
+            console.warn('Sync aborted: User not logged in');
+            return { error: 'User not authenticated' };
+        }
+
         const { error } = await supabase
             .from('weighing_records')
             .upsert({

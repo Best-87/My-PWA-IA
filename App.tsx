@@ -538,31 +538,7 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                                 </div>
                             )}
 
-                            {/* Floating Action Island for History View - Hidden when BottomNav is visible */}
-                            <div className="fixed bottom-24 left-0 right-0 z-40 flex justify-center pointer-events-none">
-                                <div className="flex items-center gap-2 p-2.5 glass dark:glass-dark rounded-[3rem] card-shadow-lg ring-1 ring-zinc-200/50 dark:ring-zinc-800/50 animate-bounce-in select-none pointer-events-auto">
-                                    <button
-                                        onClick={() => handleTabChange('weigh')}
-                                        className="bg-white text-black px-6 py-3 rounded-full flex items-center gap-2 shadow-xl hover:scale-105 active:scale-95 transition-all group"
-                                    >
-                                        <span className="material-icons-round group-hover:rotate-12 transition-transform">scale</span>
-                                        <span className="font-bold text-sm tracking-tight">Volver a Pesar</span>
-                                    </button>
-                                    <div className="w-[1px] h-6 bg-white/10 mx-0.5"></div>
-                                    {/* Redesigned Minimalist Modern Trash Icon - History View */}
-                                    <button
-                                        onClick={handleClearAll}
-                                        className="w-12 h-12 rounded-full flex items-center justify-center transition-all active:scale-75 group relative overflow-hidden"
-                                        title={t('btn_delete_all_history')}
-                                    >
-                                        <div className="absolute inset-0 bg-gradient-to-tr from-red-500/20 to-orange-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                                        <div className="relative flex flex-col items-center justify-center">
-                                            <span className="material-icons-round text-[22px] text-[#FF453A] drop-shadow-[0_0_8px_rgba(255,69,58,0.3)] transition-transform group-hover:scale-110 group-hover:-rotate-12">delete_sweep</span>
-                                            <div className="w-4 h-0.5 bg-[#FF453A] rounded-full mt-[-2px] opacity-0 group-hover:opacity-40 transition-all duration-300 scale-x-0 group-hover:scale-x-100"></div>
-                                        </div>
-                                    </button>
-                                </div>
-                            </div>
+
                         </div>
                     )}
                     {activeTab === 'profile' && (
