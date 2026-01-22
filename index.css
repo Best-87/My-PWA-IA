@@ -104,6 +104,20 @@
     animation: slide-down 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 
+  @keyframes ticker {
+    from {
+      transform: translateX(100%);
+    }
+
+    to {
+      transform: translateX(-100%);
+    }
+  }
+
+  .animate-ticker {
+    animation: ticker 8s linear infinite;
+  }
+
   /* iOS Semantic Shadows - Kept for compatibility */
   .card-shadow {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 10px 20px rgba(0, 0, 0, 0.06);

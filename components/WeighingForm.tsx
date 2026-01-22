@@ -503,18 +503,22 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
     return (
         <div className="space-y-6 pb-32">
 
-            {/* Floating Notification Banner */}
+            {/* Ticker Notification Banner - Scrolls Right to Left */}
             {floatingMessage && (
-                <div className={`
-                    fixed top-24 left-1/2 -translate-x-1/2 z-40 
-                    px-6 py-3 rounded-2xl shadow-2xl backdrop-blur-xl
-                    animate-slide-down max-w-sm w-auto
-                    ${floatingMessage.type === 'success' ? 'bg-emerald-500/90 text-white' : ''}
-                    ${floatingMessage.type === 'info' ? 'bg-blue-500/90 text-white' : ''}
-                    ${floatingMessage.type === 'warning' ? 'bg-orange-500/90 text-white' : ''}
-                    ${floatingMessage.type === 'ai' ? 'bg-purple-500/90 text-white' : ''}
-                `}>
-                    <p className="text-sm font-bold text-center whitespace-nowrap">{floatingMessage.text}</p>
+                <div className="fixed top-20 left-0 right-0 z-40 overflow-hidden">
+                    <div className={`
+                        py-2 backdrop-blur-xl border-y
+                        ${floatingMessage.type === 'success' ? 'bg-emerald-500/90 border-emerald-400/50' : ''}
+                        ${floatingMessage.type === 'info' ? 'bg-blue-500/90 border-blue-400/50' : ''}
+                        ${floatingMessage.type === 'warning' ? 'bg-orange-500/90 border-orange-400/50' : ''}
+                        ${floatingMessage.type === 'ai' ? 'bg-purple-500/90 border-purple-400/50' : ''}
+                    `}>
+                        <div className="animate-ticker whitespace-nowrap">
+                            <span className="text-sm font-bold text-white inline-block px-4">
+                                {floatingMessage.text}
+                            </span>
+                        </div>
+                    </div>
                 </div>
             )}
 
