@@ -1,7 +1,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import AppContent from './App.tsx';
+import AppContent from './App';
 import { LanguageProvider } from './services/i18n';
 import { ToastProvider } from './components/Toast';
 import './index.css';

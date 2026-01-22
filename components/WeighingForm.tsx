@@ -16,16 +16,18 @@ export interface WeighingFormHandle {
     clear: () => void;
     openCamera: () => void;
     openGallery: () => void;
+    hasUnsavedData: () => boolean;
 }
 
 export interface WeighingFormProps {
     onViewHistory: () => void;
+    onDataChange?: (hasData: boolean) => void;
 }
 
 // Persistent state outside component to survive tab switches
 let persistentFormState: any = null;
 
-export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({ onViewHistory }, ref) => {
+export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({ onViewHistory, onDataChange }, ref) => {
     const { t, language } = useTranslation();
     const { showToast } = useToast();
 
@@ -420,11 +422,20 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
         sendLocalNotification('Registro Guardado', `${supplier} - ${product}: ${netWeight.toFixed(3)}kg`);
     };
 
+    const inputClass = "w-full bg-zinc-100/50 dark:bg-zinc-900/50 border border-black/5 dark:border-white/5 rounded-2xl px-5 py-4 text-zinc-900 dark:text-white font-semibold outline-none focus:bg-white dark:focus:bg-zinc-800 transition-all placeholder:text-zinc-400 dark:placeholder:text-zinc-500 backdrop-blur-sm ios-input-focus";
+    const suggestionClass = "ring-2 ring-blue-500/30 border-blue-500/50 shadow-[0_0_20px_rgba(59,130,246,0.15)]";
+    const hasDataToSave = !!(supplier && product && grossWeight && noteWeight);
+
+    useEffect(() => {
+        onDataChange?.(hasDataToSave);
+    }, [hasDataToSave, onDataChange]);
+
     useImperativeHandle(ref, () => ({
         save: handleSave,
         clear: () => setShowConfirmReset(true),
         openCamera: () => cameraInputRef.current?.click(),
-        openGallery: () => galleryInputRef.current?.click()
+        openGallery: () => galleryInputRef.current?.click(),
+        hasUnsavedData: () => hasDataToSave
     }));
 
     const analyzeWithAI = async () => {
@@ -456,10 +467,6 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
 
         return `${base} bg-white/40 dark:bg-zinc-900/40 border-white/20 dark:border-white/5 hover:bg-white/60 dark:hover:bg-zinc-900/60 shadow-sm`;
     };
-
-    const inputClass = "w-full bg-zinc-100/50 dark:bg-zinc-900/50 border border-black/5 dark:border-white/5 rounded-2xl px-5 py-4 text-zinc-900 dark:text-white font-semibold outline-none focus:bg-white dark:focus:bg-zinc-800 transition-all placeholder:text-zinc-400 dark:placeholder:text-zinc-500 backdrop-blur-sm ios-input-focus";
-    const suggestionClass = "ring-2 ring-blue-500/30 border-blue-500/50 shadow-[0_0_20px_rgba(59,130,246,0.15)]";
-    const hasDataToSave = !!(supplier && product && grossWeight && noteWeight);
 
     return (
         <div className="space-y-4 relative pb-32">
@@ -618,36 +625,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                 )}
             </div>
 
-            {/* Floating Action Bar - Adjusted for BottomNav overlap */}
-            <div className="fixed bottom-28 left-0 right-0 z-50 flex justify-center pointer-events-none">
-                <div className="flex items-center gap-2 p-2 bg-[#1C1C1E]/90 backdrop-blur-xl rounded-[2.5rem] shadow-2xl shadow-black/50 ring-1 ring-white/10 animate-slide-up select-none pointer-events-auto">
-
-                    <button onClick={() => cameraInputRef.current?.click()} className="w-12 h-12 rounded-full bg-zinc-800/50 flex items-center justify-center text-white hover:bg-white/20 hover:scale-110 transition-all active:scale-90 shadow-inner group relative overflow-hidden">
-                        <span className="material-icons-round text-xl group-hover:text-blue-400 transition-colors relative z-10">photo_camera</span>
-                    </button>
-
-                    <button onClick={() => galleryInputRef.current?.click()} className="w-12 h-12 rounded-full bg-zinc-800/50 flex items-center justify-center text-white hover:bg-white/20 hover:scale-110 transition-all active:scale-90 shadow-inner group relative overflow-hidden">
-                        <span className="material-icons-round text-xl group-hover:text-purple-400 transition-colors relative z-10">collections</span>
-                    </button>
-
-                    <div className="w-[1px] h-6 bg-white/10 mx-1"></div>
-
-                    {/* Clear Button */}
-                    <button
-                        onClick={() => setShowConfirmReset(true)}
-                        className="w-12 h-12 rounded-full flex items-center justify-center transition-all active:scale-75 group relative overflow-hidden hover:bg-red-500/10"
-                        title={t('btn_clear')}
-                    >
-                        <span className="material-icons-round text-[22px] text-[#FF453A] drop-shadow-[0_0_8px_rgba(255,69,58,0.3)] transition-transform group-hover:scale-110 group-hover:-rotate-12">delete_sweep</span>
-                    </button>
-
-                    {/* Save Button - Large */}
-                    <button onClick={handleSave} className={`w-20 h-14 ml-1 rounded-full flex items-center justify-center text-white shadow-lg transition-all active:scale-90 ${hasDataToSave ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 shadow-emerald-500/30 animate-pulse-slow hover:scale-105' : 'bg-zinc-700 shadow-zinc-900/50 opacity-80'}`}>
-                        <span className="material-icons-round text-2xl">save</span>
-                        {hasDataToSave && <span className="text-[10px] font-black uppercase ml-1 tracking-wider opacity-90 hidden sm:inline">Save</span>}
-                    </button>
-                </div>
-            </div>
+            {/* Floating Action Bar removed - handled by BottomNav */}
 
             {showConfirmReset && createPortal(
                 <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in" style={{ touchAction: 'none' }} role="dialog" aria-modal="true" aria-labelledby="modal-title">

@@ -60,6 +60,7 @@ const AppContent = () => {
 
     // Image Viewer State
     const [viewImage, setViewImage] = useState<string | null>(null);
+    const [hasUnsavedWeighingData, setHasUnsavedWeighingData] = useState(false);
 
     // Auth & Session State
     const [session, setSession] = useState<any>(null);
@@ -403,15 +404,15 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                 <input ref={profileInputRef} type="file" accept="image/*" className="hidden" onChange={handleProfilePhotoUpload} />
 
                 {/* Header */}
-                <header className="fixed top-0 w-full z-50 glass-dark border-b border-white/5 transition-all animate-ios-fade safe-top">
+                <header className="fixed top-0 w-full z-50 glass dark:glass-dark border-b border-zinc-200/50 dark:border-white/5 transition-all animate-ios-fade safe-top">
                     <div className="max-w-3xl mx-auto px-4 h-16 flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <div className="bg-gradient-to-br from-primary-500 to-primary-700 w-9 h-9 rounded-xl flex items-center justify-center shadow-lg shadow-primary-500/30">
                                 <span className="material-icons-round text-white text-lg">scale</span>
                             </div>
                             <div>
-                                <h1 className="text-lg font-black text-white leading-none tracking-tight">{t('app_name')}</h1>
-                                <span className="text-[10px] font-bold text-blue-400 tracking-widest uppercase opacity-80">{t('app_subtitle')}</span>
+                                <h1 className="text-lg font-black text-zinc-900 dark:text-white leading-none tracking-tight">{t('app_name')}</h1>
+                                <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 tracking-widest uppercase opacity-80">{t('app_subtitle')}</span>
                             </div>
                         </div>
 
@@ -424,20 +425,20 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                             )}
 
                             {/* Profile Section in Header */}
-                            <div className="flex items-center gap-3 pl-3 ml-1 border-l border-white/10 cursor-pointer group active:opacity-70 transition-all" onClick={() => setActiveTab('profile')}>
+                            <div className="flex items-center gap-3 pl-3 ml-1 border-l border-zinc-200 dark:border-white/10 cursor-pointer group active:opacity-70 transition-all" onClick={() => setActiveTab('profile')}>
                                 <div className="flex flex-col items-end text-right">
-                                    <span className="text-xs font-bold text-white leading-none mb-0.5">{profile.name}</span>
-                                    <div className="flex items-center gap-1.5 opacity-60">
-                                        <span className="text-[10px] text-zinc-300 leading-none">{profile.role}</span>
-                                        {profile.store && <span className="text-[9px] font-black text-blue-400 uppercase tracking-wider bg-blue-500/10 px-1 rounded">{profile.store}</span>}
+                                    <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest leading-none mb-0.5">{profile.name}</span>
+                                    <div className="flex items-center">
+                                        <span className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 leading-none">{profile.role}</span>
+                                        {profile.store && <span className="text-[8px] font-black text-blue-500 uppercase tracking-wider bg-blue-500/10 px-1 rounded ml-1">{profile.store}</span>}
                                     </div>
                                 </div>
 
-                                <div className="w-9 h-9 rounded-full overflow-hidden border border-white/10 shadow-sm relative transition-all group-active:scale-95">
+                                <div className="w-9 h-9 rounded-full overflow-hidden border border-zinc-200 dark:border-white/10 shadow-sm relative transition-all group-active:scale-95">
                                     {profile.photo ? (
                                         <img src={profile.photo} alt="Profile" className="w-full h-full object-cover" />
                                     ) : (
-                                        <div className="w-full h-full bg-zinc-800 flex items-center justify-center text-zinc-500">
+                                        <div className="w-full h-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-400 dark:text-zinc-500">
                                             <span className="material-icons-round text-lg">person</span>
                                         </div>
                                     )}
@@ -451,233 +452,285 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                 <main className="max-w-3xl mx-auto pt-16 px-4">
                     {activeTab === 'weigh' && (
                         <div className="animate-fade-in">
-                            <WeighingForm ref={formRef} onViewHistory={() => handleTabChange('history')} />
+                            <WeighingForm
+                                ref={formRef}
+                                onViewHistory={() => handleTabChange('history')}
+                                onDataChange={setHasUnsavedWeighingData}
+                            />
                         </div>
                     )}
-                    {activeTab === 'history' && (
-                        <div className="animate-fade-in pb-24">
-                            <div className="mb-4 flex items-center justify-between">
-                                <h2 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">{t('hist_recent')}</h2>
-                                <div className="flex gap-2">
-                                    <button onClick={handleExportCSV} title="Exportar CSV" className="p-2.5 rounded-2xl bg-white/5 border border-white/5 text-zinc-400 hover:text-white transition-all active:scale-90">
-                                        <span className="material-icons-round text-xl">download</span>
-                                    </button>
-                                    <button onClick={handleBackup} title="Descargar Backup" className="p-2.5 rounded-2xl bg-white/5 border border-white/5 text-zinc-400 hover:text-white transition-all active:scale-90">
-                                        <span className="material-icons-round text-xl">save_alt</span>
-                                    </button>
+                    {
+                        activeTab === 'history' && (
+                            <div className="animate-fade-in pb-24">
+                                <div className="mb-4 flex items-center justify-between">
+                                    <h2 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">{t('hist_recent')}</h2>
+                                    <div className="flex gap-2">
+                                        <button onClick={handleExportCSV} title="Exportar CSV" className="p-2.5 rounded-2xl bg-white/5 border border-white/5 text-zinc-400 hover:text-white transition-all active:scale-90">
+                                            <span className="material-icons-round text-xl">download</span>
+                                        </button>
+                                        <button onClick={handleBackup} title="Descargar Backup" className="p-2.5 rounded-2xl bg-white/5 border border-white/5 text-zinc-400 hover:text-white transition-all active:scale-90">
+                                            <span className="material-icons-round text-xl">save_alt</span>
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
 
-                            {/* Time Filters */}
-                            <div className="flex gap-2 overflow-x-auto pb-4 no-scrollbar">
-                                {[
-                                    { id: 'all', label: t('filter_all') },
-                                    { id: 'today', label: t('filter_today') },
-                                    { id: 'week', label: t('filter_week') },
-                                    { id: 'month', label: t('filter_month') },
-                                    { id: 'year', label: t('filter_year') }
-                                ].map(filter => (
-                                    <button
-                                        key={filter.id}
-                                        onClick={() => setTimeFilter(filter.id as any)}
-                                        className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all ${timeFilter === filter.id
-                                            ? 'bg-primary-500 text-white shadow-lg'
-                                            : 'bg-white dark:bg-zinc-900 text-zinc-500 border border-zinc-200 dark:border-zinc-800'
-                                            }`}
-                                    >
-                                        {filter.label}
-                                    </button>
-                                ))}
-                            </div>
-
-                            {/* Search Bar */}
-                            <div className="relative mb-6">
-                                <span className="absolute left-4 top-3.5 text-zinc-400 dark:text-zinc-500 material-icons-round text-xl">search</span>
-                                <input
-                                    type="text"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    placeholder={t('ph_search')}
-                                    className="w-full pl-12 pr-4 py-3 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white outline-none focus:ring-2 focus:ring-primary-500/50 transition-all shadow-sm"
-                                />
-                            </div>
-
-                            {records.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center py-20 opacity-50">
-                                    <span className="material-icons-round text-6xl text-zinc-300 dark:text-zinc-700 mb-4">history_toggle_off</span>
-                                    <p className="text-zinc-500 dark:text-zinc-400">{t('hist_empty')}</p>
+                                {/* Time Filters */}
+                                <div className="flex gap-2 overflow-x-auto pb-4 no-scrollbar">
+                                    {[
+                                        { id: 'all', label: t('filter_all') },
+                                        { id: 'today', label: t('filter_today') },
+                                        { id: 'week', label: t('filter_week') },
+                                        { id: 'month', label: t('filter_month') },
+                                        { id: 'year', label: t('filter_year') }
+                                    ].map(filter => (
+                                        <button
+                                            key={filter.id}
+                                            onClick={() => setTimeFilter(filter.id as any)}
+                                            className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all ${timeFilter === filter.id
+                                                ? 'bg-primary-500 text-white shadow-lg'
+                                                : 'bg-white dark:bg-zinc-900 text-zinc-500 border border-zinc-200 dark:border-zinc-800'
+                                                }`}
+                                        >
+                                            {filter.label}
+                                        </button>
+                                    ))}
                                 </div>
-                            ) : filteredRecords.length === 0 ? (
-                                <div className="text-center py-10 text-zinc-500 dark:text-zinc-400">
-                                    No se encontraron resultados.
+
+                                {/* Search Bar */}
+                                <div className="relative mb-6">
+                                    <span className="absolute left-4 top-3.5 text-zinc-400 dark:text-zinc-500 material-icons-round text-xl">search</span>
+                                    <input
+                                        type="text"
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        placeholder={t('ph_search')}
+                                        className="w-full pl-12 pr-4 py-3 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white outline-none focus:ring-2 focus:ring-primary-500/50 transition-all shadow-sm"
+                                    />
                                 </div>
-                            ) : (
-                                <div className="space-y-6">
-                                    {(() => {
-                                        const grouped = filteredRecords.reduce((acc, rec) => {
-                                            const date = new Date(rec.timestamp);
-                                            const today = new Date();
-                                            const yesterday = new Date(today);
-                                            yesterday.setDate(yesterday.getDate() - 1);
 
-                                            let key = date.toLocaleDateString();
-                                            if (date.toDateString() === today.toDateString()) key = "Hoy";
-                                            else if (date.toDateString() === yesterday.toDateString()) key = "Ayer";
+                                {records.length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center py-20 opacity-50">
+                                        <span className="material-icons-round text-6xl text-zinc-300 dark:text-zinc-700 mb-4">history_toggle_off</span>
+                                        <p className="text-zinc-500 dark:text-zinc-400">{t('hist_empty')}</p>
+                                    </div>
+                                ) : filteredRecords.length === 0 ? (
+                                    <div className="text-center py-10 text-zinc-500 dark:text-zinc-400">
+                                        No se encontraron resultados.
+                                    </div>
+                                ) : (
+                                    <div className="space-y-6">
+                                        {(() => {
+                                            const grouped = filteredRecords.reduce((acc, rec) => {
+                                                const date = new Date(rec.timestamp);
+                                                const today = new Date();
+                                                const yesterday = new Date(today);
+                                                yesterday.setDate(yesterday.getDate() - 1);
 
-                                            if (!acc[key]) acc[key] = [];
-                                            acc[key].push(rec);
-                                            return acc;
-                                        }, {} as Record<string, WeighingRecord[]>);
+                                                let key = date.toLocaleDateString();
+                                                if (date.toDateString() === today.toDateString()) key = "Hoy";
+                                                else if (date.toDateString() === yesterday.toDateString()) key = "Ayer";
 
-                                        return Object.entries(grouped).map(([dateLabel, groupRecords]) => (
-                                            <div key={dateLabel} className="animate-slide-up-fade">
-                                                <h3 className="sticky top-0 bg-zinc-50/95 dark:bg-black/95 backdrop-blur-md py-2 px-4 z-10 text-xl font-bold text-zinc-900 dark:text-white mb-2 ml-1">
-                                                    {dateLabel}
-                                                </h3>
-                                                <div className="space-y-3">
-                                                    {groupRecords.map((rec) => (
-                                                        <ModernRecordCard
-                                                            key={rec.id}
-                                                            record={rec}
-                                                            isExpanded={expandedIds.has(rec.id)}
-                                                            onExpand={() => toggleExpand(rec.id)}
-                                                            onDelete={(e) => handleDelete(rec.id, e)}
-                                                            onShare={(e) => handleShareWhatsapp(rec, e)}
-                                                        />
-                                                    ))}
+                                                if (!acc[key]) acc[key] = [];
+                                                acc[key].push(rec);
+                                                return acc;
+                                            }, {} as Record<string, WeighingRecord[]>);
+
+                                            return Object.entries(grouped).map(([dateLabel, groupRecords]) => (
+                                                <div key={dateLabel} className="animate-slide-up-fade">
+                                                    <h3 className="sticky top-0 bg-zinc-50/95 dark:bg-black/95 backdrop-blur-md py-2 px-4 z-10 text-xl font-bold text-zinc-900 dark:text-white mb-2 ml-1">
+                                                        {dateLabel}
+                                                    </h3>
+                                                    <div className="space-y-3">
+                                                        {groupRecords.map((rec) => (
+                                                            <ModernRecordCard
+                                                                key={rec.id}
+                                                                record={rec}
+                                                                isExpanded={expandedIds.has(rec.id)}
+                                                                onExpand={() => toggleExpand(rec.id)}
+                                                                onDelete={(e) => handleDelete(rec.id, e)}
+                                                                onShare={(e) => handleShareWhatsapp(rec, e)}
+                                                            />
+                                                        ))}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        ));
-                                    })()}
-                                </div>
-                            )}
+                                            ));
+                                        })()}
+                                    </div>
+                                )}
 
 
-                        </div>
-                    )}
-                    {activeTab === 'profile' && (
-                        <ProfileView
-                            profile={profile}
-                            session={session}
-                            email={email}
-                            isAuthLoading={isAuthLoading}
-                            onSaveProfile={() => {
-                                saveUserProfile(profile);
-                                showToast(t('profile_saved') || 'Guardado', 'success');
-                            }}
-                            onSignOut={handleSignOut}
-                            onPhotoUpload={handleProfilePhotoUpload}
-                            onThemeChange={() => {
-                                const newTheme = theme === 'dark' ? 'light' : 'dark';
-                                setThemeState(newTheme);
-                                saveTheme(newTheme);
-                                if (newTheme === 'dark') {
-                                    document.documentElement.classList.add('dark');
-                                } else {
-                                    document.documentElement.classList.remove('dark');
-                                }
-                            }}
-                            theme={theme}
-                            onLanguageChange={setLanguage}
-                            currentLanguage={language}
-                            onProfileChange={(field, value) => setProfile(prev => ({ ...prev, [field]: value }))}
+                            </div>
+                        )
+                    }
+                    {
+                        activeTab === 'profile' && (
+                            <ProfileView
+                                profile={profile}
+                                session={session}
+                                email={email}
+                                isAuthLoading={isAuthLoading}
+                                onSaveProfile={() => {
+                                    saveUserProfile(profile);
+                                    showToast(t('profile_saved') || 'Guardado', 'success');
+                                }}
+                                onSignOut={handleSignOut}
+                                onPhotoUpload={handleProfilePhotoUpload}
+                                onThemeChange={() => {
+                                    const newTheme = theme === 'dark' ? 'light' : 'dark';
+                                    setThemeState(newTheme);
+                                    saveTheme(newTheme);
+                                    if (newTheme === 'dark') {
+                                        document.documentElement.classList.add('dark');
+                                    } else {
+                                        document.documentElement.classList.remove('dark');
+                                    }
+                                }}
+                                theme={theme}
+                                onLanguageChange={setLanguage}
+                                currentLanguage={language}
+                                onProfileChange={(field, value) => setProfile(prev => ({ ...prev, [field]: value }))}
 
-                            // Auth Props
-                            password={password}
-                            onPasswordChange={setPassword}
-                            onLogin={handleLogin}
-                            onSignup={handleSignup}
-                            isAuthModeLogin={isAuthModeLogin}
-                            onToggleAuthMode={() => setIsAuthModeLogin(!isAuthModeLogin)}
-                            onEmailChange={setEmail}
-                        />
-                    )}
-                </main>
+                                // Auth Props
+                                password={password}
+                                onPasswordChange={setPassword}
+                                onLogin={handleLogin}
+                                onSignup={handleSignup}
+                                isAuthModeLogin={isAuthModeLogin}
+                                onToggleAuthMode={() => setIsAuthModeLogin(!isAuthModeLogin)}
+                                onEmailChange={setEmail}
+                            />
+                        )
+                    }
+                </main >
 
                 {/* Image Viewer Modal */}
-                {viewImage && (
-                    <div className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4 animate-fade-in" onClick={() => setViewImage(null)}>
-                        <div className="relative max-w-full max-h-full" onClick={e => e.stopPropagation()}>
-                            <img src={viewImage} alt="Evidencia Full" className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl" />
-                            <button onClick={() => setViewImage(null)} className="absolute top-4 right-4 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 transition-colors">
-                                <span className="material-icons-round text-2xl">close</span>
-                            </button>
+                {
+                    viewImage && (
+                        <div className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4 animate-fade-in" onClick={() => setViewImage(null)}>
+                            <div className="relative max-w-full max-h-full" onClick={e => e.stopPropagation()}>
+                                <img src={viewImage} alt="Evidencia Full" className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl" />
+                                <button onClick={() => setViewImage(null)} className="absolute top-4 right-4 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 transition-colors">
+                                    <span className="material-icons-round text-2xl">close</span>
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                )}
+                    )
+                }
 
                 {/* Delete Confirmation Modal (Single Record) */}
-                {recordToDelete && (
-                    <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in" style={{ touchAction: 'none' }} role="dialog" aria-modal="true" aria-labelledby="modal-delete-title">
-                        <div className="bg-white dark:bg-zinc-900 rounded-[2rem] w-full max-w-sm p-6 shadow-2xl animate-slide-up ring-1 ring-white/10 relative overflow-hidden" onClick={e => e.stopPropagation()}>
-                            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-red-500/10 blur-[60px] pointer-events-none"></div>
-                            <div className="flex flex-col items-center text-center relative z-10">
-                                <div className="relative mb-5">
-                                    <div className="absolute inset-0 bg-red-500 blur-xl opacity-20 rounded-full"></div>
-                                    <div className="w-20 h-20 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center relative shadow-sm border border-red-100 dark:border-red-900/30">
-                                        <span className="material-icons-round text-3xl text-red-500">delete_forever</span>
+                {
+                    recordToDelete && (
+                        <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in" style={{ touchAction: 'none' }} role="dialog" aria-modal="true" aria-labelledby="modal-delete-title">
+                            <div className="bg-white dark:bg-zinc-900 rounded-[2rem] w-full max-w-sm p-6 shadow-2xl animate-slide-up ring-1 ring-white/10 relative overflow-hidden" onClick={e => e.stopPropagation()}>
+                                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-red-500/10 blur-[60px] pointer-events-none"></div>
+                                <div className="flex flex-col items-center text-center relative z-10">
+                                    <div className="relative mb-5">
+                                        <div className="absolute inset-0 bg-red-500 blur-xl opacity-20 rounded-full"></div>
+                                        <div className="w-20 h-20 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center relative shadow-sm border border-red-100 dark:border-red-900/30">
+                                            <span className="material-icons-round text-3xl text-red-500">delete_forever</span>
+                                        </div>
                                     </div>
-                                </div>
-                                <h3 id="modal-delete-title" className="text-xl font-black text-zinc-900 dark:text-white mb-2 leading-tight">{t('msg_confirm_delete')}</h3>
-                                <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-8 leading-relaxed px-4">Esta acción no se puede deshacer. El registro será eliminado permanentemente.</p>
-                                <div className="grid grid-cols-2 gap-3 w-full">
-                                    <button onClick={() => setRecordToDelete(null)} className="py-3.5 rounded-xl font-bold text-sm bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors">{t('btn_not_now')}</button>
-                                    <button onClick={confirmDelete} className="py-3.5 rounded-xl font-bold text-sm bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/30 transition-all active:scale-95">{t('btn_erase')}</button>
+                                    <h3 id="modal-delete-title" className="text-xl font-black text-zinc-900 dark:text-white mb-2 leading-tight">{t('msg_confirm_delete')}</h3>
+                                    <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-8 leading-relaxed px-4">Esta acción no se puede deshacer. El registro será eliminado permanentemente.</p>
+                                    <div className="grid grid-cols-2 gap-3 w-full">
+                                        <button onClick={() => setRecordToDelete(null)} className="py-3.5 rounded-xl font-bold text-sm bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors">{t('btn_not_now')}</button>
+                                        <button onClick={confirmDelete} className="py-3.5 rounded-xl font-bold text-sm bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/30 transition-all active:scale-95">{t('btn_erase')}</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                )}
+                    )
+                }
 
                 {/* Delete All Confirmation Modal */}
-                {showDeleteAllModal && (
-                    <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in" style={{ touchAction: 'none' }} role="dialog" aria-modal="true" aria-labelledby="modal-delete-all-title">
-                        <div className="bg-white dark:bg-zinc-900 rounded-[2rem] w-full max-w-sm p-6 shadow-2xl animate-slide-up ring-1 ring-white/10 relative overflow-hidden" onClick={e => e.stopPropagation()}>
-                            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-red-500/10 blur-[60px] pointer-events-none"></div>
-                            <div className="flex flex-col items-center text-center relative z-10">
-                                <div className="relative mb-5">
-                                    <div className="absolute inset-0 bg-red-500 blur-xl opacity-20 rounded-full"></div>
-                                    <div className="w-20 h-20 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center relative shadow-sm border border-red-100 dark:border-red-900/30">
-                                        <span className="material-icons-round text-3xl text-red-500">delete_sweep</span>
+                {
+                    showDeleteAllModal && (
+                        <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in" style={{ touchAction: 'none' }} role="dialog" aria-modal="true" aria-labelledby="modal-delete-all-title">
+                            <div className="bg-white dark:bg-zinc-900 rounded-[2rem] w-full max-w-sm p-6 shadow-2xl animate-slide-up ring-1 ring-white/10 relative overflow-hidden" onClick={e => e.stopPropagation()}>
+                                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-red-500/10 blur-[60px] pointer-events-none"></div>
+                                <div className="flex flex-col items-center text-center relative z-10">
+                                    <div className="relative mb-5">
+                                        <div className="absolute inset-0 bg-red-500 blur-xl opacity-20 rounded-full"></div>
+                                        <div className="w-20 h-20 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center relative shadow-sm border border-red-100 dark:border-red-900/30">
+                                            <span className="material-icons-round text-3xl text-red-500">delete_sweep</span>
+                                        </div>
                                     </div>
-                                </div>
-                                <h3 id="modal-delete-all-title" className="text-xl font-black text-zinc-900 dark:text-white mb-2 leading-tight">{t('msg_confirm_delete_all')}</h3>
-                                <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-8 leading-relaxed px-4">Esta acción es irreversible. Se eliminarán todos los registros guardados localmente.</p>
-                                <div className="grid grid-cols-2 gap-3 w-full">
-                                    <button onClick={() => setShowDeleteAllModal(false)} className="py-3.5 rounded-xl font-bold text-sm bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors">{t('btn_not_now')}</button>
-                                    <button onClick={executeClearAll} className="py-3.5 rounded-xl font-bold text-sm bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/30 transition-all active:scale-95">{t('btn_delete_all_history')}</button>
+                                    <h3 id="modal-delete-all-title" className="text-xl font-black text-zinc-900 dark:text-white mb-2 leading-tight">{t('msg_confirm_delete_all')}</h3>
+                                    <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-8 leading-relaxed px-4">Esta acción es irreversible. Se eliminarán todos los registros guardados localmente.</p>
+                                    <div className="grid grid-cols-2 gap-3 w-full">
+                                        <button onClick={() => setShowDeleteAllModal(false)} className="py-3.5 rounded-xl font-bold text-sm bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors">{t('btn_not_now')}</button>
+                                        <button onClick={executeClearAll} className="py-3.5 rounded-xl font-bold text-sm bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/30 transition-all active:scale-95">{t('btn_delete_all_history')}</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                )}
+                    )
+                }
 
 
 
                 {/* Chat Modal */}
-                {showChat && (
-                    <div className="fixed inset-0 z-[120] bg-black/60 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in" onClick={() => setShowChat(false)}>
-                        <div className="w-full max-w-4xl max-h-[90vh] h-[800px] animate-scale-in" onClick={e => e.stopPropagation()}>
-                            <div className="relative h-full">
-                                <button
-                                    onClick={() => setShowChat(false)}
-                                    className="absolute -top-4 -right-4 z-50 w-10 h-10 bg-white dark:bg-zinc-800 text-black dark:text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
-                                >
-                                    <span className="material-icons-round">close</span>
-                                </button>
-                                <ChatInterface />
+                {
+                    showChat && (
+                        <div className="fixed inset-0 z-[120] bg-black/60 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in" onClick={() => setShowChat(false)}>
+                            <div className="w-full max-w-4xl max-h-[90vh] h-[800px] animate-scale-in" onClick={e => e.stopPropagation()}>
+                                <div className="relative h-full">
+                                    <button
+                                        onClick={() => setShowChat(false)}
+                                        className="absolute -top-4 -right-4 z-50 w-10 h-10 bg-white dark:bg-zinc-800 text-black dark:text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
+                                    >
+                                        <span className="material-icons-round">close</span>
+                                    </button>
+                                    <ChatInterface />
+                                </div>
                             </div>
                         </div>
-                    </div>
-                )}
+                    )
+                }
 
 
                 {/* Modern Bottom Navigation */}
                 <BottomNav
                     activeTab={activeTab}
                     onTabChange={setActiveTab}
-                />
-            </div>
+                >
+                    {activeTab === 'weigh' && (
+                        <div className="flex items-center gap-2 p-2 bg-[#1C1C1E]/90 backdrop-blur-xl rounded-[2.5rem] shadow-2xl shadow-black/50 ring-1 ring-white/10 select-none">
+                            <button
+                                onClick={() => formRef.current?.openCamera()}
+                                className="w-12 h-12 rounded-full bg-zinc-800/50 flex items-center justify-center text-white hover:bg-white/20 hover:scale-110 transition-all active:scale-90 shadow-inner group relative overflow-hidden"
+                            >
+                                <span className="material-icons-round text-xl group-hover:text-blue-400 transition-colors relative z-10">photo_camera</span>
+                            </button>
+
+                            <button
+                                onClick={() => formRef.current?.openGallery()}
+                                className="w-12 h-12 rounded-full bg-zinc-800/50 flex items-center justify-center text-white hover:bg-white/20 hover:scale-110 transition-all active:scale-90 shadow-inner group relative overflow-hidden"
+                            >
+                                <span className="material-icons-round text-xl group-hover:text-purple-400 transition-colors relative z-10">collections</span>
+                            </button>
+
+                            <div className="w-[1px] h-6 bg-white/10 mx-1"></div>
+
+                            <button
+                                onClick={() => formRef.current?.clear()}
+                                className="w-12 h-12 rounded-full flex items-center justify-center transition-all active:scale-75 group relative overflow-hidden hover:bg-red-500/10"
+                                title={t('btn_clear')}
+                            >
+                                <span className="material-icons-round text-[22px] text-[#FF453A] drop-shadow-[0_0_8px_rgba(255,69,58,0.3)] transition-transform group-hover:scale-110 group-hover:-rotate-12">delete_sweep</span>
+                            </button>
+
+                            <button
+                                onClick={() => formRef.current?.save()}
+                                className={`w-20 h-14 ml-1 rounded-full flex items-center justify-center text-white shadow-lg transition-all active:scale-90 ${hasUnsavedWeighingData ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 shadow-emerald-500/30 animate-pulse-slow hover:scale-105' : 'bg-zinc-700 shadow-zinc-900/50 opacity-80'}`}
+                            >
+                                <span className="material-icons-round text-2xl">save</span>
+                                {hasUnsavedWeighingData && <span className="text-[10px] font-black uppercase ml-1 tracking-wider opacity-90 hidden sm:inline">Save</span>}
+                            </button>
+                        </div>
+                    )}
+                </BottomNav>
+            </div >
         </>
     );
 };
