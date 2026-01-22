@@ -436,51 +436,54 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                     )}
                     {
                         activeTab === 'history' && (
-                            <div className="animate-fade-in pb-24">
-                                <div className="mb-4 flex items-center justify-between">
-                                    <h2 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">{t('hist_recent')}</h2>
+                            <div className="animate-fade-in space-y-6">
+                                <div className="flex items-center justify-between px-2">
+                                    <h2 className="text-2xl font-black tracking-tight text-white">{t('hist_recent')}</h2>
                                     <div className="flex gap-2">
-                                        <button onClick={handleExportCSV} title="Exportar CSV" className="p-2.5 rounded-2xl bg-white/5 border border-white/5 text-zinc-400 hover:text-white transition-all active:scale-90">
+                                        <button onClick={handleExportCSV} title="Exportar CSV" className="w-10 h-10 rounded-xl bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition-all active:scale-95 border border-white/10">
                                             <span className="material-icons-round text-xl">download</span>
                                         </button>
-                                        <button onClick={handleBackup} title="Descargar Backup" className="p-2.5 rounded-2xl bg-white/5 border border-white/5 text-zinc-400 hover:text-white transition-all active:scale-90">
+                                        <button onClick={handleBackup} title="Descargar Backup" className="w-10 h-10 rounded-xl bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition-all active:scale-95 border border-white/10">
                                             <span className="material-icons-round text-xl">save_alt</span>
                                         </button>
                                     </div>
                                 </div>
 
-                                {/* Time Filters */}
-                                <div className="flex gap-2 overflow-x-auto pb-4 no-scrollbar">
-                                    {[
-                                        { id: 'all', label: t('filter_all') },
-                                        { id: 'today', label: t('filter_today') },
-                                        { id: 'week', label: t('filter_week') },
-                                        { id: 'month', label: t('filter_month') },
-                                        { id: 'year', label: t('filter_year') }
-                                    ].map(filter => (
-                                        <button
-                                            key={filter.id}
-                                            onClick={() => setTimeFilter(filter.id as any)}
-                                            className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all ${timeFilter === filter.id
-                                                ? 'bg-primary-500 text-white shadow-lg'
-                                                : 'bg-white dark:bg-zinc-900 text-zinc-500 border border-zinc-200 dark:border-zinc-800'
-                                                }`}
-                                        >
-                                            {filter.label}
-                                        </button>
-                                    ))}
-                                </div>
+                                {/* Floating Filter & Search Card */}
+                                <div className="smart-card p-4 space-y-4 smart-shadow">
+                                    {/* Time Filters */}
+                                    <div className="flex gap-2 overflow-x-auto no-scrollbar">
+                                        {[
+                                            { id: 'all', label: t('filter_all') },
+                                            { id: 'today', label: t('filter_today') },
+                                            { id: 'week', label: t('filter_week') },
+                                            { id: 'month', label: t('filter_month') },
+                                            { id: 'year', label: t('filter_year') }
+                                        ].map(filter => (
+                                            <button
+                                                key={filter.id}
+                                                onClick={() => setTimeFilter(filter.id as any)}
+                                                className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-wider transition-all border ${timeFilter === filter.id
+                                                    ? 'bg-blue-500 text-white border-blue-500 shadow-md'
+                                                    : 'bg-zinc-50 dark:bg-zinc-800 text-zinc-400 border-zinc-100 dark:border-white/5'
+                                                    }`}
+                                            >
+                                                {filter.label}
+                                            </button>
+                                        ))}
+                                    </div>
 
-                                {/* Search Bar */}
-                                <div className="relative mb-6">
-                                    <span className="absolute left-4 top-3.5 text-zinc-400 dark:text-zinc-500 material-icons-round text-xl">search</span>
-                                    <input
-                                        type="text"
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                        placeholder={t('ph_search')}
-                                        className="w-full pl-12 pr-4 py-3 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white outline-none focus:ring-2 focus:ring-primary-500/50 transition-all shadow-sm"
-                                    />
+                                    {/* Search Bar */}
+                                    <div className="relative group">
+                                        <span className="absolute left-4 top-3 text-zinc-400 material-icons-round text-xl">search</span>
+                                        <input
+                                            type="text"
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                            placeholder={t('ph_search')}
+                                            className="w-full pl-12 pr-4 py-3 rounded-2xl bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500/20 transition-all text-sm font-medium"
+                                        />
+                                    </div>
                                 </div>
 
                                 {records.length === 0 ? (

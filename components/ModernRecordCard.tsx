@@ -1,6 +1,7 @@
 import React from 'react';
 import { WeighingRecord } from '../types';
 import { createPortal } from 'react-dom';
+import { useTranslation } from '../services/i18n';
 
 interface ModernRecordCardProps {
     record: WeighingRecord;
@@ -19,6 +20,7 @@ export const ModernRecordCard: React.FC<ModernRecordCardProps> = ({
     onShare,
     isExpanded
 }) => {
+    const { t } = useTranslation();
     const [showImageModal, setShowImageModal] = React.useState(false);
 
     const handleImageClick = (e: React.MouseEvent) => {
@@ -33,75 +35,58 @@ export const ModernRecordCard: React.FC<ModernRecordCardProps> = ({
     return (
         <>
             <div
-                className="glass-dark rounded-3xl overflow-hidden card-shadow-lg transition-all duration-500 hover:scale-[1.01] animate-ios-slide active:scale-[0.98]"
+                className="smart-card overflow-hidden animate-fade-in-up transition-all hover:scale-[1.01] active:scale-[0.98] mb-4"
+                onClick={onExpand}
             >
-
-                {/* Main content */}
-                <div
-                    onClick={onExpand}
-                    className="p-5 cursor-pointer"
-                >
+                <div className="p-5">
                     {/* Header */}
-                    <div className="flex gap-4 mb-4">
-                        {/* Image Thumbnail - Restored */}
-                        {record.evidence && (
-                            <div
-                                className="w-16 h-16 rounded-2xl overflow-hidden shrink-0 border border-zinc-100 dark:border-zinc-800 shadow-sm cursor-zoom-in group relative"
-                                onClick={handleImageClick}
-                            >
-                                <img src={record.evidence} alt="Evidencia" className="w-full h-full object-cover transition-transform group-hover:scale-110" />
-                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                                    <span className="material-icons-round text-white opacity-0 group-hover:opacity-100 transition-opacity text-sm">zoom_in</span>
-                                </div>
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isError ? 'bg-red-50 text-red-500' : 'bg-emerald-50 text-emerald-500'}`}>
+                                <span className="material-icons-round text-xl">{isError ? 'priority_high' : 'check_circle'}</span>
                             </div>
-                        )}
-
-                        <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between">
-                                <div>
-                                    <h3 className="text-lg font-bold text-zinc-900 dark:text-white mb-1 line-clamp-1 flex items-center gap-2">
-                                        <span className={`w-2 h-2 rounded-full ${isError ? 'bg-red-500' : 'bg-emerald-500'} shadow-sm`}></span>
-                                        {record.product}
-                                    </h3>
-                                    <p className="text-sm text-zinc-500 dark:text-zinc-400 font-medium line-clamp-1">
-                                        {record.supplier}
-                                    </p>
-                                </div>
-                                {/* Time badge */}
-                                <div className="flex flex-col items-end gap-1 ml-2">
-                                    <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-mono font-bold">
-                                        {new Date(record.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                    </span>
-                                    <div className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${isError
-                                        ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400'
-                                        : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'
-                                        }`}>
-                                        {isError ? 'REVISAR' : 'OK'}
-                                    </div>
-                                </div>
+                            <div>
+                                <h3 className="text-sm font-bold text-zinc-900 dark:text-white line-clamp-1">{record.product}</h3>
+                                <p className="text-[10px] text-zinc-500 font-medium uppercase tracking-wider">{record.supplier}</p>
                             </div>
+                        </div>
+                        <div className="text-right">
+                            <span className="text-[10px] text-zinc-400 font-mono font-bold block mb-1">
+                                {new Date(record.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                            <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${isError ? 'bg-red-100 text-red-600' : 'bg-emerald-100 text-emerald-600'}`}>
+                                {isError ? 'ERROR' : 'OK'}
+                            </span>
                         </div>
                     </div>
 
-                    {/* Metrics Grid - Expanded to include detailed info */}
-                    <div className="grid grid-cols-4 gap-2 mb-4">
-                        <div className="bg-white/5 rounded-2xl p-2 text-center border border-white/5">
-                            <p className="text-[8px] text-zinc-500 font-black uppercase mb-0.5 tracking-wider">Tara ({record.boxes.qty})</p>
-                            <p className="text-xs font-bold text-zinc-300 font-mono">{record.taraTotal.toFixed(2)}</p>
+                    {/* Integrated Image if exists and not expanded */}
+                    {!isExpanded && record.evidence && (
+                        <div className="mb-4 rounded-xl overflow-hidden h-24 relative border border-zinc-100 dark:border-white/5" onClick={handleImageClick}>
+                            <img src={record.evidence} alt="Evidence" className="w-full h-full object-cover" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
                         </div>
-                        <div className="bg-white/5 rounded-2xl p-2 text-center border border-white/5">
-                            <p className="text-[8px] text-zinc-500 font-black uppercase mb-0.5 tracking-wider">Bruto</p>
-                            <p className="text-xs font-bold text-zinc-300 font-mono">{record.grossWeight.toFixed(2)}</p>
+                    )}
+
+                    {/* Metrics Grid - Smart Tiles */}
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-zinc-50 dark:bg-white/5 rounded-2xl p-3 flex items-center gap-3 border border-zinc-100/50 dark:border-white/5">
+                            <div className="w-8 h-8 rounded-full bg-white dark:bg-zinc-800 flex items-center justify-center shadow-sm text-zinc-400">
+                                <span className="material-icons-round text-sm">scale</span>
+                            </div>
+                            <div>
+                                <span className="text-[9px] font-bold text-zinc-400 uppercase block">{t('lbl_net')}</span>
+                                <span className="text-sm font-black text-zinc-800 dark:text-white tabular-nums">{record.netWeight.toFixed(2)}<span className="text-[10px] font-bold opacity-40 ml-0.5">kg</span></span>
+                            </div>
                         </div>
-                        <div className="bg-white/10 rounded-2xl p-2 text-center border border-white/10">
-                            <p className="text-[8px] text-zinc-400 font-black uppercase mb-0.5 tracking-wider">Líquido</p>
-                            <p className="text-sm font-black text-white font-mono">{record.netWeight.toFixed(2)}</p>
-                        </div>
-                        <div className={`rounded-2xl p-2 text-center border ${isError ? 'bg-red-500/10 border-red-500/20' : 'bg-emerald-500/10 border-emerald-500/20'}`}>
-                            <p className={`text-[8px] font-black uppercase mb-0.5 tracking-wider ${isError ? 'text-red-400' : 'text-emerald-400'}`}>Dif.</p>
-                            <p className={`text-sm font-black font-mono ${isError ? 'text-red-400' : 'text-emerald-400'}`}>
-                                {diff > 0 ? '+' : ''}{diff.toFixed(2)}
-                            </p>
+                        <div className={`rounded-2xl p-3 flex items-center gap-3 border ${isError ? 'bg-red-50 border-red-100 dark:bg-red-900/10 dark:border-red-500/20' : 'bg-emerald-50 border-emerald-100 dark:bg-emerald-900/10 dark:border-emerald-500/20'}`}>
+                            <div className={`w-8 h-8 rounded-full bg-white dark:bg-zinc-800 flex items-center justify-center shadow-sm ${isError ? 'text-red-500' : 'text-emerald-500'}`}>
+                                <span className="material-icons-round text-sm">difference</span>
+                            </div>
+                            <div>
+                                <span className={`text-[9px] font-bold uppercase block ${isError ? 'text-red-400' : 'text-emerald-400'}`}>Dif.</span>
+                                <span className={`text-sm font-black tabular-nums ${isError ? 'text-red-500' : 'text-emerald-500'}`}>{diff > 0 ? '+' : ''}{diff.toFixed(2)}</span>
+                            </div>
                         </div>
                     </div>
 
