@@ -73,30 +73,60 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
     const [carouselTip, setCarouselTip] = useState<string>("");
 
     useEffect(() => {
-        // Get carousel array from translations
-        const rawTips = t('tips_carousel', { returnObjects: true });
-        const tips = Array.isArray(rawTips) ? rawTips as string[] : [];
+        // Generate dynamic tips based on current form data
+        const dynamicTips: string[] = [];
 
-        // Set initial tip safely
-        if (tips.length > 0) {
+        if (expirationDate) {
+            // Calculate days until expiration roughly
+            const parts = expirationDate.split('/');
+            if (parts.length === 3) {
+                const exp = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+                const now = new Date();
+                const diffTime = exp.getTime() - now.getTime();
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                if (diffDays < 0) dynamicTips.push(`⚠️ ATENCIÓN: Venció hace ${Math.abs(diffDays)} días`);
+                else if (diffDays <= 3) dynamicTips.push(`⚠️ ATENCIÓN: Vence en ${diffDays} días`);
+                else dynamicTips.push(`📅 Vencimiento: ${expirationDate} (${diffDays} días restantes)`);
+            } else {
+                dynamicTips.push(`📅 Vencimiento: ${expirationDate}`);
+            }
+        }
+
+        if (productionDate) dynamicTips.push(`🏭 Fabricado el: ${productionDate}`);
+        if (batch) dynamicTips.push(`🏷️ Lote activo: ${batch}`);
+        if (recommendedTemp) dynamicTips.push(`🌡️ Temperatura rec: ${recommendedTemp}`);
+
+        if (storageType) {
+            const types: Record<string, string> = { frozen: '❄️ Congelado (-18°C)', refrigerated: '💧 Refrigerado (0-7°C)', dry: '📦 Seco / Ambiente' };
+            if (types[storageType]) dynamicTips.push(`Conservación: ${types[storageType]}`);
+        }
+
+        if (supplier) dynamicTips.push(`Proveedor: ${supplier}`);
+
+        // Fallback to static tips
+        const rawStaticTips = t('tips_carousel', { returnObjects: true });
+        const staticTips = Array.isArray(rawStaticTips) ? rawStaticTips as string[] : [];
+
+        // Combine dynamic tips first, then fill with static
+        const tips = [...dynamicTips, ...staticTips];
+
+        // Set initial
+        if (!carouselTip && tips.length > 0) {
             setCarouselTip(tips[0]);
-        } else {
+        } else if (tips.length === 0) {
             setCarouselTip(t('assistant_default'));
         }
 
-        if (tips.length === 0) return;
-
         let index = 0;
         const interval = setInterval(() => {
-            // Only rotate if there's no active high-priority notification
-            if (!floatingMessage && !isReadingImage) {
+            if (!floatingMessage && !isReadingImage && tips.length > 0) {
                 index = (index + 1) % tips.length;
                 setCarouselTip(tips[index]);
             }
-        }, 8000); // Rotate every 8 seconds
+        }, 5000); // 5s rotation for dynamic context
 
         return () => clearInterval(interval);
-    }, [t, floatingMessage, isReadingImage]);
+    }, [t, floatingMessage, isReadingImage, expirationDate, productionDate, batch, recommendedTemp, storageType, supplier]);
 
     const [currentTipIndex, setCurrentTipIndex] = useState(0);
     const [touchStart, setTouchStart] = useState<number | null>(null);
