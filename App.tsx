@@ -712,35 +712,46 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                 }
 
 
-                {/* Update Notification Banner */}
-                {showUpdate && (
-                    <div className="fixed bottom-24 left-4 right-4 z-[100] animate-slide-up">
-                        <div className="bg-zinc-900/90 dark:bg-white/90 backdrop-blur-md text-white dark:text-black p-4 rounded-2xl shadow-2xl border border-white/10 flex items-center justify-between gap-4">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center shrink-0">
-                                    <span className="material-icons-round text-blue-400 dark:text-blue-600 animate-pulse">system_update</span>
-                                </div>
-                                <div>
-                                    <h4 className="font-bold text-sm leading-tight">{t('update_available')}</h4>
-                                    <p className="text-xs text-zinc-400 dark:text-zinc-600">Nueva versión lista.</p>
-                                </div>
-                            </div>
-                            <button
-                                onClick={() => window.location.reload()}
-                                className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold uppercase tracking-wide rounded-xl shadow-lg shadow-blue-500/20 transition-all active:scale-95"
-                            >
-                                {t('btn_update')}
-                            </button>
-                        </div>
-                    </div>
-                )}
-
-                {/* Modern Bottom Navigation */}
-                <BottomNav
-                    activeTab={activeTab}
-                    onTabChange={setActiveTab}
-                />
             </div >
+
+            {/* ELEMENTS OUTSIDE MAIN CONTAINER TO ENSURE FIXED POSITIONING WORKS CORRECTLY */}
+
+            {/* Update Notification Banner */}
+            {showUpdate && (
+                <div className="fixed bottom-24 left-4 right-4 z-[100] animate-slide-up">
+                    <div className="bg-zinc-900/90 dark:bg-white/90 backdrop-blur-md text-white dark:text-black p-4 rounded-2xl shadow-2xl border border-white/10 flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center shrink-0">
+                                <span className="material-icons-round text-blue-400 dark:text-blue-600 animate-pulse">system_update</span>
+                            </div>
+                            <div>
+                                <h4 className="font-bold text-sm leading-tight">{t('update_available')}</h4>
+                                <p className="text-xs text-zinc-400 dark:text-zinc-600">Nueva versión lista.</p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => window.location.reload()}
+                            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold uppercase tracking-wide rounded-xl shadow-lg shadow-blue-500/20 transition-all active:scale-95"
+                        >
+                            {t('btn_update')}
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Modern Bottom Navigation */}
+            <BottomNav
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
+            />
+
+            {/* DEV ONLY: Hidden trigger to test update UI - triple click bottom right corner if needed */}
+            {import.meta.env.DEV && (
+                <div
+                    className="fixed bottom-0 right-0 w-10 h-10 z-[200]"
+                    onClick={(e) => { if (e.detail === 3) setShowUpdate(true); }}
+                />
+            )}
         </>
     );
 };
