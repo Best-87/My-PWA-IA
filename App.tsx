@@ -441,7 +441,7 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                     </div>
 
                     {/* Online Status Indicators */}
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 justify-end">
                         <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider ${isOnline ? 'bg-emerald-500/20 text-emerald-100' : 'bg-red-500/20 text-red-100'}`}>
                             <div className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-300 animate-pulse' : 'bg-red-300'}`}></div>
                             {isOnline ? 'Online' : 'Offline'}
@@ -470,7 +470,7 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                     {
                         activeTab === 'history' && (
                             <div className="animate-fade-in space-y-6">
-                                <div className="flex items-center justify-between px-2 -mt-16 mb-6">
+                                <div className="flex items-center justify-between px-2 mt-4 mb-6">
                                     <h2 className="text-2xl font-black tracking-tight text-zinc-900 dark:text-white">{t('hist_recent')}</h2>
                                     <div className="flex gap-2">
                                         <button onClick={handleExportCSV} title="Exportar CSV" className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 flex items-center justify-center hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all active:scale-95 border border-zinc-200 dark:border-white/10">
