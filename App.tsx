@@ -415,48 +415,41 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
         <>
             {isLoading && <SplashScreen onFinish={() => setIsLoading(false)} />}
 
-            <div className={`min-h-screen bg-zinc-50 dark:bg-black transition-all duration-700 pb-20 font-sans selection:bg-blue-500/30 ${isLoading ? 'opacity-0 scale-98' : 'opacity-100 scale-100'}`}>
+            <div className={`min-h-screen bg-zinc-50 dark:bg-black pb-20 font-sans selection:bg-blue-500/30 ${isLoading ? 'opacity-0' : 'opacity-100 transition-opacity duration-700'}`}>
                 <div className="fixed inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,122,255,0.05),transparent_50%)] dark:bg-[radial-gradient(circle_at_top_right,rgba(0,122,255,0.1),transparent_50%)] pointer-events-none" />
                 <InstallManager />
                 <input ref={backupInputRef} type="file" accept=".json" className="hidden" onChange={handleRestore} />
                 <input ref={profileInputRef} type="file" accept="image/*" className="hidden" onChange={handleProfilePhotoUpload} />
 
-                {/* Curved Gradient Header - FIXED */}
-                <header className="fixed top-0 left-0 right-0 bg-gradient-header/90 backdrop-blur-xl header-curve pt-[calc(env(safe-area-inset-top)+1.5rem)] pb-32 px-8 shadow-2xl z-[40] text-white animate-fade-in-up">
-                    <div className="flex items-start justify-between mb-3">
+                {/* Curved Gradient Header - TRULY FIXED TOP BAR */}
+                <header className="fixed top-0 left-0 right-0 bg-gradient-header header-curve pt-[calc(env(safe-area-inset-top)+1rem)] pb-16 px-8 shadow-xl z-[100] text-white">
+                    <div className="flex items-center justify-between">
                         <div>
-                            <span className="block text-blue-100 font-medium text-sm mb-1 tracking-wider uppercase">{t('app_subtitle')}</span>
-                            <h1 className="text-3xl font-bold tracking-tight">{t('app_name')}</h1>
+                            <span className="block text-blue-100 font-medium text-[10px] mb-0.5 tracking-wider uppercase opacity-80">{t('app_subtitle')}</span>
+                            <h1 className="text-2xl font-bold tracking-tight leading-none">{t('app_name')}</h1>
                         </div>
                         <div
-                            className="w-12 h-12 rounded-full border-2 border-white/30 p-0.5 cursor-pointer hover:border-white transition-colors"
+                            className="w-10 h-10 rounded-full border-2 border-white/30 p-0.5 cursor-pointer hover:border-white transition-colors"
                             onClick={() => setActiveTab('profile')}
                         >
                             <img
                                 src={profile.photo || "https://ui-avatars.com/api/?name=User&background=random"}
                                 alt="Profile"
-                                className="w-full h-full rounded-full object-cover"
+                                className="w-full h-full rounded-full object-cover shadow-sm"
                             />
                         </div>
                     </div>
 
-                    {/* Online Status Indicators */}
-                    <div className="flex items-center gap-2 justify-end">
-                        <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider ${isOnline ? 'bg-emerald-500/20 text-emerald-100' : 'bg-red-500/20 text-red-100'}`}>
-                            <div className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-300 animate-pulse' : 'bg-red-300'}`}></div>
+                    <div className="flex items-center gap-2 mt-3">
+                        <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-wider ${isOnline ? 'bg-emerald-500/20 text-emerald-100' : 'bg-red-500/20 text-red-100'}`}>
+                            <div className={`w-1 h-1 rounded-full ${isOnline ? 'bg-emerald-300 animate-pulse' : 'bg-red-300'}`}></div>
                             {isOnline ? 'Online' : 'Offline'}
                         </div>
-                        {session && (
-                            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-500/20 text-blue-100 text-[9px] font-bold uppercase tracking-wider">
-                                <span className="material-icons-round text-xs">cloud</span>
-                                Nube
-                            </div>
-                        )}
                     </div>
                 </header>
 
-                {/* Main Content - Overlapping Header with top padding for fixed header */}
-                <main className="relative z-[10] pt-40 px-6 pb-32 max-w-lg mx-auto">
+                {/* Main Content - Pushed down and with entrance animation */}
+                <main className={`relative z-[10] pt-40 px-6 pb-32 max-w-lg mx-auto transform transition-all duration-700 ${isLoading ? 'translate-y-4 opacity-0' : 'translate-y-0 opacity-100'}`}>
                     {activeTab === 'weigh' && (
                         <div className="animate-fade-in">
                             <WeighingForm

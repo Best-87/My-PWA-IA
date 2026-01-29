@@ -572,14 +572,14 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                     <div className="flex flex-col items-start">
                         <span className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest mb-1">{t('lbl_net')}</span>
                         <div className="flex items-baseline text-zinc-800 dark:text-white">
-                            <span className="text-5xl font-black tracking-tighter tabular-nums">{Math.floor(netWeight)}</span>
-                            <span className="text-2xl font-bold opacity-60">.{netWeight.toFixed(3).split('.')[1]}</span>
-                            <span className="text-sm font-bold opacity-40 ml-1">kg</span>
+                            <span className="text-6xl font-black tracking-tighter tabular-nums">{Math.floor(netWeight)}</span>
+                            <span className="text-3xl font-bold opacity-60">.{netWeight.toFixed(3).split('.')[1]}</span>
+                            <span className="text-base font-bold opacity-40 ml-1">kg</span>
                         </div>
                     </div>
                     <div className="flex flex-col items-end">
                         <span className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest mb-1">Diferencia</span>
-                        <div className={`text-2xl font-bold font-mono px-3 py-1 rounded-xl transition-colors ${Math.abs(difference) > TOLERANCE_KG ? 'text-red-500 bg-red-50 dark:bg-red-900/20' : 'text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20'}`}>
+                        <div className={`text-3xl font-black font-mono px-4 py-1.5 rounded-2xl transition-colors ${Math.abs(difference) > TOLERANCE_KG ? 'text-red-500 bg-red-50 dark:bg-red-900/20' : 'text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20'}`}>
                             {difference > 0 ? '+' : ''}{difference.toFixed(3)}
                         </div>
                     </div>
