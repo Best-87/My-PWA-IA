@@ -421,35 +421,23 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                 <input ref={backupInputRef} type="file" accept=".json" className="hidden" onChange={handleRestore} />
                 <input ref={profileInputRef} type="file" accept="image/*" className="hidden" onChange={handleProfilePhotoUpload} />
 
-                {/* Curved Gradient Header - TRULY FIXED TOP BAR */}
-                <header className="fixed top-0 left-0 right-0 bg-gradient-header header-curve pt-[calc(env(safe-area-inset-top)+1rem)] pb-16 px-8 shadow-xl z-[100] text-white">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <span className="block text-blue-100 font-medium text-[10px] mb-0.5 tracking-wider uppercase opacity-80">{t('app_subtitle')}</span>
-                            <h1 className="text-2xl font-bold tracking-tight leading-none">{t('app_name')}</h1>
-                        </div>
-                        <div
-                            className="w-10 h-10 rounded-full border-2 border-white/30 p-0.5 cursor-pointer hover:border-white transition-colors"
-                            onClick={() => setActiveTab('profile')}
-                        >
-                            <img
-                                src={profile.photo || "https://ui-avatars.com/api/?name=User&background=random"}
-                                alt="Profile"
-                                className="w-full h-full rounded-full object-cover shadow-sm"
-                            />
+                {/* WhatsApp Style Top Bar - SOLID & COMPACT */}
+                <header className="fixed top-0 left-0 right-0 h-16 bg-[#075E54] dark:bg-[#128C7E] flex items-center justify-between px-6 z-[100] shadow-md animate-fade-in-up">
+                    <div className="flex items-center gap-3">
+                        <h1 className="text-xl font-bold text-white tracking-tight">{t('app_name')}</h1>
+                        <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-wider bg-white/20 text-white`}>
+                            <div className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-400' : 'bg-red-400'}`}></div>
+                            {isOnline ? 'Online' : 'Off'}
                         </div>
                     </div>
-
-                    <div className="flex items-center gap-2 mt-3">
-                        <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-wider ${isOnline ? 'bg-emerald-500/20 text-emerald-100' : 'bg-red-500/20 text-red-100'}`}>
-                            <div className={`w-1 h-1 rounded-full ${isOnline ? 'bg-emerald-300 animate-pulse' : 'bg-red-300'}`}></div>
-                            {isOnline ? 'Online' : 'Offline'}
-                        </div>
+                    <div className="flex items-center gap-4">
+                        <span className="material-icons-round text-white text-2xl cursor-pointer hover:bg-white/10 p-1 rounded-full">search</span>
+                        <span className="material-icons-round text-white text-2xl cursor-pointer hover:bg-white/10 p-1 rounded-full">more_vert</span>
                     </div>
                 </header>
 
-                {/* Main Content - Pushed down and with entrance animation */}
-                <main className={`relative z-[10] pt-40 px-6 pb-32 max-w-lg mx-auto transform transition-all duration-700 ${isLoading ? 'translate-y-4 opacity-0' : 'translate-y-0 opacity-100'}`}>
+                {/* Main Content - Adjusted for WhatsApp style top bar */}
+                <main className={`relative z-[10] pt-20 px-4 pb-32 max-w-lg mx-auto transform transition-all duration-700 ${isLoading ? 'translate-y-4 opacity-0' : 'translate-y-0 opacity-100'}`}>
                     {activeTab === 'weigh' && (
                         <div className="animate-fade-in">
                             <WeighingForm
@@ -736,6 +724,7 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
             <BottomNav
                 activeTab={activeTab}
                 onTabChange={setActiveTab}
+                profilePhoto={profile.photo}
             />
 
             {/* DEV ONLY: Hidden trigger to test update UI - triple click bottom right corner if needed */}
