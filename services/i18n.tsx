@@ -43,8 +43,8 @@ const translations = {
         lbl_weighing: 'Pesagem',
         lbl_note_weight: 'Peso Nota',
         lbl_gross_weight: 'Peso Bruto',
-
-        lbl_tara_section: 'Tara e Embalagens',
+        lbl_net: 'Peso líquido',
+        lbl_tara_section: 'Tara e embalagens',
         lbl_ai_pattern: 'IA detectou patrón',
         btn_apply_tara: 'Usar Tara de {supplier}: {weight}g',
         lbl_qty: 'Quantidade',
@@ -202,8 +202,8 @@ const translations = {
         lbl_weighing: 'Pesaje',
         lbl_note_weight: 'Peso Nota',
         lbl_gross_weight: 'Peso Bruto',
-
-        lbl_tara_section: 'Tara y Envases',
+        lbl_net: 'Peso líquido',
+        lbl_tara_section: 'Tara y envases',
         lbl_ai_pattern: 'IA detectó patrón',
         btn_apply_tara: 'Usar Tara de {supplier}: {weight}g',
         lbl_qty: 'Cantidad',
@@ -361,8 +361,8 @@ const translations = {
         lbl_weighing: 'Weighing',
         lbl_note_weight: 'Invoice Weight',
         lbl_gross_weight: 'Gross Weight',
-
-        lbl_tara_section: 'Tare & Packaging',
+        lbl_net: 'Net weight',
+        lbl_tara_section: 'Tare & packaging',
         lbl_ai_pattern: 'AI detected pattern',
         btn_apply_tara: 'Use {supplier} Tare: {weight}g',
         lbl_qty: 'Quantity',

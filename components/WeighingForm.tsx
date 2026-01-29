@@ -8,6 +8,8 @@ import { useToast } from './Toast';
 import { sendLocalNotification } from '../services/notificationService';
 import { generateGeminiContent } from '../services/geminiService';
 
+// UI Adjusted - v1.1
+
 // Stable tolerance
 const TOLERANCE_KG = 0.2;
 
@@ -567,7 +569,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
             {/* 1. Floating Metrics Card - Overlaps Header */}
             <div className="smart-card relative z-30 p-6 flex flex-col gap-6 smart-shadow animate-fade-in-up">
                 <div className="grid grid-cols-2 gap-4 divide-x divide-zinc-100 dark:divide-white/5">
-                    <div className="flex flex-col items-center">
+                    <div className="flex flex-col items-start">
                         <span className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest mb-1">{t('lbl_net')}</span>
                         <div className="flex items-baseline text-zinc-800 dark:text-white">
                             <span className="text-5xl font-black tracking-tighter tabular-nums">{Math.floor(netWeight)}</span>
@@ -575,7 +577,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                             <span className="text-sm font-bold opacity-40 ml-1">kg</span>
                         </div>
                     </div>
-                    <div className="flex flex-col items-center justify-center pl-4">
+                    <div className="flex flex-col items-end">
                         <span className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest mb-1">Diferencia</span>
                         <div className={`text-2xl font-bold font-mono px-3 py-1 rounded-xl transition-colors ${Math.abs(difference) > TOLERANCE_KG ? 'text-red-500 bg-red-50 dark:bg-red-900/20' : 'text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20'}`}>
                             {difference > 0 ? '+' : ''}{difference.toFixed(3)}
@@ -584,13 +586,13 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 pt-4 border-t border-zinc-50 dark:border-white/5">
-                    <div className="flex flex-col items-center">
-                        <span className="text-zinc-400 text-[9px] font-bold uppercase tracking-widest mb-0.5">{t('lbl_gross_weight')}</span>
-                        <span className="text-lg font-bold text-zinc-600 dark:text-zinc-300 tabular-nums">{parsedGrossWeight.toFixed(3)}</span>
-                    </div>
-                    <div className="flex flex-col items-center">
+                    <div className="flex flex-col items-start">
                         <span className="text-zinc-400 text-[9px] font-bold uppercase tracking-widest mb-0.5">{t('lbl_tara_section')}</span>
                         <span className="text-lg font-bold text-zinc-600 dark:text-zinc-300 tabular-nums">{totalTara.toFixed(3)}</span>
+                    </div>
+                    <div className="flex flex-col items-end">
+                        <span className="text-zinc-400 text-[9px] font-bold uppercase tracking-widest mb-0.5">{t('lbl_gross_weight')}</span>
+                        <span className="text-lg font-bold text-zinc-600 dark:text-zinc-300 tabular-nums">{parsedGrossWeight.toFixed(3)}</span>
                     </div>
                 </div>
             </div>
@@ -749,25 +751,32 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                     </div>
                 </div>
 
-                {/* Tara Section */}
                 <div className={`smart-card p-4 transition-all ${activeSection === 'tara' ? 'ring-2 ring-blue-500/20' : ''}`} onClick={() => setActiveSection('tara')}>
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center justify-between cursor-pointer" onClick={() => setShowBoxes(!showBoxes)}>
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 rounded-full bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center shrink-0 text-orange-500">
                                 <span className="material-icons-round text-2xl">inventory_2</span>
                             </div>
                             <div>
                                 <h4 className="text-sm font-bold text-zinc-900 dark:text-white">{t('lbl_tara_section')}</h4>
-                                <p className="text-xs text-zinc-500">Cajas y empaques</p>
+                                {!showBoxes ? (
+                                    <p className="text-[10px] font-bold text-purple-400 animate-fade-in">
+                                        {boxQty || '0'} cajas × {boxTaraKg.toFixed(3)} kg = {totalTara.toFixed(3)} kg
+                                    </p>
+                                ) : (
+                                    <p className="text-xs text-zinc-500">Cajas y empaques</p>
+                                )}
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
-                            <input type="checkbox" checked={showBoxes} onChange={() => setShowBoxes(!showBoxes)} className="w-5 h-5 accent-orange-500 rounded-md" />
+                            <span className={`material-icons-round transition-transform duration-300 ${showBoxes ? 'rotate-180' : ''}`}>
+                                expand_more
+                            </span>
                         </div>
                     </div>
 
                     {showBoxes && (
-                        <div className="grid grid-cols-2 gap-4 animate-fade-in pl-16">
+                        <div className="grid grid-cols-2 gap-4 animate-fade-in pl-16 mt-4">
                             <div className="relative group">
                                 <label className="text-[9px] font-bold text-zinc-400 uppercase">{t('lbl_unit_weight')} (g)</label>
                                 <input type="tel" value={boxTara} onChange={e => setBoxTara(e.target.value)} className="w-full bg-zinc-50 dark:bg-zinc-800 rounded-xl px-3 py-2 text-sm font-bold outline-none" placeholder="0" />
