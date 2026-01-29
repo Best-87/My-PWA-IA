@@ -595,6 +595,43 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                         <span className="text-lg font-bold text-zinc-600 dark:text-zinc-300 tabular-nums">{parsedGrossWeight.toFixed(3)}</span>
                     </div>
                 </div>
+
+                {/* AI Assistant Message Integrated - Moved here */}
+                <div className={`
+                    p-3 rounded-2xl transition-all duration-300 border mt-2
+                    ${floatingMessage
+                        ? (floatingMessage.type === 'success' ? 'bg-emerald-50 border-emerald-100 dark:bg-emerald-900/10 dark:border-emerald-900/30' :
+                            floatingMessage.type === 'warning' ? 'bg-orange-50 border-orange-100 dark:bg-orange-900/10 dark:border-orange-900/30' :
+                                floatingMessage.type === 'ai' ? 'bg-purple-50 border-purple-100 dark:bg-purple-900/10 dark:border-purple-900/30' :
+                                    'bg-blue-50 border-blue-100 dark:bg-blue-900/10 dark:border-blue-900/30')
+                        : 'bg-zinc-50 border-zinc-100 dark:bg-zinc-900/50 dark:border-white/5'}
+                `}>
+                    <div className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 shadow-sm transition-colors duration-300
+                            ${floatingMessage ? 'bg-white dark:bg-zinc-800' : 'bg-gradient-header'}`}
+                        >
+                            <span className={`material-icons-round text-sm ${floatingMessage ? '' : 'text-white'}`}>
+                                {floatingMessage
+                                    ? (floatingMessage.type === 'success' ? 'check_circle' :
+                                        floatingMessage.type === 'warning' ? 'warning' :
+                                            floatingMessage.type === 'ai' ? 'auto_awesome' : 'info')
+                                    : 'smart_toy'}
+                            </span>
+                        </div>
+                        <div className="flex-1">
+                            <p className={`text-[11px] font-bold leading-tight transition-colors duration-300
+                                ${floatingMessage
+                                    ? (floatingMessage.type === 'success' ? 'text-emerald-700 dark:text-emerald-300' :
+                                        floatingMessage.type === 'warning' ? 'text-orange-700 dark:text-orange-300' :
+                                            floatingMessage.type === 'ai' ? 'text-purple-700 dark:text-purple-300' :
+                                                'text-blue-700 dark:text-blue-300')
+                                    : 'text-zinc-500 dark:text-zinc-400'}`}
+                            >
+                                {floatingMessage ? floatingMessage.text : carouselTip}
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {/* 2. Action Buttons (Routines) */}
@@ -603,7 +640,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
 
                 <button
                     onClick={() => cameraInputRef.current?.click()}
-                    className="flex-1 aspect-square rounded-[1.5rem] bg-gradient-primary shadow-lg shadow-pink-500/20 flex flex-col items-center justify-center gap-1 text-white btn-press"
+                    className="flex-1 aspect-square rounded-full bg-gradient-primary shadow-lg shadow-pink-500/20 flex flex-col items-center justify-center gap-1 text-white btn-press"
                 >
                     <span className="material-icons-round text-3xl">photo_camera</span>
                     <span className="text-[10px] font-bold uppercase tracking-wide">Scan</span>
@@ -611,7 +648,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
 
                 <button
                     onClick={() => galleryInputRef.current?.click()}
-                    className="flex-1 aspect-square rounded-[1.5rem] bg-white dark:bg-zinc-800 shadow-md flex flex-col items-center justify-center gap-1 text-zinc-600 dark:text-zinc-300 btn-press border border-zinc-100 dark:border-white/5"
+                    className="flex-1 aspect-square rounded-full bg-white dark:bg-zinc-800 shadow-md flex flex-col items-center justify-center gap-1 text-zinc-600 dark:text-zinc-300 btn-press border border-zinc-100 dark:border-white/5"
                 >
                     <span className="material-icons-round text-3xl text-purple-400">collections</span>
                     <span className="text-[10px] font-bold uppercase tracking-wide">Galeria</span>
@@ -619,7 +656,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
 
                 <button
                     onClick={() => setShowConfirmReset(true)}
-                    className="flex-1 aspect-square rounded-[1.5rem] bg-white dark:bg-zinc-800 shadow-md flex flex-col items-center justify-center gap-1 text-zinc-600 dark:text-zinc-300 btn-press border border-zinc-100 dark:border-white/5"
+                    className="flex-1 aspect-square rounded-full bg-white dark:bg-zinc-800 shadow-md flex flex-col items-center justify-center gap-1 text-zinc-600 dark:text-zinc-300 btn-press border border-zinc-100 dark:border-white/5"
                 >
                     <span className="material-icons-round text-3xl text-zinc-400">delete_sweep</span>
                     <span className="text-[10px] font-bold uppercase tracking-wide">{t('btn_clear')}</span>
@@ -627,7 +664,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
 
                 <button
                     onClick={handleSave}
-                    className={`flex-1 aspect-square rounded-[1.5rem] shadow-lg flex flex-col items-center justify-center gap-1 text-white btn-press transition-all ${hasDataToSave ? 'bg-gradient-header shadow-blue-500/30' : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-400 shadow-none'}`}
+                    className={`flex-1 aspect-square rounded-full shadow-lg flex flex-col items-center justify-center gap-1 text-white btn-press transition-all ${hasDataToSave ? 'bg-gradient-header shadow-blue-500/30' : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-400 shadow-none'}`}
                 >
                     <span className="material-icons-round text-3xl">save</span>
                     <span className="text-[10px] font-bold uppercase tracking-wide">Save</span>
@@ -636,44 +673,6 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
 
             {/* 3. Input Lists (Rooms style) */}
             <div className="space-y-4 px-1 stagger-2 animate-fade-in-up">
-                {/* AI Assistant Dialog */}
-                <div className="mx-2 mb-2 relative">
-                    <div className={`
-                        p-4 rounded-2xl transition-all duration-300 border
-                        ${floatingMessage
-                            ? (floatingMessage.type === 'success' ? 'bg-emerald-50 border-emerald-100 dark:bg-emerald-900/10 dark:border-emerald-900/30' :
-                                floatingMessage.type === 'warning' ? 'bg-orange-50 border-orange-100 dark:bg-orange-900/10 dark:border-orange-900/30' :
-                                    floatingMessage.type === 'ai' ? 'bg-purple-50 border-purple-100 dark:bg-purple-900/10 dark:border-purple-900/30' :
-                                        'bg-blue-50 border-blue-100 dark:bg-blue-900/10 dark:border-blue-900/30')
-                            : 'bg-zinc-50 border-zinc-100 dark:bg-zinc-900/50 dark:border-white/5'}
-                    `}>
-                        <div className="flex items-start gap-3">
-                            <div className={`mt-0.5 w-8 h-8 rounded-full flex items-center justify-center shrink-0 shadow-sm transition-colors duration-300
-                                ${floatingMessage ? 'bg-white dark:bg-zinc-800' : 'bg-gradient-header'}`}
-                            >
-                                <span className={`material-icons-round text-sm ${floatingMessage ? '' : 'text-white'}`}>
-                                    {floatingMessage
-                                        ? (floatingMessage.type === 'success' ? 'check_circle' :
-                                            floatingMessage.type === 'warning' ? 'warning' :
-                                                floatingMessage.type === 'ai' ? 'auto_awesome' : 'info')
-                                        : 'smart_toy'}
-                                </span>
-                            </div>
-                            <div className="flex-1">
-                                <p className={`text-xs font-medium leading-relaxed transition-colors duration-300
-                                    ${floatingMessage
-                                        ? (floatingMessage.type === 'success' ? 'text-emerald-700 dark:text-emerald-300' :
-                                            floatingMessage.type === 'warning' ? 'text-orange-700 dark:text-orange-300' :
-                                                floatingMessage.type === 'ai' ? 'text-purple-700 dark:text-purple-300' :
-                                                    'text-blue-700 dark:text-blue-300')
-                                        : 'text-zinc-500 dark:text-zinc-400'}`}
-                                >
-                                    {floatingMessage ? floatingMessage.text : carouselTip}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
                 {/* Identity Card */}
                 <div className={`smart-card p-4 flex items-center gap-4 transition-all ${activeSection === 'identity' ? 'ring-2 ring-blue-500/20' : ''}`} onClick={() => setActiveSection('identity')}>
