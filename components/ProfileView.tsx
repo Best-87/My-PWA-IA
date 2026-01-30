@@ -143,6 +143,12 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                     )}
                 </div>
             )}
+            {/* 4. Footer Version Info */}
+            <div className="pt-4 text-center opacity-30 px-6">
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
+                    v1.0.0 Pro • Logística Inteligente
+                </span>
+            </div>
         </div>
     );
 };

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { InstallManager } from './components/InstallManager';
 import { WeighingForm, WeighingFormHandle } from './components/WeighingForm';
 import { BottomNav } from './components/BottomNav';
@@ -163,6 +163,10 @@ const AppContent = () => {
         });
     }, []);
 
+    const handleFinishLoading = useCallback(() => {
+        setIsLoading(false);
+    }, []);
+
     // Theme Toggle
     const toggleTheme = () => {
         const newTheme = theme === 'light' ? 'dark' : 'light';
@@ -176,7 +180,7 @@ const AppContent = () => {
         trackEvent('theme_changed', { theme: newTheme });
     };
 
-    const handleTabChange = (tab: 'weigh' | 'history') => {
+    const handleTabChange = (tab: 'weigh' | 'history' | 'profile') => {
         setActiveTab(tab);
         if (tab === 'history') {
             setRecords(getRecords());
@@ -413,7 +417,7 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
 
     return (
         <>
-            {isLoading && <SplashScreen onFinish={() => setIsLoading(false)} />}
+            {isLoading && <SplashScreen onFinish={handleFinishLoading} />}
 
             <div className={`min-h-screen bg-zinc-50 dark:bg-black pb-20 font-sans selection:bg-blue-500/30 ${isLoading ? 'opacity-0' : 'opacity-100 transition-opacity duration-700'}`}>
                 <div className="fixed inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,122,255,0.05),transparent_50%)] dark:bg-[radial-gradient(circle_at_top_right,rgba(0,122,255,0.1),transparent_50%)] pointer-events-none" />
@@ -421,22 +425,18 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                 <input ref={backupInputRef} type="file" accept=".json" className="hidden" onChange={handleRestore} />
                 <input ref={profileInputRef} type="file" accept="image/*" className="hidden" onChange={handleProfilePhotoUpload} />
 
-                {/* WhatsApp Style Top Bar - SOLID & COMPACT */}
-                <header className="fixed top-0 left-0 right-0 h-16 bg-[#075E54] dark:bg-[#128C7E] flex items-center justify-between px-6 z-[100] shadow-md animate-fade-in-up">
-                    <div className="flex items-center gap-3">
-                        <h1 className="text-xl font-bold text-white tracking-tight">{t('app_name')}</h1>
-                        <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-wider bg-white/20 text-white`}>
-                            <div className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-400' : 'bg-red-400'}`}></div>
-                            {isOnline ? 'Online' : 'Off'}
+                {/* Compact Modern Top Bar - Blue Gradient */}
+                <header className="fixed top-0 left-0 right-0 h-16 bg-gradient-header flex items-center justify-center px-6 z-[100] shadow-md animate-fade-in-up">
+                    <div className="flex flex-col items-center">
+                        <h1 className="text-xl font-black text-white tracking-tighter leading-none">{t('app_name')}</h1>
+                        <div className="mt-1.5 flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white/10 text-white shadow-inner">
+                            <div className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-400 animate-pulse' : 'bg-red-400'}`}></div>
+                            <span className="text-[8px] font-black uppercase tracking-widest">{isOnline ? 'Online' : 'Offline'}</span>
                         </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <span className="material-icons-round text-white text-2xl cursor-pointer hover:bg-white/10 p-1 rounded-full">search</span>
-                        <span className="material-icons-round text-white text-2xl cursor-pointer hover:bg-white/10 p-1 rounded-full">more_vert</span>
                     </div>
                 </header>
 
-                {/* Main Content - Adjusted for WhatsApp style top bar */}
+                {/* Main Content - Adjusted for dynamic top bar */}
                 <main className={`relative z-[10] pt-20 px-4 pb-32 max-w-lg mx-auto transform transition-all duration-700 ${isLoading ? 'translate-y-4 opacity-0' : 'translate-y-0 opacity-100'}`}>
                     {activeTab === 'weigh' && (
                         <div className="animate-fade-in">
@@ -723,7 +723,7 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
             {/* Modern Bottom Navigation */}
             <BottomNav
                 activeTab={activeTab}
-                onTabChange={setActiveTab}
+                onTabChange={handleTabChange}
                 profilePhoto={profile.photo}
             />
 
