@@ -19,44 +19,47 @@
 
 @layer utilities {
 
-  /* Reference Gradients */
+  /* Reference Gradients from Image */
+  .bg-gradient-blue-card {
+    background: linear-gradient(145deg, #7ad5ff 0%, #3b82f6 100%);
+  }
+
+  .bg-gradient-purple-card {
+    background: linear-gradient(145deg, #bf8cff 0%, #8b5cf6 100%);
+  }
+
+  .bg-gradient-pink-btn {
+    background: linear-gradient(135deg, #ff71a4 0%, #f43f5e 100%);
+    box-shadow: 0 8px 25px rgba(244, 63, 94, 0.3);
+  }
+
   .bg-gradient-header {
-    background: linear-gradient(135deg, #7F7FD5 0%, #86A8E7 50%, #91EAE4 100%);
-    /* Violet-Blue aesthetic */
-    background: linear-gradient(120deg, #667eea 0%, #764ba2 100%);
-    /* Deep Purple-Blue */
+    background: transparent;
+    /* Adaptable minimal header */
   }
 
-  .bg-gradient-primary {
-    background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 99%, #FECFEF 100%);
-    /* Pink-ish like "Morning" button */
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    /* Vibrant Pink-Orange */
-  }
-
-  .bg-gradient-accent {
-    background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
-    /* Soft Purple */
-  }
-
-  /* Smart Home Card Styles */
+  /* Refined Smart Card Styles */
   .smart-card {
-    @apply bg-white dark:bg-[#1E1E20] rounded-[2rem] border border-white/50 dark:border-white/5;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    @apply bg-white/90 dark:bg-zinc-900/90 rounded-[2.5rem] border border-white/50 dark:border-white/5;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.03), 0 4px 12px rgba(0, 0, 0, 0.02);
   }
 
   .smart-shadow {
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08), 0 5px 15px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.04), 0 8px 20px rgba(0, 0, 0, 0.02);
   }
 
-  .smart-shadow-sm {
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+  /* Specific Card Shadows */
+  .blue-card-shadow {
+    box-shadow: 0 10px 30px rgba(59, 130, 246, 0.15);
   }
 
-  /* Header Curve */
-  .header-curve {
-    border-bottom-left-radius: 2.5rem;
-    border-bottom-right-radius: 2.5rem;
+  .purple-card-shadow {
+    box-shadow: 0 10px 30px rgba(139, 92, 246, 0.15);
+  }
+
+  /* Button Styles */
+  .action-btn-circle {
+    @apply w-16 h-16 rounded-full bg-white dark:bg-zinc-800 shadow-lg flex flex-col items-center justify-center gap-1 transition-all active:scale-90 border border-zinc-50 dark:border-white/5;
   }
 
   /* Animations */
@@ -128,6 +131,28 @@
 
   .safe-bottom {
     padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  @keyframes slide-up-fade {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-slide-up-fade {
+    animation: slide-up-fade 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+
+  /* Smooth scroll for the whole app */
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
   }
 
   .no-scrollbar::-webkit-scrollbar {

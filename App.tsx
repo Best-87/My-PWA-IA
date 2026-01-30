@@ -421,24 +421,29 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
         <>
             {isLoading && <SplashScreen onFinish={handleFinishLoading} version={APP_VERSION} />}
 
-            <div className={`min-h-screen bg-zinc-50 dark:bg-black pb-20 font-sans selection:bg-blue-500/30 ${isLoading ? 'opacity-0' : 'opacity-100 transition-opacity duration-700'}`}>
-                <div className="fixed inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,122,255,0.05),transparent_50%)] dark:bg-[radial-gradient(circle_at_top_right,rgba(0,122,255,0.1),transparent_50%)] pointer-events-none" />
+            <div className={`min-h-screen bg-[#F0F4F9] dark:bg-black pb-20 font-sans selection:bg-blue-500/30 ${isLoading ? 'opacity-0' : 'opacity-100 transition-opacity duration-700'}`}>
+                {/* Visual Background Elements from Image */}
+                <div className="fixed inset-0 pointer-events-none overflow-hidden">
+                    <div className="absolute top-[10%] right-[-10%] w-[80%] h-[40%] bg-blue-200/20 dark:bg-blue-900/10 blur-[100px] rounded-full"></div>
+                    <div className="absolute bottom-[20%] left-[-10%] w-[70%] h-[50%] bg-purple-200/20 dark:bg-purple-900/10 blur-[120px] rounded-full"></div>
+                    <div className="absolute top-[30%] left-[20%] w-2 h-2 bg-white rounded-full blur-[1px] opacity-40 shadow-[0_0_10px_white]"></div>
+                    <div className="absolute top-[60%] right-[30%] w-1.5 h-1.5 bg-white rounded-full blur-[1px] opacity-30 shadow-[0_0_8px_white]"></div>
+                </div>
+
                 <InstallManager />
                 <input ref={backupInputRef} type="file" accept=".json" className="hidden" onChange={handleRestore} />
                 <input ref={profileInputRef} type="file" accept="image/*" className="hidden" onChange={handleProfilePhotoUpload} />
 
-                {/* Adaptive Minimal Top Bar - White/Black */}
-                <header className="fixed top-0 left-0 right-0 h-16 bg-white/80 dark:bg-black/80 backdrop-blur-lg border-b border-zinc-100 dark:border-white/10 flex items-center justify-center px-6 z-[100] shadow-sm animate-fade-in-up">
-                    <div className="flex flex-col items-center">
-                        <h1 className="text-xl font-black text-zinc-900 dark:text-white tracking-tighter leading-none">{t('app_name')}</h1>
-                        <div className="mt-1.5 flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-white/10 text-zinc-500 dark:text-zinc-400 shadow-inner">
-                            <div className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`}></div>
-                            <span className="text-[8px] font-black uppercase tracking-widest">{isOnline ? 'Online' : 'Offline'}</span>
-                        </div>
+                {/* Adaptive Minimal Top Bar - Refined per image */}
+                <header className="fixed top-0 left-0 right-0 h-14 bg-white/40 dark:bg-black/40 backdrop-blur-xl flex flex-col items-center justify-center z-[100]">
+                    <h1 className="text-xs font-black text-zinc-800 dark:text-zinc-200 tracking-tighter uppercase opacity-80">{t('app_name')}</h1>
+                    <div className="mt-1 flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-white/60 dark:bg-white/10 shadow-sm border border-white/40 dark:border-white/5">
+                        <div className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-red-500'}`}></div>
+                        <span className="text-[8px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400">{isOnline ? 'Online' : 'Offline'}</span>
                     </div>
                 </header>
 
-                {/* Main Content - Adjusted for dynamic top bar */}
+                {/* Main Content */}
                 <main className={`relative z-[10] pt-20 px-4 pb-32 max-w-lg mx-auto transform transition-all duration-700 ${isLoading ? 'translate-y-4 opacity-0' : 'translate-y-0 opacity-100'}`}>
                     {activeTab === 'weigh' && (
                         <div className="animate-fade-in">
@@ -489,15 +494,16 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                                         ))}
                                     </div>
 
-                                    {/* Search Bar */}
                                     <div className="relative group">
-                                        <span className="absolute left-4 top-3 text-zinc-400 material-icons-round text-xl">search</span>
+                                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                            <span className="material-icons-round text-zinc-400 group-focus-within:text-blue-500 transition-colors">search</span>
+                                        </div>
                                         <input
                                             type="text"
                                             value={searchTerm}
                                             onChange={(e) => setSearchTerm(e.target.value)}
                                             placeholder={t('ph_search')}
-                                            className="w-full pl-12 pr-4 py-3 rounded-2xl bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500/20 transition-all text-sm font-medium"
+                                            className="w-full pl-12 pr-4 py-4 rounded-[1.5rem] bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white outline-none shadow-sm border border-transparent focus:border-blue-500/20 focus:ring-4 focus:ring-blue-500/5 transition-all text-sm font-bold placeholder:text-zinc-300"
                                         />
                                     </div>
                                 </div>
@@ -531,7 +537,7 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
 
                                             return Object.entries(grouped).map(([dateLabel, groupRecords]) => (
                                                 <div key={dateLabel} className="animate-slide-up-fade">
-                                                    <h3 className="sticky top-0 bg-zinc-50/95 dark:bg-black/95 backdrop-blur-md py-2 px-4 z-10 text-xl font-bold text-zinc-900 dark:text-white mb-2 ml-1">
+                                                    <h3 className="sticky top-0 bg-[#F0F4F9]/80 dark:bg-black/80 backdrop-blur-xl py-3 px-2 z-10 text-[10px] uppercase font-black tracking-[0.2em] text-zinc-400 dark:text-zinc-500 mb-2">
                                                         {dateLabel}
                                                     </h3>
                                                     <div className="space-y-3">

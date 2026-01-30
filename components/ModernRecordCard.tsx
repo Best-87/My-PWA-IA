@@ -30,147 +30,133 @@ export const ModernRecordCard: React.FC<ModernRecordCardProps> = ({
 
     const diff = record.netWeight - record.noteWeight;
     const isError = Math.abs(diff) > TOLERANCE_KG;
-    const statusColor = isError ? 'red' : 'emerald';
 
     return (
         <>
             <div
-                className="smart-card overflow-hidden animate-fade-in-up transition-all hover:scale-[1.01] active:scale-[0.98] mb-4"
+                className={`smart-card overflow-hidden transition-all duration-300 ${isExpanded ? 'ring-2 ring-blue-500/20' : 'hover:scale-[1.01]'} active:scale-[0.98] mb-4`}
                 onClick={onExpand}
             >
                 <div className="p-5">
                     {/* Header */}
                     <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-3">
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isError ? 'bg-red-50 text-red-500' : 'bg-emerald-50 text-emerald-500'}`}>
-                                <span className="material-icons-round text-xl">{isError ? 'priority_high' : 'check_circle'}</span>
+                        <div className="flex items-center gap-4">
+                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-inner ${isError ? 'bg-red-50 text-red-500' : 'bg-emerald-50 text-emerald-500'}`}>
+                                <span className="material-icons-round text-2xl">{isError ? 'priority_high' : 'check_circle'}</span>
                             </div>
                             <div>
-                                <h3 className="text-sm font-bold text-zinc-900 dark:text-white line-clamp-1">{record.product}</h3>
-                                <p className="text-[10px] text-zinc-500 font-medium uppercase tracking-wider">{record.supplier}</p>
+                                <h3 className="text-sm font-black text-zinc-800 dark:text-white line-clamp-1 uppercase tracking-tight">{record.product}</h3>
+                                <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">{record.supplier}</p>
                             </div>
                         </div>
-                        <div className="text-right">
-                            <span className="text-[10px] text-zinc-400 font-mono font-bold block mb-1">
+                        <div className="text-right flex flex-col items-end gap-1">
+                            <span className="text-[9px] text-zinc-300 font-black uppercase tracking-widest">
                                 {new Date(record.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </span>
-                            <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${isError ? 'bg-red-100 text-red-600' : 'bg-emerald-100 text-emerald-600'}`}>
-                                {isError ? 'ERROR' : 'OK'}
-                            </span>
+                            <div className={`text-[8px] font-black px-2 py-0.5 rounded-full tracking-widest ${isError ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' : 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'}`}>
+                                {isError ? 'ERROR' : 'VALIDADO'}
+                            </div>
                         </div>
                     </div>
 
                     {/* Integrated Image if exists and not expanded */}
                     {!isExpanded && record.evidence && (
-                        <div className="mb-4 rounded-xl overflow-hidden h-24 relative border border-zinc-100 dark:border-white/5" onClick={handleImageClick}>
+                        <div className="mb-4 rounded-2xl overflow-hidden h-32 relative border border-zinc-100 dark:border-white/5 shadow-sm" onClick={handleImageClick}>
                             <img src={record.evidence} alt="Evidence" className="w-full h-full object-cover" />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
+                            <div className="absolute bottom-3 left-3 flex items-center gap-2">
+                                <span className="material-icons-round text-white text-sm">photo_camera</span>
+                                <span className="text-[10px] text-white font-bold uppercase tracking-widest">Evidencia Visual</span>
+                            </div>
                         </div>
                     )}
 
-                    {/* Batch & Production Date Info */}
-                    {(record.batch || record.productionDate) && (
-                        <div className="flex items-center gap-2 mb-3">
-                            {record.batch && (
-                                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-50 dark:bg-white/5 border border-zinc-100 dark:border-white/5">
-                                    <span className="material-icons-round text-xs text-zinc-400">tag</span>
-                                    <span className="text-[9px] font-bold text-zinc-600 dark:text-zinc-300 uppercase tracking-wider">Lote: {record.batch}</span>
-                                </div>
-                            )}
-                            {record.productionDate && (
-                                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20">
-                                    <span className="material-icons-round text-xs text-blue-500">factory</span>
-                                    <span className="text-[9px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">{record.productionDate}</span>
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {/* Metrics Grid - Smart Tiles */}
-                    <div className="grid grid-cols-2 gap-3">
-                        <div className="bg-zinc-50 dark:bg-white/5 rounded-2xl p-3 flex items-center gap-3 border border-zinc-100/50 dark:border-white/5">
-                            <div className="w-8 h-8 rounded-full bg-white dark:bg-zinc-800 flex items-center justify-center shadow-sm text-zinc-400">
-                                <span className="material-icons-round text-sm">scale</span>
+                    {/* Quick Metrics Grid */}
+                    <div className={`grid grid-cols-2 gap-3 transition-opacity duration-300 ${isExpanded ? 'opacity-40 grayscale' : 'opacity-100'}`}>
+                        <div className="bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl p-4 flex items-center gap-3 border border-zinc-100/50 dark:border-white/5">
+                            <div className="w-10 h-10 rounded-xl bg-white dark:bg-zinc-800 flex items-center justify-center shadow-sm text-zinc-400">
+                                <span className="material-icons-round text-xl">scale</span>
                             </div>
                             <div>
-                                <span className="text-[9px] font-bold text-zinc-400 uppercase block">{t('lbl_net')}</span>
-                                <span className="text-sm font-black text-zinc-800 dark:text-white tabular-nums">{record.netWeight.toFixed(2)}<span className="text-[10px] font-bold opacity-40 ml-0.5">kg</span></span>
+                                <span className="text-[9px] font-black text-zinc-400 uppercase block tracking-widest">{t('lbl_net')}</span>
+                                <span className="text-base font-black text-zinc-800 dark:text-white tabular-nums">{record.netWeight.toFixed(2)}<span className="text-[10px] font-bold opacity-40 ml-0.5 uppercase">kg</span></span>
                             </div>
                         </div>
-                        <div className={`rounded-2xl p-3 flex items-center gap-3 border ${isError ? 'bg-red-50 border-red-100 dark:bg-red-900/10 dark:border-red-500/20' : 'bg-emerald-50 border-emerald-100 dark:bg-emerald-900/10 dark:border-emerald-500/20'}`}>
-                            <div className={`w-8 h-8 rounded-full bg-white dark:bg-zinc-800 flex items-center justify-center shadow-sm ${isError ? 'text-red-500' : 'text-emerald-500'}`}>
-                                <span className="material-icons-round text-sm">difference</span>
+                        <div className={`rounded-2xl p-4 flex items-center gap-3 border shadow-sm ${isError ? 'bg-red-50 border-red-100 dark:bg-red-900/10 dark:border-red-500/20' : 'bg-emerald-50 border-emerald-100 dark:bg-emerald-900/10 dark:border-emerald-500/20'}`}>
+                            <div className={`w-10 h-10 rounded-xl bg-white dark:bg-zinc-800 flex items-center justify-center shadow-sm ${isError ? 'text-red-500' : 'text-emerald-500'}`}>
+                                <span className="material-icons-round text-xl">difference</span>
                             </div>
                             <div>
-                                <span className={`text-[9px] font-bold uppercase block ${isError ? 'text-red-400' : 'text-emerald-400'}`}>Dif.</span>
-                                <span className={`text-sm font-black tabular-nums ${isError ? 'text-red-500' : 'text-emerald-500'}`}>{diff > 0 ? '+' : ''}{diff.toFixed(2)}</span>
+                                <span className={`text-[9px] font-black uppercase block tracking-widest ${isError ? 'text-red-400' : 'text-emerald-400'}`}>Dif.</span>
+                                <span className={`text-base font-black tabular-nums ${isError ? 'text-red-500' : 'text-emerald-500'}`}>{diff > 0 ? '+' : ''}{diff.toFixed(2)}</span>
                             </div>
                         </div>
                     </div>
 
-                    {/* Expanded content */}
+                    {/* Detailed expanded content */}
                     {isExpanded && (
-                        <div className="space-y-3 pt-4 border-t border-white/5 animate-ios-fade">
-                            {/* Logistics info */}
-                            {(record.batch || record.expirationDate || record.recommendedTemperature) && (
-                                <div className="bg-white/5 rounded-2xl p-4 border border-white/5">
-                                    <p className="text-[9px] text-blue-400 font-black uppercase mb-3 tracking-widest">
-                                        Detalles de Envío
-                                    </p>
-                                    <div className="grid grid-cols-2 gap-x-4 gap-y-3">
-                                        {record.batch && (
-                                            <div className="text-xs">
-                                                <span className="text-zinc-400 font-semibold block text-[10px] uppercase">Lote</span>
-                                                <span className="font-mono font-bold text-zinc-700 dark:text-zinc-200">{record.batch}</span>
+                        <div className="space-y-4 pt-5 border-t border-zinc-100 dark:border-white/5 animate-ios-fade mt-5">
+                            {/* Detailed Weights */}
+                            <div className="grid grid-cols-3 gap-3">
+                                <div className="text-center">
+                                    <span className="text-[8px] font-black text-zinc-400 uppercase tracking-widest block mb-1">Bruto</span>
+                                    <span className="text-sm font-bold text-zinc-700 dark:text-zinc-200">{record.grossWeight.toFixed(2)}</span>
+                                </div>
+                                <div className="text-center">
+                                    <span className="text-[8px] font-black text-zinc-400 uppercase tracking-widest block mb-1">Nota</span>
+                                    <span className="text-sm font-bold text-zinc-700 dark:text-zinc-200">{record.noteWeight.toFixed(2)}</span>
+                                </div>
+                                <div className="text-center">
+                                    <span className="text-[8px] font-black text-zinc-400 uppercase tracking-widest block mb-1">Tara</span>
+                                    <span className="text-sm font-bold text-zinc-700 dark:text-zinc-200">{record.taraTotal.toFixed(2)}</span>
+                                </div>
+                            </div>
+
+                            {/* Info Tiles */}
+                            <div className="bg-zinc-50 dark:bg-white/5 rounded-[1.5rem] p-5 border border-white/5 space-y-4 shadow-inner">
+                                <div className="grid grid-cols-2 gap-4">
+                                    {record.batch && (
+                                        <div className="flex items-center gap-3">
+                                            <span className="material-icons-round text-zinc-400 text-lg">tag</span>
+                                            <div>
+                                                <span className="text-[8px] text-zinc-400 font-black uppercase block tracking-widest">Lote</span>
+                                                <span className="text-xs font-bold text-zinc-700 dark:text-zinc-200">{record.batch}</span>
                                             </div>
-                                        )}
-                                        {record.expirationDate && (
-                                            <div className="text-xs">
-                                                <span className="text-zinc-400 font-semibold block text-[10px] uppercase">Vence</span>
-                                                <span className="font-bold text-zinc-700 dark:text-zinc-200">{record.expirationDate}</span>
+                                        </div>
+                                    )}
+                                    {record.expirationDate && (
+                                        <div className="flex items-center gap-3">
+                                            <span className="material-icons-round text-orange-400 text-lg">event_busy</span>
+                                            <div>
+                                                <span className="text-[8px] text-zinc-400 font-black uppercase block tracking-widest">Vence</span>
+                                                <span className="text-xs font-bold text-zinc-700 dark:text-zinc-200">{record.expirationDate}</span>
                                             </div>
-                                        )}
-                                        {record.recommendedTemperature && (
-                                            <div className="text-xs col-span-2">
-                                                <span className="text-zinc-400 font-semibold block text-[10px] uppercase">Temperatura Ideal</span>
-                                                <span className="font-bold text-zinc-700 dark:text-zinc-200">{record.recommendedTemperature}</span>
-                                            </div>
-                                        )}
-                                    </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Image if expanded */}
+                            {record.evidence && (
+                                <div className="rounded-2xl overflow-hidden border border-zinc-100 dark:border-white/10 shadow-lg" onClick={handleImageClick}>
+                                    <img src={record.evidence} alt="Full Evidence" className="w-full h-auto" />
                                 </div>
                             )}
 
-                            {/* AI Analysis */}
-                            {record.aiAnalysis && (
-                                <div className="bg-purple-50 dark:bg-purple-900/20 rounded-2xl p-3">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <span className="material-icons-round text-sm text-purple-600 dark:text-purple-400">
-                                            smart_toy
-                                        </span>
-                                        <p className="text-[10px] text-purple-600 dark:text-purple-400 font-bold uppercase">
-                                            Análisis IA
-                                        </p>
-                                    </div>
-                                    <p className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed">
-                                        {record.aiAnalysis}
-                                    </p>
-                                </div>
-                            )}
-
-                            {/* Actions */}
-                            <div className="flex gap-2 pt-2">
+                            {/* Actions Footer */}
+                            <div className="flex gap-3 pt-3">
                                 <button
                                     onClick={onShare}
-                                    className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 btn-press"
+                                    className="flex-1 bg-gradient-blue-card text-white py-4 rounded-[1.5rem] font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-3 btn-press shadow-blue-500/20"
                                 >
-                                    <span className="material-icons-round text-base">share</span>
-                                    Compartir
+                                    <span className="material-icons-round text-lg">share</span>
+                                    WhatsApp
                                 </button>
                                 <button
                                     onClick={onDelete}
-                                    className="bg-red-500 hover:bg-red-600 text-white px-4 py-3 rounded-2xl btn-press"
+                                    className="bg-red-50 text-red-500 dark:bg-red-500/10 dark:text-red-400 px-6 py-4 rounded-[1.5rem] btn-press transition-colors hover:bg-red-100"
                                 >
-                                    <span className="material-icons-round text-base">delete</span>
+                                    <span className="material-icons-round text-lg">delete</span>
                                 </button>
                             </div>
                         </div>
@@ -180,24 +166,29 @@ export const ModernRecordCard: React.FC<ModernRecordCardProps> = ({
                 {/* Full Screen Image Modal */}
                 {showImageModal && createPortal(
                     <div
-                        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm animate-fade-in p-4"
+                        className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 backdrop-blur-md animate-fade-in p-6"
                         onClick={() => setShowImageModal(false)}
                     >
-                        <div className="relative max-w-full max-h-full flex items-center justify-center">
+                        <div className="relative max-w-full max-h-full flex flex-col items-center">
                             <img
                                 src={record.evidence}
                                 alt="Evidencia Full"
-                                className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl animate-scale-in"
+                                className="max-w-full max-h-[80vh] object-contain rounded-3xl shadow-2xl animate-scale-in"
                             />
-                            <button
-                                className="absolute top-4 right-4 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-colors"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    setShowImageModal(false);
-                                }}
-                            >
-                                <span className="material-icons-round">close</span>
-                            </button>
+                            <div className="mt-8 flex gap-6">
+                                <button
+                                    className="w-14 h-14 bg-white/10 rounded-full flex items-center justify-center text-white backdrop-blur-sm"
+                                    onClick={() => setShowImageModal(false)}
+                                >
+                                    <span className="material-icons-round text-2xl">close</span>
+                                </button>
+                                <button
+                                    className="w-14 h-14 bg-blue-500 rounded-full flex items-center justify-center text-white shadow-xl"
+                                    onClick={onShare}
+                                >
+                                    <span className="material-icons-round text-2xl">share</span>
+                                </button>
+                            </div>
                         </div>
                     </div>,
                     document.body
