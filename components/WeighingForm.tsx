@@ -214,8 +214,23 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
             const text = await generateGeminiContent(prompt);
             if (!text) throw new Error("Empty response");
 
-            const cleanJson = text.replace(/```json|```/g, '').trim();
-            const data = JSON.parse(cleanJson);
+            // Robust JSON Parsing
+            let cleanJson = text.replace(/```json|```/g, '').trim();
+            // Try to find the first '{' and last '}' to handle extra text outside JSON
+            const firstBrace = cleanJson.indexOf('{');
+            const lastBrace = cleanJson.lastIndexOf('}');
+            if (firstBrace !== -1 && lastBrace !== -1) {
+                cleanJson = cleanJson.substring(firstBrace, lastBrace + 1);
+            }
+
+            let data;
+            try {
+                data = JSON.parse(cleanJson);
+            } catch (e) {
+                console.error("JSON Parse Error:", e);
+                console.log("Raw Text:", text);
+                throw new Error("Failed to parse AI response. " + text.substring(0, 50));
+            }
 
             setFloatingMessage({ text: "✓ Rótulo leído correctamente", type: 'success' });
             setTimeout(() => setFloatingMessage(null), 2000);
@@ -279,41 +294,48 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
         <div className="space-y-6 pb-20 animate-fade-in">
 
             {/* 1. Top Metrics Row (Matches Image) */}
-            {/* 1. Top Metrics Row - Hybrid Premium Design */}
+            {/* 1. Top Metrics Row - Redesigned Layout */}
             <div className="grid grid-cols-3 gap-3 stagger-1">
-                {/* Net Weight - Blue Gradient with Glint */}
-                <div className="relative bg-gradient-blue-card rounded-[2.2rem] p-4 flex flex-col items-center justify-between min-h-[120px] blue-card-shadow border border-white/30 overflow-hidden glint-effect">
+                {/* Net Weight - Large */}
+                <div className="relative bg-gradient-blue-card rounded-[2.2rem] p-4 flex flex-col items-center justify-center min-h-[145px] blue-card-shadow border border-white/30 overflow-hidden glint-effect">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent opacity-50 pointer-events-none"></div>
-                    <span className="text-[9px] font-black uppercase tracking-[0.15em] text-white/80 self-start relative z-10">PESO LÍQUIDO</span>
-                    <div className="flex flex-col items-center flex-1 justify-center relative z-10">
-                        <div className="flex items-baseline text-white drop-shadow-lg">
-                            <span className="text-[2.5rem] font-black tracking-[-0.02em] tabular-nums leading-none">{Math.floor(netWeight)}</span>
-                            <span className="text-lg font-bold opacity-70">.{netWeight.toFixed(3).split('.')[1]}</span>
+                    <span className="text-[10px] font-black uppercase tracking-[0.15em] text-white/80 absolute top-4">PESO LÍQUIDO</span>
+                    <div className="flex flex-col items-center justify-center mt-4">
+                        <div className="flex items-baseline text-white drop-shadow-lg scale-110">
+                            <span className="text-[2.8rem] font-black tracking-[-0.03em] tabular-nums leading-none">{Math.floor(netWeight)}</span>
+                            <span className="text-xl font-bold opacity-70">.{netWeight.toFixed(3).split('.')[1]}</span>
                         </div>
-                        <span className="text-[9px] font-black text-white/50 tracking-[0.2em] mt-1">KG</span>
+                        <span className="text-[10px] font-black text-white/50 tracking-[0.2em] mt-1">KG</span>
                     </div>
                 </div>
 
-                {/* Difference - White Glass */}
-                <div className="glass-premium rounded-[2.2rem] p-4 flex flex-col items-center justify-between min-h-[120px] shadow-sm">
-                    <span className="text-[9px] font-black uppercase tracking-[0.15em] text-zinc-400 self-start">DIFERENCIA</span>
-                    <div className="flex-1 flex flex-col items-center justify-center">
-                        <div className={`text-xl font-black px-4 py-1.5 rounded-full ${Math.abs(difference) > TOLERANCE_KG ? 'text-red-500 bg-red-50 dark:bg-red-900/20' : 'text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20'}`}>
+                {/* Center Card - Split Design (Difference & Tara) */}
+                <div className="glass-premium rounded-[2.2rem] flex flex-col min-h-[145px] shadow-sm overflow-hidden">
+                    {/* Top Half: Difference */}
+                    <div className="flex-1 flex flex-col items-center justify-center bg-white/40 dark:bg-white/5 backdrop-blur-md border-b border-zinc-100 dark:border-white/5 p-2">
+                        <span className="text-[8px] font-black uppercase tracking-[0.15em] text-zinc-400 mb-1">DIFERENCIA</span>
+                        <div className={`text-xl font-black px-3 py-1 rounded-full flex items-center gap-1 ${Math.abs(difference) > TOLERANCE_KG ? 'text-red-500 bg-red-50/50 dark:bg-red-900/10' : 'text-emerald-500 bg-emerald-50/50 dark:bg-emerald-900/10'}`}>
+                            <span className="text-sm">{difference > 0 ? '+' : ''}</span>
                             {difference.toFixed(3)}
                         </div>
                     </div>
+                    {/* Bottom Half: Tara Info */}
+                    <div className="h-[45%] bg-zinc-50/50 dark:bg-black/20 flex flex-col items-center justify-center p-2">
+                        <span className="text-[8px] font-black uppercase tracking-[0.15em] text-zinc-400 mb-0.5">TARA ({boxQty || '0'}cx)</span>
+                        <span className="text-sm font-black text-zinc-600 dark:text-zinc-300 tabular-nums">-{totalTara.toFixed(2)}<span className="text-[9px] text-zinc-400 ml-0.5">kg</span></span>
+                    </div>
                 </div>
 
-                {/* Gross Weight - Purple Gradient with Glint */}
-                <div className="relative bg-gradient-purple-card rounded-[2.2rem] p-4 flex flex-col items-center justify-between min-h-[120px] purple-card-shadow border border-white/30 overflow-hidden glint-effect">
+                {/* Gross Weight - Large */}
+                <div className="relative bg-gradient-purple-card rounded-[2.2rem] p-4 flex flex-col items-center justify-center min-h-[145px] purple-card-shadow border border-white/30 overflow-hidden glint-effect">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent opacity-50 pointer-events-none"></div>
-                    <span className="text-[9px] font-black uppercase tracking-[0.15em] text-white/80 self-start relative z-10">PESO BRUTO</span>
-                    <div className="flex flex-col items-center flex-1 justify-center relative z-10">
-                        <div className="flex items-baseline text-white drop-shadow-lg">
-                            <span className="text-[2.5rem] font-black tracking-[-0.02em] tabular-nums leading-none">{Math.floor(parsedGrossWeight)}</span>
-                            <span className="text-lg font-bold opacity-70">.{parsedGrossWeight.toFixed(3).split('.')[1]}</span>
+                    <span className="text-[10px] font-black uppercase tracking-[0.15em] text-white/80 absolute top-4">PESO BRUTO</span>
+                    <div className="flex flex-col items-center justify-center mt-4">
+                        <div className="flex items-baseline text-white drop-shadow-lg scale-110">
+                            <span className="text-[2.8rem] font-black tracking-[-0.03em] tabular-nums leading-none">{Math.floor(parsedGrossWeight)}</span>
+                            <span className="text-xl font-bold opacity-70">.{parsedGrossWeight.toFixed(3).split('.')[1]}</span>
                         </div>
-                        <span className="text-[9px] font-black text-white/50 tracking-[0.2em] mt-1">KG</span>
+                        <span className="text-[10px] font-black text-white/50 tracking-[0.2em] mt-1">KG</span>
                     </div>
                 </div>
             </div>
@@ -459,23 +481,23 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                 )}
             </div>
 
-            {/* Action Buttons Bar */}
+            {/* Action Buttons Bar - Modern Squircle Design */}
             <div className="fixed bottom-24 left-4 right-4 z-[50] flex items-center justify-between gap-3 stagger-6 animate-fade-in-up">
                 <button
                     onClick={() => cameraInputRef.current?.click()}
-                    className="flex-[1.5] h-20 rounded-[2.2rem] bg-gradient-pink-btn flex flex-col items-center justify-center gap-1 text-white btn-press active:scale-95 transition-all shadow-xl relative overflow-hidden glint-effect"
+                    className="flex-[1.5] h-20 rounded-[2.5rem] bg-gradient-pink-btn flex flex-col items-center justify-center gap-1 text-white btn-press active:scale-95 transition-all shadow-xl relative overflow-hidden glint-effect"
                 >
                     <div className="absolute inset-0 bg-white/10 pointer-events-none"></div>
                     <span className="material-icons-round text-3xl drop-shadow-md">photo_camera</span>
                     <span className="text-xs font-black uppercase tracking-[0.2em] drop-shadow-sm">Scan</span>
                 </button>
 
-                <button onClick={() => galleryInputRef.current?.click()} className="action-btn-circle">
+                <button onClick={() => galleryInputRef.current?.click()} className="squircle-btn glass-premium">
                     <span className="material-icons-round text-3xl text-purple-500">image</span>
                     <span className="text-[9px] font-black uppercase text-zinc-400 tracking-tighter">Galeria</span>
                 </button>
 
-                <button onClick={() => setShowConfirmReset(true)} className="action-btn-circle">
+                <button onClick={() => setShowConfirmReset(true)} className="squircle-btn glass-premium">
                     <span className="material-icons-round text-3xl text-zinc-400 dark:text-zinc-500">delete_sweep</span>
                     <span className="text-[9px] font-black uppercase text-zinc-400 tracking-tighter">Limpar</span>
                 </button>
@@ -483,7 +505,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                 <button
                     onClick={handleSave}
                     disabled={!hasDataToSave}
-                    className={`action-btn-circle ${hasDataToSave ? 'opacity-100 ring-2 ring-emerald-500/20' : 'opacity-40 grayscale'}`}
+                    className={`squircle-btn glass-premium ${hasDataToSave ? 'opacity-100 ring-2 ring-emerald-500/20' : 'opacity-50 grayscale'}`}
                 >
                     <span className={`material-icons-round text-3xl ${hasDataToSave ? 'text-emerald-500' : 'text-zinc-400'}`}>save</span>
                     <span className="text-[9px] font-black uppercase text-zinc-400 tracking-tighter">Salvar</span>

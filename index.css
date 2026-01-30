@@ -62,6 +62,10 @@
     @apply w-20 h-20 rounded-full bg-white/90 dark:bg-zinc-800/90 backdrop-blur-md shadow-lg flex flex-col items-center justify-center gap-1 transition-all active:scale-95 border border-white/50 dark:border-white/10;
   }
 
+  .squircle-btn {
+    @apply w-20 h-20 rounded-[2rem] bg-white/90 dark:bg-zinc-800/90 backdrop-blur-md shadow-lg flex flex-col items-center justify-center gap-1 transition-all active:scale-95 border border-white/50 dark:border-white/10;
+  }
+
   /* Animations */
   @keyframes fade-in-up {
     from {
