@@ -321,10 +321,12 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                     </div>
                     {/* Bottom Half: Tara Info */}
                     <div className="h-[45%] bg-zinc-50/50 dark:bg-black/20 flex flex-col items-center justify-center p-2">
-                        <span className="text-[10px] font-black uppercase tracking-wide text-zinc-500 dark:text-zinc-400 mb-0.5 whitespace-nowrap">
-                            TARA <span className="text-blue-600 dark:text-blue-400">({boxQty || '0'}</span>cx <span className="text-zinc-300">@</span> <span className="text-blue-600 dark:text-blue-400">{boxTara}</span>g)
-                        </span>
-                        <span className="text-base font-black text-zinc-800 dark:text-gray-100 tabular-nums leading-none">-{totalTara.toFixed(2)}<span className="text-[10px] text-zinc-400 ml-0.5 font-bold">kg</span></span>
+                        <div className="flex items-center gap-1.5 mb-0.5 text-purple-600 dark:text-purple-400">
+                            <span className="text-[11px] font-black uppercase tracking-wide opacity-80">TARA</span>
+                            <span className="material-icons-round text-sm">inventory_2</span>
+                            <span className="text-[13px] font-black tracking-tight">{boxQty || '0'} <span className="text-[10px] opacity-70">X</span> {boxTara}g</span>
+                        </div>
+                        <span className="text-xl font-black text-zinc-800 dark:text-gray-100 tabular-nums leading-none">-{totalTara.toFixed(2)}<span className="text-[10px] text-zinc-400 ml-0.5 font-bold">kg</span></span>
                     </div>
                 </div>
 
