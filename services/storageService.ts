@@ -121,6 +121,10 @@ export const clearAllRecords = async () => {
     await clearAllRecordsFromSupabase();
 };
 
+export const syncRecords = (cloudRecords: WeighingRecord[]) => {
+    localStorage.setItem(KEY_RECORDS, JSON.stringify(cloudRecords));
+};
+
 export const getRecords = (): WeighingRecord[] => {
     try {
         const data = localStorage.getItem(KEY_RECORDS);

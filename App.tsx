@@ -5,7 +5,7 @@ import { WeighingForm, WeighingFormHandle } from './components/WeighingForm';
 import { BottomNav } from './components/BottomNav';
 import { ModernRecordCard } from './components/ModernRecordCard';
 import { ProfileView } from './components/ProfileView';
-import { getRecords, deleteRecord, clearAllRecords, getUserProfile, saveUserProfile, getTheme, saveTheme, generateBackupData, restoreBackupData } from './services/storageService';
+import { getRecords, deleteRecord, clearAllRecords, getUserProfile, saveUserProfile, getTheme, saveTheme, generateBackupData, restoreBackupData, syncRecords } from './services/storageService';
 import { WeighingRecord, UserProfile } from './types';
 import { LanguageProvider, useTranslation } from './services/i18n';
 import { ToastProvider, useToast } from './components/Toast';
@@ -154,10 +154,11 @@ const AppContent = () => {
             if (session?.user) {
                 // If logged in, update profile email
                 setProfile(prev => ({ ...prev, email: session.user.email }));
-                // Force record refresh from Supabase
+                // Force record refresh from Supabase and sync to local automatically
                 fetchRecordsFromSupabase().then(cloudRecords => {
                     if (cloudRecords.length > 0) {
                         setRecords(cloudRecords);
+                        syncRecords(cloudRecords); // AUTO DOWNLOAD/SYNC
                     }
                 });
             }
@@ -583,6 +584,17 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                                 currentLanguage={language}
                                 onProfileChange={(field, value) => setProfile(prev => ({ ...prev, [field]: value }))}
                                 version={APP_VERSION}
+                                onBackup={() => {
+                                    const data = generateBackupData();
+                                    const blob = new Blob([data], { type: 'application/json' });
+                                    const url = URL.createObjectURL(blob);
+                                    const a = document.createElement('a');
+                                    a.href = url;
+                                    a.download = `conferente_backup_${new Date().toISOString().split('T')[0]}.json`;
+                                    a.click();
+                                    showToast("Backup local descargado", "success");
+                                }}
+                                onRestore={() => backupInputRef.current?.click()}
 
                                 // Auth Props
                                 password={password}
