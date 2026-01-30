@@ -21,11 +21,11 @@
 
   /* Reference Gradients from Image */
   .bg-gradient-blue-card {
-    background: linear-gradient(145deg, #7ad5ff 0%, #3b82f6 100%);
+    background: linear-gradient(135deg, #60A5FA 0%, #2563EB 100%);
   }
 
   .bg-gradient-purple-card {
-    background: linear-gradient(145deg, #bf8cff 0%, #8b5cf6 100%);
+    background: linear-gradient(135deg, #A78BFA 0%, #7C3AED 100%);
   }
 
   .bg-gradient-pink-btn {
@@ -40,8 +40,8 @@
 
   /* Refined Smart Card Styles */
   .smart-card {
-    @apply bg-white/90 dark:bg-zinc-900/90 rounded-[2.5rem] border border-white/50 dark:border-white/5;
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.03), 0 4px 12px rgba(0, 0, 0, 0.02);
+    @apply bg-white/80 dark:bg-zinc-900/80 rounded-[2.2rem] border border-white/40 dark:border-white/5 backdrop-blur-xl;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03), 0 4px 10px rgba(0, 0, 0, 0.01);
   }
 
   .smart-shadow {
@@ -50,16 +50,16 @@
 
   /* Specific Card Shadows */
   .blue-card-shadow {
-    box-shadow: 0 10px 30px rgba(59, 130, 246, 0.15);
+    box-shadow: 0 12px 30px rgba(37, 99, 235, 0.25);
   }
 
   .purple-card-shadow {
-    box-shadow: 0 10px 30px rgba(139, 92, 246, 0.15);
+    box-shadow: 0 12px 30px rgba(124, 58, 237, 0.25);
   }
 
   /* Button Styles */
   .action-btn-circle {
-    @apply w-16 h-16 rounded-full bg-white dark:bg-zinc-800 shadow-lg flex flex-col items-center justify-center gap-1 transition-all active:scale-90 border border-zinc-50 dark:border-white/5;
+    @apply w-16 h-16 rounded-full bg-white/90 dark:bg-zinc-800/90 backdrop-blur-md shadow-lg flex flex-col items-center justify-center gap-1 transition-all active:scale-90 border border-white/50 dark:border-white/10;
   }
 
   /* Animations */
@@ -102,8 +102,6 @@
       transform: translate(-50%, 0);
     }
   }
-
-  /* iOS Semantic Shadows - Kept for compatibility */
 
   /* iOS Semantic Shadows - Kept for compatibility */
   .card-shadow {
@@ -162,5 +160,50 @@
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
+  }
+
+  /* Premium Glass Effect - iOS Mode */
+  .glass-premium {
+    @apply bg-white/70 dark:bg-zinc-900/60 backdrop-blur-[30px] border border-white/40 dark:border-white/10;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+  }
+
+  /* Glint/Reflection Animation */
+  @keyframes glint-sweep {
+    0% {
+      transform: translateX(-150%) translateY(-150%) rotate(25deg);
+      opacity: 0;
+    }
+
+    15% {
+      opacity: 1;
+    }
+
+    30% {
+      transform: translateX(150%) translateY(150%) rotate(25deg);
+      opacity: 0;
+    }
+
+    100% {
+      transform: translateX(150%) translateY(150%) rotate(25deg);
+      opacity: 0;
+    }
+  }
+
+  .glint-effect::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg,
+        transparent 40%,
+        rgba(255, 255, 255, 0.1) 47%,
+        rgba(255, 255, 255, 0.5) 50%,
+        rgba(255, 255, 255, 0.1) 53%,
+        transparent 60%);
+    animation: glint-sweep 6s infinite ease-in-out;
+    pointer-events: none;
   }
 }

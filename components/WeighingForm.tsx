@@ -279,51 +279,54 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
         <div className="space-y-6 pb-20 animate-fade-in">
 
             {/* 1. Top Metrics Row (Matches Image) */}
+            {/* 1. Top Metrics Row - Hybrid Premium Design */}
             <div className="grid grid-cols-3 gap-3 stagger-1">
-                {/* Net Weight */}
-                <div className="bg-gradient-blue-card rounded-[2.2rem] p-4 flex flex-col items-center justify-between min-h-[110px] blue-card-shadow border border-white/20">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-white/70 self-start">PESO LÍQUIDO</span>
-                    <div className="flex flex-col items-center flex-1 justify-center">
-                        <div className="flex items-baseline text-white">
-                            <span className="text-3xl font-black tracking-tighter tabular-nums">{Math.floor(netWeight)}</span>
-                            <span className="text-sm font-bold opacity-60">.{netWeight.toFixed(3).split('.')[1]}</span>
+                {/* Net Weight - Blue Gradient with Glint */}
+                <div className="relative bg-gradient-blue-card rounded-[2.2rem] p-4 flex flex-col items-center justify-between min-h-[120px] blue-card-shadow border border-white/30 overflow-hidden glint-effect">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent opacity-50 pointer-events-none"></div>
+                    <span className="text-[9px] font-black uppercase tracking-[0.15em] text-white/80 self-start relative z-10">PESO LÍQUIDO</span>
+                    <div className="flex flex-col items-center flex-1 justify-center relative z-10">
+                        <div className="flex items-baseline text-white drop-shadow-lg">
+                            <span className="text-[2.5rem] font-black tracking-[-0.02em] tabular-nums leading-none">{Math.floor(netWeight)}</span>
+                            <span className="text-lg font-bold opacity-70">.{netWeight.toFixed(3).split('.')[1]}</span>
                         </div>
-                        <span className="text-[8px] font-black text-white/40 tracking-widest mt-0.5">KG</span>
+                        <span className="text-[9px] font-black text-white/50 tracking-[0.2em] mt-1">KG</span>
                     </div>
                 </div>
 
-                {/* Difference */}
-                <div className="bg-white dark:bg-zinc-900 rounded-[2.2rem] p-4 flex flex-col items-center justify-between min-h-[110px] shadow-sm border border-zinc-100 dark:border-white/5">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400 self-start">DIFERENCIA</span>
+                {/* Difference - White Glass */}
+                <div className="glass-premium rounded-[2.2rem] p-4 flex flex-col items-center justify-between min-h-[120px] shadow-sm">
+                    <span className="text-[9px] font-black uppercase tracking-[0.15em] text-zinc-400 self-start">DIFERENCIA</span>
                     <div className="flex-1 flex flex-col items-center justify-center">
-                        <div className={`text-lg font-black px-4 py-1 rounded-full ${Math.abs(difference) > TOLERANCE_KG ? 'text-red-500 bg-red-50 dark:bg-red-900/20' : 'text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20'}`}>
+                        <div className={`text-xl font-black px-4 py-1.5 rounded-full ${Math.abs(difference) > TOLERANCE_KG ? 'text-red-500 bg-red-50 dark:bg-red-900/20' : 'text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20'}`}>
                             {difference.toFixed(3)}
                         </div>
                     </div>
                 </div>
 
-                {/* Gross Weight Primary */}
-                <div className="bg-gradient-purple-card rounded-[2.2rem] p-4 flex flex-col items-center justify-between min-h-[110px] purple-card-shadow border border-white/20">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-white/70 self-start">PESO BRUTO</span>
-                    <div className="flex flex-col items-center flex-1 justify-center">
-                        <div className="flex items-baseline text-white">
-                            <span className="text-3xl font-black tracking-tighter tabular-nums">{Math.floor(parsedGrossWeight)}</span>
-                            <span className="text-sm font-bold opacity-60">.{parsedGrossWeight.toFixed(3).split('.')[1]}</span>
+                {/* Gross Weight - Purple Gradient with Glint */}
+                <div className="relative bg-gradient-purple-card rounded-[2.2rem] p-4 flex flex-col items-center justify-between min-h-[120px] purple-card-shadow border border-white/30 overflow-hidden glint-effect">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent opacity-50 pointer-events-none"></div>
+                    <span className="text-[9px] font-black uppercase tracking-[0.15em] text-white/80 self-start relative z-10">PESO BRUTO</span>
+                    <div className="flex flex-col items-center flex-1 justify-center relative z-10">
+                        <div className="flex items-baseline text-white drop-shadow-lg">
+                            <span className="text-[2.5rem] font-black tracking-[-0.02em] tabular-nums leading-none">{Math.floor(parsedGrossWeight)}</span>
+                            <span className="text-lg font-bold opacity-70">.{parsedGrossWeight.toFixed(3).split('.')[1]}</span>
                         </div>
-                        <span className="text-[8px] font-black text-white/40 tracking-widest mt-0.5">KG</span>
+                        <span className="text-[9px] font-black text-white/50 tracking-[0.2em] mt-1">KG</span>
                     </div>
                 </div>
             </div>
 
-            {/* AI Status / Tips Bar */}
+            {/* AI Status / Tips Bar - Glass */}
             <div className={`
-                p-4 rounded-[1.8rem] transition-all duration-300 border mx-1 stagger-2 shadow-sm
+                p-4 rounded-[1.8rem] transition-all duration-300 border mx-1 stagger-2
                 ${floatingMessage
-                    ? (floatingMessage.type === 'success' ? 'bg-emerald-50 border-emerald-100 dark:bg-emerald-900/10 dark:border-emerald-900/30' :
-                        floatingMessage.type === 'warning' ? 'bg-orange-50 border-orange-100 dark:bg-orange-900/10 dark:border-orange-900/30' :
-                            floatingMessage.type === 'ai' ? 'bg-purple-50 border-purple-100 dark:bg-purple-900/10 dark:border-purple-900/30' :
-                                'bg-blue-50 border-blue-100 dark:bg-blue-900/10 dark:border-blue-900/30')
-                    : 'bg-white/60 dark:bg-white/5 backdrop-blur-md border-white/40 dark:border-white/5'}
+                    ? (floatingMessage.type === 'success' ? 'bg-emerald-50/90 border-emerald-200/50 dark:bg-emerald-900/20 dark:border-emerald-500/30 backdrop-blur-xl' :
+                        floatingMessage.type === 'warning' ? 'bg-orange-50/90 border-orange-200/50 dark:bg-orange-900/20 dark:border-orange-500/30 backdrop-blur-xl' :
+                            floatingMessage.type === 'ai' ? 'bg-purple-50/90 border-purple-200/50 dark:bg-purple-900/20 dark:border-purple-500/30 backdrop-blur-xl' :
+                                'bg-blue-50/90 border-blue-200/50 dark:bg-blue-900/20 dark:border-blue-500/30 backdrop-blur-xl')
+                    : 'glass-premium'}
             `}>
                 <div className="flex items-center gap-3">
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-sm transition-colors duration-300
@@ -352,8 +355,8 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                 </div>
             </div>
 
-            {/* 3. Input Identity Card */}
-            <div className="smart-card p-6 stagger-3">
+            {/* 3. Input Identity Card - Glass Premium */}
+            <div className="glass-premium rounded-[2.2rem] p-6 stagger-3 shadow-lg">
                 <div className="space-y-6">
                     {/* Provedor */}
                     <div className="flex items-center gap-4">
@@ -390,8 +393,8 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
 
             {/* Logistics & Weights */}
             <div className="grid grid-cols-2 gap-4 stagger-4">
-                {/* Gross Input */}
-                <div className="smart-card p-5 flex items-center gap-4 h-24">
+                {/* Gross Input - Glass */}
+                <div className="glass-premium rounded-[2.2rem] p-5 flex items-center gap-4 h-24 shadow-lg">
                     <div className="w-12 h-12 rounded-2xl bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center shrink-0 text-purple-500 shadow-inner">
                         <span className="material-icons-round text-2xl">scale</span>
                     </div>
@@ -407,8 +410,8 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                         </div>
                     </div>
                 </div>
-                {/* Note Input */}
-                <div className="smart-card p-5 flex items-center gap-4 h-24">
+                {/* Note Input - Glass */}
+                <div className="glass-premium rounded-[2.2rem] p-5 flex items-center gap-4 h-24 shadow-lg">
                     <div className="w-12 h-12 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center shrink-0 text-zinc-400 shadow-inner">
                         <span className="material-icons-round text-2xl">description</span>
                     </div>
@@ -426,8 +429,8 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                 </div>
             </div>
 
-            {/* Tara Section Accordion */}
-            <div className="smart-card overflow-hidden stagger-5">
+            {/* Tara Section Accordion - Glass */}
+            <div className="glass-premium rounded-[2.2rem] overflow-hidden stagger-5 shadow-lg">
                 <div className="p-6 flex items-center justify-between cursor-pointer active:bg-zinc-50 dark:active:bg-zinc-800 transition-colors" onClick={() => setShowBoxes(!showBoxes)}>
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center shrink-0 text-orange-500 shadow-inner">
