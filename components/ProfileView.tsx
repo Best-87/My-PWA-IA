@@ -22,6 +22,7 @@ interface ProfileViewProps {
     isAuthModeLogin?: boolean;
     onToggleAuthMode?: () => void;
     onEmailChange?: (val: string) => void;
+    version: string;
 }
 
 export const ProfileView: React.FC<ProfileViewProps> = ({
@@ -43,7 +44,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
     onSignup,
     isAuthModeLogin,
     onToggleAuthMode,
-    onEmailChange
+    onEmailChange,
+    version
 }) => {
     const { t } = useTranslation();
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -146,7 +148,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             {/* 4. Footer Version Info */}
             <div className="pt-4 text-center opacity-30 px-6">
                 <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
-                    v1.0.0 Pro • Logística Inteligente
+                    {version} Pro • Logística Inteligente
                 </span>
             </div>
         </div>

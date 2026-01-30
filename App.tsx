@@ -14,7 +14,8 @@ import { ChatInterface } from './components/ChatInterface';
 import { isSupabaseConfigured, signIn, signUp, signOut, onAuthStateChange, fetchRecordsFromSupabase } from './services/supabaseService';
 import { SplashScreen } from './components/SplashScreen';
 
-// Tolerance limit 200g
+// APP CONFIGURATION
+const APP_VERSION = '1.0.1';
 const TOLERANCE_KG = 0.2;
 
 // --- HELPER: Expiration Logic ---
@@ -417,7 +418,7 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
 
     return (
         <>
-            {isLoading && <SplashScreen onFinish={handleFinishLoading} />}
+            {isLoading && <SplashScreen onFinish={handleFinishLoading} version={APP_VERSION} />}
 
             <div className={`min-h-screen bg-zinc-50 dark:bg-black pb-20 font-sans selection:bg-blue-500/30 ${isLoading ? 'opacity-0' : 'opacity-100 transition-opacity duration-700'}`}>
                 <div className="fixed inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,122,255,0.05),transparent_50%)] dark:bg-[radial-gradient(circle_at_top_right,rgba(0,122,255,0.1),transparent_50%)] pointer-events-none" />
@@ -425,12 +426,12 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                 <input ref={backupInputRef} type="file" accept=".json" className="hidden" onChange={handleRestore} />
                 <input ref={profileInputRef} type="file" accept="image/*" className="hidden" onChange={handleProfilePhotoUpload} />
 
-                {/* Compact Modern Top Bar - Blue Gradient */}
-                <header className="fixed top-0 left-0 right-0 h-16 bg-gradient-header flex items-center justify-center px-6 z-[100] shadow-md animate-fade-in-up">
+                {/* Adaptive Minimal Top Bar - White/Black */}
+                <header className="fixed top-0 left-0 right-0 h-16 bg-white/80 dark:bg-black/80 backdrop-blur-lg border-b border-zinc-100 dark:border-white/10 flex items-center justify-center px-6 z-[100] shadow-sm animate-fade-in-up">
                     <div className="flex flex-col items-center">
-                        <h1 className="text-xl font-black text-white tracking-tighter leading-none">{t('app_name')}</h1>
-                        <div className="mt-1.5 flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white/10 text-white shadow-inner">
-                            <div className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-400 animate-pulse' : 'bg-red-400'}`}></div>
+                        <h1 className="text-xl font-black text-zinc-900 dark:text-white tracking-tighter leading-none">{t('app_name')}</h1>
+                        <div className="mt-1.5 flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-white/10 text-zinc-500 dark:text-zinc-400 shadow-inner">
+                            <div className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`}></div>
                             <span className="text-[8px] font-black uppercase tracking-widest">{isOnline ? 'Online' : 'Offline'}</span>
                         </div>
                     </div>
@@ -581,6 +582,7 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                                 onLanguageChange={setLanguage}
                                 currentLanguage={language}
                                 onProfileChange={(field, value) => setProfile(prev => ({ ...prev, [field]: value }))}
+                                version={APP_VERSION}
 
                                 // Auth Props
                                 password={password}

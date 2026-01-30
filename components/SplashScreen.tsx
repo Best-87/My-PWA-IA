@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react';
 
 interface SplashScreenProps {
     onFinish: () => void;
+    version: string;
 }
 
-export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
+export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish, version }) => {
     const [isExiting, setIsExiting] = useState(false);
 
     useEffect(() => {
@@ -81,7 +82,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
             <div className="pb-12 text-center relative z-10 animate-fade-in opacity-0" style={{ animation: 'fadeIn 1s ease-out 0.5s forwards' }}>
                 <div className="flex flex-col items-center gap-2">
                     <div className="w-1 h-8 bg-gradient-to-b from-transparent to-zinc-800"></div>
-                    <span className="text-[10px] font-mono text-zinc-600 font-medium">v1.0.0 Pro</span>
+                    <span className="text-[10px] font-mono text-zinc-600 font-medium">{version} Pro</span>
                 </div>
             </div>
 
