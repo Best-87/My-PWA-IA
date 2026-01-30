@@ -99,6 +99,30 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
         return () => clearInterval(interval);
     }, [t, floatingMessage, isReadingImage, expirationDate, productionDate, batch, recommendedTemp, supplier]);
 
+    // Manual Prediction Logic (Autofill tara/product)
+    useEffect(() => {
+        if (isAiPopulating.current || !supplier) return;
+
+        const prediction = predictData(supplier, product);
+
+        // Suggest Product if only Supplier is present
+        if (!product && prediction.suggestedProduct) {
+            setPrediction(prev => ({ ...prev, suggestedProduct: prediction.suggestedProduct }));
+        }
+
+        // Auto-fill Tara if Match Found
+        if (supplier && product && prediction.suggestedTaraBox) {
+            const tara = prediction.suggestedTaraBox;
+            if (!boxTara || boxTara === '0') {
+                setBoxTara(Math.round(tara * 1000).toString());
+                if (!boxQty || boxQty === '0') setBoxQty('0');
+                setShowBoxes(true);
+                setFloatingMessage({ text: `📦 Tara histórica aplicada: ${Math.round(tara * 1000)}g`, type: 'ai' });
+                setTimeout(() => setFloatingMessage(null), 3000);
+            }
+        }
+    }, [supplier, product]);
+
     const parseSum = (val: string) => {
         if (!val) return 0;
         return val.split(',').reduce((acc, curr) => {
