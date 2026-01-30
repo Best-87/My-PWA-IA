@@ -50,11 +50,14 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
     const noteInputRef = useRef<HTMLInputElement>(null);
     const cameraInputRef = useRef<HTMLInputElement>(null);
     const galleryInputRef = useRef<HTMLInputElement>(null);
+    const isAiPopulating = useRef(false);
 
     const [suggestions, setSuggestions] = useState<{ products: string[], suppliers: string[] }>({ products: [], suppliers: [] });
     const [prediction, setPrediction] = useState<{ suggestedProduct?: string; suggestedTaraBox?: number; }>({});
     const [floatingMessage, setFloatingMessage] = useState<{ text: string, type: 'info' | 'success' | 'warning' | 'ai' } | null>(null);
     const [showConfirmReset, setShowConfirmReset] = useState(false);
+    const [isReadingImage, setIsReadingImage] = useState(false);
+    const [carouselTip, setCarouselTip] = useState<string>("");
 
     // Persist state
     useEffect(() => {
@@ -69,6 +72,32 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
         const kb = getKnowledgeBase();
         setSuggestions({ products: kb.products, suppliers: kb.suppliers });
     }, []);
+
+    // AI Tips Carousel Logic
+    useEffect(() => {
+        const dynamicTips: string[] = [];
+        if (expirationDate) dynamicTips.push(`📅 Vencimiento: ${expirationDate}`);
+        if (productionDate) dynamicTips.push(`🏭 Fabricado el: ${productionDate}`);
+        if (batch) dynamicTips.push(`🏷️ Lote activo: ${batch}`);
+        if (recommendedTemp) dynamicTips.push(`🌡️ Temperatura rec: ${recommendedTemp}`);
+        if (supplier) dynamicTips.push(`Proveedor: ${supplier}`);
+
+        const rawStaticTips = t('tips_carousel', { returnObjects: true });
+        const staticTips = Array.isArray(rawStaticTips) ? rawStaticTips : [];
+        const tips = [...dynamicTips, ...staticTips];
+
+        if (!carouselTip && tips.length > 0) setCarouselTip(tips[0]);
+        else if (tips.length === 0) setCarouselTip(t('assistant_default'));
+
+        let index = 0;
+        const interval = setInterval(() => {
+            if (!floatingMessage && !isReadingImage && tips.length > 0) {
+                index = (index + 1) % tips.length;
+                setCarouselTip(tips[index]);
+            }
+        }, 5000);
+        return () => clearInterval(interval);
+    }, [t, floatingMessage, isReadingImage, expirationDate, productionDate, batch, recommendedTemp, supplier]);
 
     const parseSum = (val: string) => {
         if (!val) return 0;
@@ -123,11 +152,101 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
         hasUnsavedData: () => hasDataToSave
     }));
 
+    const analyzeImageContent = async (base64Image: string) => {
+        if (!navigator.onLine) {
+            setFloatingMessage({ text: "Modo Offline: IA no disponible", type: 'warning' });
+            setTimeout(() => setFloatingMessage(null), 3000);
+            return;
+        }
+        setIsReadingImage(true);
+        setFloatingMessage({ text: "🔍 Leyendo rótulo...", type: 'info' });
+        isAiPopulating.current = true;
+        setCriticalWarning(null);
+        setStorageType(null);
+        setRecommendedTemp('');
+        try {
+            const promptText = `EXTRACT_LOGISTICS_DATA_JSON:
+            {
+              "supplier": "string",
+              "product": "string",
+              "expiration": "DD/MM/YYYY" | null,
+              "production": "DD/MM/YYYY" | null,
+              "batch": "string" | null,
+              "tara": "integer_grams" | null,
+              "storage": "frozen"|"refrigerated"|"dry",
+              "temperature_range": "string" | null,
+              "warning": "string" | null
+            }
+            Rules: Use high precision OCR. Output ONLY raw JSON. No markdown. If info is missing, use null.`;
+            const base64Data = base64Image.includes(',') ? base64Image.split(',')[1] : base64Image;
+
+            const prompt = {
+                parts: [
+                    { inlineData: { mimeType: 'image/jpeg', data: base64Data } },
+                    { text: promptText }
+                ]
+            };
+
+            const text = await generateGeminiContent(prompt);
+            if (!text) throw new Error("Empty response");
+
+            const cleanJson = text.replace(/```json|```/g, '').trim();
+            const data = JSON.parse(cleanJson);
+
+            setFloatingMessage({ text: "✓ Rótulo leído correctamente", type: 'success' });
+            setTimeout(() => setFloatingMessage(null), 2000);
+
+            if (data.supplier && !supplier) setSupplier(data.supplier);
+            if (data.product && !product) setProduct(data.product);
+            if (data.batch && !batch) setBatch(data.batch);
+            if (data.expiration && !expirationDate) setExpirationDate(data.expiration);
+            if (data.production && !productionDate) setProductionDate(data.production);
+            if (data.storage) setStorageType(data.storage);
+
+            if (data.temperature_range) {
+                setRecommendedTemp(data.temperature_range);
+                setTimeout(() => {
+                    setFloatingMessage({ text: `🌡️ Temperatura: ${data.temperature_range}`, type: 'ai' });
+                    setTimeout(() => setFloatingMessage(null), 4000);
+                }, 2500);
+            }
+
+            if (data.warning) {
+                setCriticalWarning(data.warning);
+                setTimeout(() => {
+                    setFloatingMessage({ text: `⚠️ ${data.warning}`, type: 'warning' });
+                    setTimeout(() => setFloatingMessage(null), 5000);
+                }, 3000);
+            }
+
+            if (data.tara) {
+                let val = parseFloat(String(data.tara));
+                if (!isNaN(val)) {
+                    if (val < 20) val = val * 1000;
+                    setBoxTara(Math.round(val).toString());
+                    setShowBoxes(true);
+                }
+            }
+        } catch (error: any) {
+            console.error("AI Analysis Error:", error);
+            setFloatingMessage({ text: "Error al leer imagen", type: 'warning' });
+            setTimeout(() => setFloatingMessage(null), 3000);
+        } finally {
+            setIsReadingImage(false);
+            setTimeout(() => { isAiPopulating.current = false; }, 1500);
+        }
+    };
+
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
             const reader = new FileReader();
-            reader.onload = (event) => { setEvidence(event.target?.result as string); showToast("Imagen cargada", "info"); };
+            reader.onload = (event) => {
+                const base64 = event.target?.result as string;
+                setEvidence(base64);
+                showToast("Imagen cargada, analizando...", "info");
+                analyzeImageContent(base64);
+            };
             reader.readAsDataURL(file);
         }
     };
@@ -172,14 +291,41 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                 </div>
             </div>
 
-            {/* 2. Warning Bar */}
-            <div className="bg-white/60 dark:bg-white/5 backdrop-blur-md px-6 py-4 rounded-full flex items-center gap-4 border border-white/40 dark:border-white/5 stagger-2 shadow-sm mx-1">
-                <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center shrink-0">
-                    <span className="material-icons-round text-orange-500 text-xl">warning</span>
+            {/* AI Status / Tips Bar */}
+            <div className={`
+                p-4 rounded-[1.8rem] transition-all duration-300 border mx-1 stagger-2 shadow-sm
+                ${floatingMessage
+                    ? (floatingMessage.type === 'success' ? 'bg-emerald-50 border-emerald-100 dark:bg-emerald-900/10 dark:border-emerald-900/30' :
+                        floatingMessage.type === 'warning' ? 'bg-orange-50 border-orange-100 dark:bg-orange-900/10 dark:border-orange-900/30' :
+                            floatingMessage.type === 'ai' ? 'bg-purple-50 border-purple-100 dark:bg-purple-900/10 dark:border-purple-900/30' :
+                                'bg-blue-50 border-blue-100 dark:bg-blue-900/10 dark:border-blue-900/30')
+                    : 'bg-white/60 dark:bg-white/5 backdrop-blur-md border-white/40 dark:border-white/5'}
+            `}>
+                <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-sm transition-colors duration-300
+                        ${floatingMessage ? 'bg-white dark:bg-zinc-800' : 'bg-zinc-100 dark:bg-zinc-800'}`}
+                    >
+                        <span className={`material-icons-round text-xl ${floatingMessage ? (floatingMessage.type === 'ai' ? 'text-purple-500' : floatingMessage.type === 'success' ? 'text-emerald-500' : floatingMessage.type === 'warning' ? 'text-orange-500' : 'text-blue-500') : 'text-zinc-400'}`}>
+                            {floatingMessage
+                                ? (floatingMessage.type === 'success' ? 'check_circle' :
+                                    floatingMessage.type === 'warning' ? 'warning' :
+                                        floatingMessage.type === 'ai' ? 'auto_awesome' : 'info')
+                                : (isReadingImage ? 'sync' : 'smart_toy')}
+                        </span>
+                    </div>
+                    <div className="flex-1">
+                        <p className={`text-xs font-bold leading-tight transition-colors duration-300
+                            ${floatingMessage
+                                ? (floatingMessage.type === 'success' ? 'text-emerald-700 dark:text-emerald-300' :
+                                    floatingMessage.type === 'warning' ? 'text-orange-700 dark:text-orange-300' :
+                                        floatingMessage.type === 'ai' ? 'text-purple-700 dark:text-purple-300' :
+                                            'text-blue-700 dark:text-blue-300')
+                                : 'text-zinc-600 dark:text-zinc-400'}`}
+                        >
+                            {floatingMessage ? floatingMessage.text : (isReadingImage ? "Analisando rótulo..." : carouselTip)}
+                        </p>
+                    </div>
                 </div>
-                <p className="text-[11px] font-bold text-zinc-600 dark:text-zinc-400 leading-tight">
-                    Separe as taras antes de pesar para mayor precisão.
-                </p>
             </div>
 
             {/* 3. Input Identity Card */}
@@ -218,7 +364,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                 </div>
             </div>
 
-            {/* 4. Weighing Secondary Metrics Row */}
+            {/* Logistics & Weights */}
             <div className="grid grid-cols-2 gap-4 stagger-4">
                 {/* Gross Input */}
                 <div className="smart-card p-5 flex items-center gap-4 h-24">
@@ -256,7 +402,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                 </div>
             </div>
 
-            {/* 5. Tara Section Accordion */}
+            {/* Tara Section Accordion */}
             <div className="smart-card overflow-hidden stagger-5">
                 <div className="p-6 flex items-center justify-between cursor-pointer active:bg-zinc-50 dark:active:bg-zinc-800 transition-colors" onClick={() => setShowBoxes(!showBoxes)}>
                     <div className="flex items-center gap-4">
@@ -286,9 +432,8 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                 )}
             </div>
 
-            {/* 6. Action Buttons Bar (Bottom Integration) */}
+            {/* Action Buttons Bar */}
             <div className="fixed bottom-24 left-4 right-4 z-[50] flex items-center justify-between gap-3 stagger-6 animate-fade-in-up">
-                {/* SCAN Button - Pink Gradient */}
                 <button
                     onClick={() => cameraInputRef.current?.click()}
                     className="flex-[1.5] h-16 rounded-[1.8rem] bg-gradient-pink-btn flex items-center justify-center gap-3 text-white btn-press active:scale-95 transition-all shadow-xl"
@@ -297,19 +442,16 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                     <span className="text-[11px] font-black uppercase tracking-[0.2em]">Scan</span>
                 </button>
 
-                {/* GALERIA */}
                 <button onClick={() => galleryInputRef.current?.click()} className="action-btn-circle">
                     <span className="material-icons-round text-2xl text-purple-500">image</span>
                     <span className="text-[8px] font-black uppercase text-zinc-400 tracking-tighter">Galeria</span>
                 </button>
 
-                {/* LIMPAR */}
                 <button onClick={() => setShowConfirmReset(true)} className="action-btn-circle">
                     <span className="material-icons-round text-2xl text-zinc-400 dark:text-zinc-500">delete_sweep</span>
                     <span className="text-[8px] font-black uppercase text-zinc-400 tracking-tighter">Limpar</span>
                 </button>
 
-                {/* SALVAR */}
                 <button
                     onClick={handleSave}
                     disabled={!hasDataToSave}
