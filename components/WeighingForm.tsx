@@ -321,7 +321,9 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                     </div>
                     {/* Bottom Half: Tara Info */}
                     <div className="h-[45%] bg-zinc-50/50 dark:bg-black/20 flex flex-col items-center justify-center p-2">
-                        <span className="text-[8px] font-black uppercase tracking-[0.15em] text-zinc-400 mb-0.5">TARA ({boxQty || '0'}cx)</span>
+                        <span className="text-[7px] font-black uppercase tracking-[0.1em] text-zinc-400 mb-0.5 whitespace-nowrap">
+                            TARA ({boxQty || '0'}cx <span className="text-zinc-300">@</span> {boxTara}g)
+                        </span>
                         <span className="text-sm font-black text-zinc-600 dark:text-zinc-300 tabular-nums">-{totalTara.toFixed(2)}<span className="text-[9px] text-zinc-400 ml-0.5">kg</span></span>
                     </div>
                 </div>
