@@ -463,20 +463,21 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
             <div className="fixed bottom-24 left-4 right-4 z-[50] flex items-center justify-between gap-3 stagger-6 animate-fade-in-up">
                 <button
                     onClick={() => cameraInputRef.current?.click()}
-                    className="flex-[1.5] h-16 rounded-[1.8rem] bg-gradient-pink-btn flex items-center justify-center gap-3 text-white btn-press active:scale-95 transition-all shadow-xl"
+                    className="flex-[1.5] h-20 rounded-[2.2rem] bg-gradient-pink-btn flex flex-col items-center justify-center gap-1 text-white btn-press active:scale-95 transition-all shadow-xl relative overflow-hidden glint-effect"
                 >
-                    <span className="material-icons-round text-2xl">photo_camera</span>
-                    <span className="text-[11px] font-black uppercase tracking-[0.2em]">Scan</span>
+                    <div className="absolute inset-0 bg-white/10 pointer-events-none"></div>
+                    <span className="material-icons-round text-3xl drop-shadow-md">photo_camera</span>
+                    <span className="text-xs font-black uppercase tracking-[0.2em] drop-shadow-sm">Scan</span>
                 </button>
 
                 <button onClick={() => galleryInputRef.current?.click()} className="action-btn-circle">
-                    <span className="material-icons-round text-2xl text-purple-500">image</span>
-                    <span className="text-[8px] font-black uppercase text-zinc-400 tracking-tighter">Galeria</span>
+                    <span className="material-icons-round text-3xl text-purple-500">image</span>
+                    <span className="text-[9px] font-black uppercase text-zinc-400 tracking-tighter">Galeria</span>
                 </button>
 
                 <button onClick={() => setShowConfirmReset(true)} className="action-btn-circle">
-                    <span className="material-icons-round text-2xl text-zinc-400 dark:text-zinc-500">delete_sweep</span>
-                    <span className="text-[8px] font-black uppercase text-zinc-400 tracking-tighter">Limpar</span>
+                    <span className="material-icons-round text-3xl text-zinc-400 dark:text-zinc-500">delete_sweep</span>
+                    <span className="text-[9px] font-black uppercase text-zinc-400 tracking-tighter">Limpar</span>
                 </button>
 
                 <button
@@ -484,8 +485,8 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                     disabled={!hasDataToSave}
                     className={`action-btn-circle ${hasDataToSave ? 'opacity-100 ring-2 ring-emerald-500/20' : 'opacity-40 grayscale'}`}
                 >
-                    <span className={`material-icons-round text-2xl ${hasDataToSave ? 'text-emerald-500' : 'text-zinc-400'}`}>save</span>
-                    <span className="text-[8px] font-black uppercase text-zinc-400 tracking-tighter">Salvar</span>
+                    <span className={`material-icons-round text-3xl ${hasDataToSave ? 'text-emerald-500' : 'text-zinc-400'}`}>save</span>
+                    <span className="text-[9px] font-black uppercase text-zinc-400 tracking-tighter">Salvar</span>
                 </button>
             </div>
 
