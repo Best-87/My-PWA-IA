@@ -301,12 +301,12 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                 <div className="relative bg-gradient-blue-card rounded-[2.5rem] p-4 flex flex-col items-center justify-center min-h-[165px] blue-card-shadow border border-white/30 overflow-hidden glint-effect">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent opacity-50 pointer-events-none"></div>
                     <span className="text-[11px] font-black uppercase tracking-[0.15em] text-white/80 absolute top-5">PESO LÍQUIDO</span>
-                    <div className="flex flex-col items-center justify-center mt-6">
-                        <div className="flex items-baseline text-white drop-shadow-lg scale-110">
-                            <span className="text-[3.2rem] font-black tracking-[-0.03em] tabular-nums leading-none">{Math.floor(netWeight)}</span>
-                            <span className="text-2xl font-bold opacity-70">.{netWeight.toFixed(3).split('.')[1]}</span>
+                    <div className="flex flex-col items-center justify-center mt-4">
+                        <div className="flex items-baseline text-white drop-shadow-lg">
+                            <span className="text-[2.5rem] font-black tracking-[-0.03em] tabular-nums leading-none">{Math.floor(netWeight)}</span>
+                            <span className="text-lg font-bold opacity-70">.{netWeight.toFixed(3).split('.')[1]}</span>
                         </div>
-                        <span className="text-xs font-black text-white/50 tracking-[0.2em] mt-1">KG</span>
+                        <span className="text-[10px] font-black text-white/50 tracking-[0.2em] mt-2">KG</span>
                     </div>
                 </div>
 
@@ -335,12 +335,12 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                 <div className="relative bg-gradient-purple-card rounded-[2.5rem] p-4 flex flex-col items-center justify-center min-h-[165px] purple-card-shadow border border-white/30 overflow-hidden glint-effect">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent opacity-50 pointer-events-none"></div>
                     <span className="text-[11px] font-black uppercase tracking-[0.15em] text-white/80 absolute top-5">PESO BRUTO</span>
-                    <div className="flex flex-col items-center justify-center mt-6">
-                        <div className="flex items-baseline text-white drop-shadow-lg scale-110">
-                            <span className="text-[3.2rem] font-black tracking-[-0.03em] tabular-nums leading-none">{Math.floor(parsedGrossWeight)}</span>
-                            <span className="text-2xl font-bold opacity-70">.{parsedGrossWeight.toFixed(3).split('.')[1]}</span>
+                    <div className="flex flex-col items-center justify-center mt-4">
+                        <div className="flex items-baseline text-white drop-shadow-lg">
+                            <span className="text-[2.5rem] font-black tracking-[-0.03em] tabular-nums leading-none">{Math.floor(parsedGrossWeight)}</span>
+                            <span className="text-lg font-bold opacity-70">.{parsedGrossWeight.toFixed(3).split('.')[1]}</span>
                         </div>
-                        <span className="text-xs font-black text-white/50 tracking-[0.2em] mt-1">KG</span>
+                        <span className="text-[10px] font-black text-white/50 tracking-[0.2em] mt-2">KG</span>
                     </div>
                 </div>
             </div>
