@@ -141,7 +141,8 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
 
     const boxTaraKg = parsedBoxTara / 1000;
     const totalTara = (Number(boxQty) * boxTaraKg);
-    const netWeight = parsedGrossWeight - totalTara;
+    // Prevent negative Net Weight if Gross Weight is not entered
+    const netWeight = parsedGrossWeight > 0 ? parsedGrossWeight - totalTara : 0;
     const difference = netWeight - (Number(noteWeight) || 0);
 
     const handleReset = () => {
@@ -297,24 +298,24 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
             {/* 1. Top Metrics Row - Redesigned Layout */}
             <div className="grid grid-cols-3 gap-3 stagger-1">
                 {/* Net Weight - Large */}
-                <div className="relative bg-gradient-blue-card rounded-[2.2rem] p-4 flex flex-col items-center justify-center min-h-[145px] blue-card-shadow border border-white/30 overflow-hidden glint-effect">
+                <div className="relative bg-gradient-blue-card rounded-[2.5rem] p-4 flex flex-col items-center justify-center min-h-[165px] blue-card-shadow border border-white/30 overflow-hidden glint-effect">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent opacity-50 pointer-events-none"></div>
-                    <span className="text-[10px] font-black uppercase tracking-[0.15em] text-white/80 absolute top-4">PESO LÍQUIDO</span>
-                    <div className="flex flex-col items-center justify-center mt-4">
+                    <span className="text-[11px] font-black uppercase tracking-[0.15em] text-white/80 absolute top-5">PESO LÍQUIDO</span>
+                    <div className="flex flex-col items-center justify-center mt-6">
                         <div className="flex items-baseline text-white drop-shadow-lg scale-110">
-                            <span className="text-[2.8rem] font-black tracking-[-0.03em] tabular-nums leading-none">{Math.floor(netWeight)}</span>
-                            <span className="text-xl font-bold opacity-70">.{netWeight.toFixed(3).split('.')[1]}</span>
+                            <span className="text-[3.2rem] font-black tracking-[-0.03em] tabular-nums leading-none">{Math.floor(netWeight)}</span>
+                            <span className="text-2xl font-bold opacity-70">.{netWeight.toFixed(3).split('.')[1]}</span>
                         </div>
-                        <span className="text-[10px] font-black text-white/50 tracking-[0.2em] mt-1">KG</span>
+                        <span className="text-xs font-black text-white/50 tracking-[0.2em] mt-1">KG</span>
                     </div>
                 </div>
 
                 {/* Center Card - Split Design (Difference & Tara) */}
-                <div className="glass-premium rounded-[2.2rem] flex flex-col min-h-[145px] shadow-sm overflow-hidden">
+                <div className="glass-premium rounded-[2.5rem] flex flex-col min-h-[165px] shadow-sm overflow-hidden">
                     {/* Top Half: Difference */}
                     <div className="flex-1 flex flex-col items-center justify-center bg-white/40 dark:bg-white/5 backdrop-blur-md border-b border-zinc-100 dark:border-white/5 p-2">
-                        <span className="text-[8px] font-black uppercase tracking-[0.15em] text-zinc-400 mb-1">DIFERENCIA</span>
-                        <div className={`text-xl font-black px-3 py-1 rounded-full flex items-center gap-1 ${Math.abs(difference) > TOLERANCE_KG ? 'text-red-500 bg-red-50/50 dark:bg-red-900/10' : 'text-emerald-500 bg-emerald-50/50 dark:bg-emerald-900/10'}`}>
+                        <span className="text-[9px] font-black uppercase tracking-[0.15em] text-zinc-400 mb-1">DIFERENCIA</span>
+                        <div className={`text-2xl font-black px-4 py-1 rounded-full flex items-center gap-1 ${Math.abs(difference) > TOLERANCE_KG ? 'text-red-500 bg-red-50/50 dark:bg-red-900/10' : 'text-emerald-500 bg-emerald-50/50 dark:bg-emerald-900/10'}`}>
                             <span className="text-sm">{difference > 0 ? '+' : ''}</span>
                             {difference.toFixed(3)}
                         </div>
@@ -322,24 +323,24 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                     {/* Bottom Half: Tara Info */}
                     <div className="h-[45%] bg-zinc-50/50 dark:bg-black/20 flex flex-col items-center justify-center p-2">
                         <div className="flex items-center gap-1.5 mb-0.5 text-purple-600 dark:text-purple-400">
-                            <span className="text-[11px] font-black uppercase tracking-wide opacity-80">TARA</span>
-                            <span className="material-icons-round text-sm">inventory_2</span>
-                            <span className="text-[13px] font-black tracking-tight">{boxQty || '0'} <span className="text-[10px] opacity-70">X</span> {boxTara}g</span>
+                            <span className="text-[12px] font-black uppercase tracking-wide opacity-80">TARA</span>
+                            <span className="material-icons-round text-base">inventory_2</span>
+                            <span className="text-[14px] font-black tracking-tight">{boxQty || '0'} <span className="text-[10px] opacity-70">X</span> {boxTara}g</span>
                         </div>
-                        <span className="text-xl font-black text-zinc-800 dark:text-gray-100 tabular-nums leading-none">-{totalTara.toFixed(2)}<span className="text-[10px] text-zinc-400 ml-0.5 font-bold">kg</span></span>
+                        <span className="text-2xl font-black text-zinc-800 dark:text-gray-100 tabular-nums leading-none">-{totalTara.toFixed(2)}<span className="text-[11px] text-zinc-400 ml-0.5 font-bold">kg</span></span>
                     </div>
                 </div>
 
                 {/* Gross Weight - Large */}
-                <div className="relative bg-gradient-purple-card rounded-[2.2rem] p-4 flex flex-col items-center justify-center min-h-[145px] purple-card-shadow border border-white/30 overflow-hidden glint-effect">
+                <div className="relative bg-gradient-purple-card rounded-[2.5rem] p-4 flex flex-col items-center justify-center min-h-[165px] purple-card-shadow border border-white/30 overflow-hidden glint-effect">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent opacity-50 pointer-events-none"></div>
-                    <span className="text-[10px] font-black uppercase tracking-[0.15em] text-white/80 absolute top-4">PESO BRUTO</span>
-                    <div className="flex flex-col items-center justify-center mt-4">
+                    <span className="text-[11px] font-black uppercase tracking-[0.15em] text-white/80 absolute top-5">PESO BRUTO</span>
+                    <div className="flex flex-col items-center justify-center mt-6">
                         <div className="flex items-baseline text-white drop-shadow-lg scale-110">
-                            <span className="text-[2.8rem] font-black tracking-[-0.03em] tabular-nums leading-none">{Math.floor(parsedGrossWeight)}</span>
-                            <span className="text-xl font-bold opacity-70">.{parsedGrossWeight.toFixed(3).split('.')[1]}</span>
+                            <span className="text-[3.2rem] font-black tracking-[-0.03em] tabular-nums leading-none">{Math.floor(parsedGrossWeight)}</span>
+                            <span className="text-2xl font-bold opacity-70">.{parsedGrossWeight.toFixed(3).split('.')[1]}</span>
                         </div>
-                        <span className="text-[10px] font-black text-white/50 tracking-[0.2em] mt-1">KG</span>
+                        <span className="text-xs font-black text-white/50 tracking-[0.2em] mt-1">KG</span>
                     </div>
                 </div>
             </div>
@@ -489,30 +490,30 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
             <div className="fixed bottom-24 left-4 right-4 z-[50] flex items-center justify-between gap-3 stagger-6 animate-fade-in-up">
                 <button
                     onClick={() => cameraInputRef.current?.click()}
-                    className="flex-[1.5] h-20 rounded-[2.5rem] bg-gradient-pink-btn flex flex-col items-center justify-center gap-1 text-white btn-press active:scale-95 transition-all shadow-xl relative overflow-hidden glint-effect"
+                    className="flex-[1.5] h-24 rounded-[3rem] bg-gradient-pink-btn flex flex-col items-center justify-center gap-1 text-white btn-press active:scale-95 transition-all shadow-xl relative overflow-hidden glint-effect"
                 >
                     <div className="absolute inset-0 bg-white/10 pointer-events-none"></div>
-                    <span className="material-icons-round text-3xl drop-shadow-md">photo_camera</span>
-                    <span className="text-xs font-black uppercase tracking-[0.2em] drop-shadow-sm">Scan</span>
+                    <span className="material-icons-round text-4xl drop-shadow-md">photo_camera</span>
+                    <span className="text-sm font-black uppercase tracking-[0.2em] drop-shadow-sm">Scan</span>
                 </button>
 
                 <button onClick={() => galleryInputRef.current?.click()} className="squircle-btn glass-premium">
-                    <span className="material-icons-round text-3xl text-purple-500">image</span>
-                    <span className="text-[9px] font-black uppercase text-zinc-400 tracking-tighter">Galeria</span>
+                    <span className="material-icons-round text-4xl text-purple-500">image</span>
+                    <span className="text-[10px] font-black uppercase text-zinc-400 tracking-tighter">Galeria</span>
                 </button>
 
                 <button onClick={() => setShowConfirmReset(true)} className="squircle-btn glass-premium">
-                    <span className="material-icons-round text-3xl text-zinc-400 dark:text-zinc-500">delete_sweep</span>
-                    <span className="text-[9px] font-black uppercase text-zinc-400 tracking-tighter">Limpar</span>
+                    <span className="material-icons-round text-4xl text-zinc-400 dark:text-zinc-500">delete_sweep</span>
+                    <span className="text-[10px] font-black uppercase text-zinc-400 tracking-tighter">Limpar</span>
                 </button>
 
                 <button
                     onClick={handleSave}
                     disabled={!hasDataToSave}
-                    className={`squircle-btn glass-premium ${hasDataToSave ? 'opacity-100 ring-2 ring-emerald-500/20' : 'opacity-50 grayscale'}`}
+                    className={`squircle-btn glass-premium ${hasDataToSave ? 'opacity-100 ring-4 ring-emerald-500/20' : 'opacity-50 grayscale'}`}
                 >
-                    <span className={`material-icons-round text-3xl ${hasDataToSave ? 'text-emerald-500' : 'text-zinc-400'}`}>save</span>
-                    <span className="text-[9px] font-black uppercase text-zinc-400 tracking-tighter">Salvar</span>
+                    <span className={`material-icons-round text-4xl ${hasDataToSave ? 'text-emerald-500' : 'text-zinc-400'}`}>save</span>
+                    <span className="text-[10px] font-black uppercase text-zinc-400 tracking-tighter">Salvar</span>
                 </button>
             </div>
 
