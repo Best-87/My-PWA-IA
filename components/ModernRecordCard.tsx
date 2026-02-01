@@ -60,7 +60,7 @@ export const ModernRecordCard: React.FC<ModernRecordCardProps> = ({
                             </div>
                             <div>
                                 <div className="marquee-container max-w-[180px]">
-                                    <h3 className={`text-lg font-black text-zinc-800 dark:text-white leading-tight ${formattedProduct.length > 20 ? 'animate-marquee hover:pause-marquee' : ''}`}>
+                                    <h3 className={`text-lg font-black text-zinc-800 dark:text-white leading-tight ${formattedProduct.length > 25 ? 'animate-marquee hover:pause-marquee' : ''}`}>
                                         {formattedProduct}
                                     </h3>
                                 </div>

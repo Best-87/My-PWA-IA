@@ -109,6 +109,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
     const [suggestedNote, setSuggestedNote] = useState<string | null>(null);
     const [suggestedGross, setSuggestedGross] = useState<string | null>(null);
     const [isSuggestionsDismissed, setIsSuggestionsDismissed] = useState(false);
+    const [isProductFocused, setIsProductFocused] = useState(false);
 
     // Reset suggestions dismissed state when product/supplier changes
     useEffect(() => {
@@ -546,13 +547,29 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                         </div>
                         <div className="flex-1 overflow-hidden">
                             <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">PRODUTO</label>
-                            <div className="marquee-container">
+                            <div className="relative min-h-[40px] flex items-center">
+                                {!isProductFocused && product.length > 25 && (
+                                    <div
+                                        className="absolute inset-0 z-10 cursor-text flex items-center pr-4"
+                                        onClick={() => setIsProductFocused(true)}
+                                    >
+                                        <div className="marquee-container">
+                                            <span className="text-base font-bold text-zinc-900 dark:text-white whitespace-nowrap animate-marquee hover:pause-marquee">
+                                                {product}
+                                            </span>
+                                        </div>
+                                    </div>
+                                )}
                                 <input
                                     list="products"
                                     value={product}
+                                    onFocus={() => setIsProductFocused(true)}
                                     onChange={e => setProduct(e.target.value)}
-                                    onBlur={() => setProduct(reformatProductName(product))}
-                                    className={`w-full bg-transparent border-b border-zinc-100 dark:border-white/10 py-1 text-base font-bold text-zinc-900 dark:text-white outline-none focus:border-blue-500 placeholder:text-zinc-300 transition-colors ${product.length > 25 ? 'animate-marquee hover:pause-marquee' : ''}`}
+                                    onBlur={() => {
+                                        setIsProductFocused(false);
+                                        setProduct(reformatProductName(product));
+                                    }}
+                                    className={`w-full bg-transparent border-b border-zinc-100 dark:border-white/10 py-1 text-base font-bold text-zinc-900 dark:text-white outline-none focus:border-blue-500 placeholder:text-zinc-300 transition-colors ${!isProductFocused && product.length > 25 ? 'opacity-0' : 'opacity-100'}`}
                                     placeholder="Produto"
                                 />
                             </div>
