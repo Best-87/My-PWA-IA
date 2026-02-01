@@ -183,6 +183,22 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
         }
     }, [boxQty, standardUnitWeight, boxTara, noteWeight, grossWeight]);
 
+    const applyNoteSuggestion = () => {
+        if (suggestedNote) {
+            setNoteWeight(suggestedNote);
+            setSuggestedNote(null);
+            showToast("Nota aplicada", "info");
+        }
+    };
+
+    const applyGrossSuggestion = () => {
+        if (suggestedGross) {
+            setGrossWeight(suggestedGross);
+            setSuggestedGross(null);
+            showToast("Bruto aplicado", "info");
+        }
+    };
+
     const applyWeightSuggestions = () => {
         if (suggestedNote) setNoteWeight(suggestedNote);
         if (suggestedGross) setGrossWeight(suggestedGross);
@@ -511,55 +527,52 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
             </div>
 
             {/* Logistics & Weights */}
-            <div className={`grid grid-cols-2 gap-4 stagger-4 p-2 rounded-[2.5rem] transition-all duration-500 ${suggestedNote ? 'suggestion-glow bg-purple-50/30' : ''}`}>
+            <div className={`grid grid-cols-2 gap-4 stagger-4 p-2 rounded-[2.5rem] transition-all duration-500 ${suggestedNote || suggestedGross ? 'suggestion-glow bg-purple-50/30' : ''}`}>
 
                 {/* AI Suggestion Banner (Purple) */}
                 {(suggestedNote || suggestedGross) && (
-                    <div className="col-span-2 bg-purple-50 dark:bg-purple-900/10 border border-purple-100 dark:border-purple-800/30 rounded-xl p-3 shadow-inner flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-800/50 flex items-center justify-center text-purple-600">
-                                <span className="material-icons-round text-lg">smart_toy</span>
-                            </div>
-                            <div className="flex flex-col">
-                                <span className="text-[10px] font-black uppercase text-purple-400 tracking-wider">SUGERENCIA IA</span>
-                                <div className="flex items-baseline gap-2">
-                                    <span className="text-sm font-bold text-purple-900 dark:text-purple-100">
-                                        Nota: {suggestedNote} kg
-                                    </span>
-                                    <span className="text-[10px] text-purple-400">•</span>
-                                    <span className="text-sm font-bold text-purple-900 dark:text-purple-100">
-                                        Bruto: {suggestedGross} kg
-                                    </span>
+                    <div className="col-span-2 bg-purple-50 dark:bg-purple-900/10 border border-purple-100 dark:border-purple-800/30 rounded-2xl p-4 shadow-inner mb-2">
+                        <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                                <div className="w-6 h-6 rounded-full bg-purple-600 flex items-center justify-center text-white">
+                                    <span className="material-icons-round text-xs">auto_awesome</span>
                                 </div>
+                                <span className="text-[10px] font-black uppercase text-purple-600 tracking-widest">Sugerencia Inteligente</span>
                             </div>
+                            <button onClick={applyWeightSuggestions} className="text-[10px] font-black text-purple-400 hover:text-purple-600 transition-colors uppercase tracking-tighter">Aplicar Todos</button>
                         </div>
-                        <button
-                            onClick={applyWeightSuggestions}
-                            className="px-4 py-2 bg-purple-600 text-white text-[10px] font-black uppercase tracking-widest rounded-lg shadow-lg shadow-purple-500/20 active:scale-95 transition-transform"
-                        >
-                            APLICAR PESOS
-                        </button>
+
+                        <div className="grid grid-cols-2 gap-3">
+                            {suggestedNote && (
+                                <button
+                                    onClick={applyNoteSuggestion}
+                                    className="bg-white/80 dark:bg-zinc-800/80 p-3 rounded-xl border border-purple-100 dark:border-purple-500/20 text-left flex items-center justify-between group active:scale-95 transition-all shadow-sm"
+                                >
+                                    <div>
+                                        <p className="text-[9px] font-black text-zinc-400 uppercase">Nota Sugerida</p>
+                                        <p className="text-sm font-black text-purple-600">{suggestedNote} <span className="text-[10px] opacity-70">kg</span></p>
+                                    </div>
+                                    <span className="material-icons-round text-lg text-purple-300 group-hover:text-purple-600 transition-colors">add_circle</span>
+                                </button>
+                            )}
+                            {suggestedGross && (
+                                <button
+                                    onClick={applyGrossSuggestion}
+                                    className="bg-white/80 dark:bg-zinc-800/80 p-3 rounded-xl border border-purple-100 dark:border-purple-500/20 text-left flex items-center justify-between group active:scale-95 transition-all shadow-sm"
+                                >
+                                    <div>
+                                        <p className="text-[9px] font-black text-zinc-400 uppercase">Bruto Sugerido</p>
+                                        <p className="text-sm font-black text-purple-600">{suggestedGross} <span className="text-[10px] opacity-70">kg</span></p>
+                                    </div>
+                                    <span className="material-icons-round text-lg text-purple-300 group-hover:text-purple-600 transition-colors">add_circle</span>
+                                </button>
+                            )}
+                        </div>
                     </div>
                 )}
-                {/* Gross Input - Glass */}
-                <div className="glass-premium rounded-[2.2rem] p-5 flex items-center gap-4 h-24 shadow-lg">
-                    <div className="w-12 h-12 rounded-2xl bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center shrink-0 text-purple-500 shadow-inner">
-                        <span className="material-icons-round text-2xl">scale</span>
-                    </div>
-                    <div>
-                        <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">PESO BRUTO</label>
-                        <div className="flex items-baseline gap-1">
-                            <input
-                                ref={grossInputRef} type="text" inputMode="decimal" value={grossWeight} onChange={e => setGrossWeight(e.target.value)}
-                                className="w-full bg-transparent font-black text-zinc-800 dark:text-white outline-none text-xl tabular-nums"
-                                placeholder={suggestedGross || "0.00"}
-                            />
-                            <span className="text-[10px] font-bold text-zinc-400">kg</span>
-                        </div>
-                    </div>
-                </div>
-                {/* Note Input - Glass */}
-                <div className="glass-premium rounded-[2.2rem] p-5 flex items-center gap-4 h-24 shadow-lg">
+
+                {/* Note Input - Glass (Moved to the left to match Net Weight metric) */}
+                <div className="glass-premium rounded-[2.2rem] p-5 flex items-center gap-4 h-24 shadow-lg focus-within:ring-2 focus-within:ring-blue-500/30 transition-all">
                     <div className="w-12 h-12 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center shrink-0 text-zinc-400 shadow-inner">
                         <span className="material-icons-round text-2xl">description</span>
                     </div>
@@ -570,6 +583,24 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                                 ref={noteInputRef} type="number" inputMode="decimal" value={noteWeight} onChange={e => setNoteWeight(e.target.value)}
                                 className="w-full bg-transparent font-black text-zinc-800 dark:text-white outline-none text-xl tabular-nums"
                                 placeholder={suggestedNote || "0.00"}
+                            />
+                            <span className="text-[10px] font-bold text-zinc-400">kg</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Gross Input - Glass (Moved to the right to match Gross Weight metric) */}
+                <div className="glass-premium rounded-[2.2rem] p-5 flex items-center gap-4 h-24 shadow-lg focus-within:ring-2 focus-within:ring-purple-500/30 transition-all">
+                    <div className="w-12 h-12 rounded-2xl bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center shrink-0 text-purple-500 shadow-inner">
+                        <span className="material-icons-round text-2xl">scale</span>
+                    </div>
+                    <div>
+                        <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">PESO BRUTO</label>
+                        <div className="flex items-baseline gap-1">
+                            <input
+                                ref={grossInputRef} type="text" inputMode="decimal" value={grossWeight} onChange={e => setGrossWeight(e.target.value)}
+                                className="w-full bg-transparent font-black text-zinc-800 dark:text-white outline-none text-xl tabular-nums"
+                                placeholder={suggestedGross || "0.00"}
                             />
                             <span className="text-[10px] font-bold text-zinc-400">kg</span>
                         </div>
