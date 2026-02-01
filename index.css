@@ -140,6 +140,22 @@
     opacity: 0.9;
   }
 
+  /* Dark mode shadow refinement to avoid "blocks" */
+  .dark .shadow-lg,
+  .dark .shadow-xl,
+  .dark .shadow-2xl {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 4px 10px rgba(0, 0, 0, 0.2);
+  }
+
+  .dark .glass-premium {
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  }
+
+  .dark .blue-card-shadow,
+  .dark .purple-card-shadow {
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+  }
+
   /* Safe area padding */
   .safe-top {
     padding-top: env(safe-area-inset-top);

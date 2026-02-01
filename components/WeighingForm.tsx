@@ -477,7 +477,44 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
     };
 
     return (
-        <div className="space-y-6 pb-20 animate-fade-in">
+        <div className="space-y-6 pb-20 animate-fade-in pt-4">
+
+            {/* AI Status / Tips Bar - Glass (Top Fixed/Floating style) */}
+            <div className={`
+                p-4 rounded-[1.8rem] transition-all duration-300 border mx-1 mb-2
+                ${floatingMessage
+                    ? (floatingMessage.type === 'success' ? 'bg-emerald-50/90 border-emerald-200/50 dark:bg-emerald-900/20 dark:border-emerald-500/30 backdrop-blur-xl' :
+                        floatingMessage.type === 'warning' ? 'bg-orange-50/90 border-orange-200/50 dark:bg-orange-900/20 dark:border-orange-500/30 backdrop-blur-xl' :
+                            floatingMessage.type === 'ai' ? 'bg-purple-50/90 border-purple-200/50 dark:bg-purple-900/20 dark:border-purple-500/30 backdrop-blur-xl' :
+                                'bg-blue-50/90 border-blue-200/50 dark:bg-blue-900/20 dark:border-blue-500/30 backdrop-blur-xl')
+                    : 'glass-premium'}
+            `}>
+                <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-sm transition-colors duration-300
+                        ${floatingMessage ? 'bg-white dark:bg-zinc-800' : 'bg-zinc-100 dark:bg-zinc-800'}`}
+                    >
+                        <span className={`material-icons-round text-xl ${floatingMessage ? (floatingMessage.type === 'ai' ? 'text-purple-500' : floatingMessage.type === 'success' ? 'text-emerald-500' : floatingMessage.type === 'warning' ? 'text-orange-500' : 'text-blue-500') : 'text-zinc-400'}`}>
+                            {floatingMessage
+                                ? (floatingMessage.type === 'success' ? 'check_circle' :
+                                    floatingMessage.type === 'warning' ? 'warning' :
+                                        floatingMessage.type === 'ai' ? 'auto_awesome' : 'info')
+                                : (isReadingImage ? 'sync' : 'smart_toy')}
+                        </span>
+                    </div>
+                    <div className="flex-1">
+                        <p className={`text-xs font-bold leading-tight transition-colors duration-300
+                            ${floatingMessage
+                                ? (floatingMessage.type === 'success' ? 'text-emerald-700 dark:text-emerald-300' :
+                                    floatingMessage.type === 'warning' ? 'text-orange-700 dark:text-orange-300' :
+                                        floatingMessage.type === 'ai' ? 'text-purple-700 dark:text-purple-300' :
+                                            'text-blue-700 dark:text-blue-300')
+                                : 'text-zinc-600 dark:text-zinc-400'}`}
+                        >
+                            {floatingMessage ? floatingMessage.text : (isReadingImage ? "Analisando rótulo..." : carouselTip)}
+                        </p>
+                    </div>
+                </div>
+            </div>
 
             {/* 1. Top Metrics Row (Matches Image) */}
             {/* 1. Top Metrics Row - Redesigned Layout */}
@@ -526,43 +563,6 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                             <span className="text-lg font-bold opacity-70">.{parsedGrossWeight.toFixed(3).split('.')[1]}</span>
                         </div>
                         <span className="text-[10px] font-black text-white/50 tracking-[0.2em] mt-2">KG</span>
-                    </div>
-                </div>
-            </div>
-
-            {/* AI Status / Tips Bar - Glass */}
-            <div className={`
-                p-4 rounded-[1.8rem] transition-all duration-300 border mx-1 stagger-2
-                ${floatingMessage
-                    ? (floatingMessage.type === 'success' ? 'bg-emerald-50/90 border-emerald-200/50 dark:bg-emerald-900/20 dark:border-emerald-500/30 backdrop-blur-xl' :
-                        floatingMessage.type === 'warning' ? 'bg-orange-50/90 border-orange-200/50 dark:bg-orange-900/20 dark:border-orange-500/30 backdrop-blur-xl' :
-                            floatingMessage.type === 'ai' ? 'bg-purple-50/90 border-purple-200/50 dark:bg-purple-900/20 dark:border-purple-500/30 backdrop-blur-xl' :
-                                'bg-blue-50/90 border-blue-200/50 dark:bg-blue-900/20 dark:border-blue-500/30 backdrop-blur-xl')
-                    : 'glass-premium'}
-            `}>
-                <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-sm transition-colors duration-300
-                        ${floatingMessage ? 'bg-white dark:bg-zinc-800' : 'bg-zinc-100 dark:bg-zinc-800'}`}
-                    >
-                        <span className={`material-icons-round text-xl ${floatingMessage ? (floatingMessage.type === 'ai' ? 'text-purple-500' : floatingMessage.type === 'success' ? 'text-emerald-500' : floatingMessage.type === 'warning' ? 'text-orange-500' : 'text-blue-500') : 'text-zinc-400'}`}>
-                            {floatingMessage
-                                ? (floatingMessage.type === 'success' ? 'check_circle' :
-                                    floatingMessage.type === 'warning' ? 'warning' :
-                                        floatingMessage.type === 'ai' ? 'auto_awesome' : 'info')
-                                : (isReadingImage ? 'sync' : 'smart_toy')}
-                        </span>
-                    </div>
-                    <div className="flex-1">
-                        <p className={`text-xs font-bold leading-tight transition-colors duration-300
-                            ${floatingMessage
-                                ? (floatingMessage.type === 'success' ? 'text-emerald-700 dark:text-emerald-300' :
-                                    floatingMessage.type === 'warning' ? 'text-orange-700 dark:text-orange-300' :
-                                        floatingMessage.type === 'ai' ? 'text-purple-700 dark:text-purple-300' :
-                                            'text-blue-700 dark:text-blue-300')
-                                : 'text-zinc-600 dark:text-zinc-400'}`}
-                        >
-                            {floatingMessage ? floatingMessage.text : (isReadingImage ? "Analisando rótulo..." : carouselTip)}
-                        </p>
                     </div>
                 </div>
             </div>
@@ -712,7 +712,14 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                         </div>
                         <div className="space-y-1">
                             <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">CANTIDAD</label>
-                            <input type="tel" value={boxQty} onChange={e => setBoxQty(e.target.value)} className="w-full bg-zinc-50 dark:bg-zinc-800/50 rounded-xl px-4 py-3 text-sm font-bold outline-none border border-zinc-100 dark:border-white/5 focus:border-blue-500 transition-colors" placeholder="0" />
+                            <input
+                                type="tel"
+                                value={boxQty}
+                                onChange={e => setBoxQty(e.target.value)}
+                                onBlur={() => { if (boxQty) setShowBoxes(false); }}
+                                className="w-full bg-zinc-50 dark:bg-zinc-800/50 rounded-xl px-4 py-3 text-sm font-bold outline-none border border-zinc-100 dark:border-white/5 focus:border-blue-500 transition-colors"
+                                placeholder="0"
+                            />
                         </div>
                     </div>
                 )}
