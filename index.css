@@ -231,10 +231,16 @@
     @apply ring-2 ring-purple-500/30 transition-all duration-500;
     box-shadow: 0 0 30px rgba(168, 85, 247, 0.15);
   }
+
   /* Marquee Animation for long names */
   @keyframes marquee {
-    0% { transform: translateX(100%); }
-    100% { transform: translateX(-100%); }
+    0% {
+      transform: translateX(100%);
+    }
+
+    100% {
+      transform: translateX(-100%);
+    }
   }
 
   .animate-marquee {
@@ -249,5 +255,9 @@
     white-space: nowrap;
     position: relative;
     width: 100%;
+  }
+
+  .pause-marquee:hover {
+    animation-play-state: paused;
   }
 }

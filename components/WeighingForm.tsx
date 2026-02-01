@@ -108,6 +108,12 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
     const [standardUnitWeight, setStandardUnitWeight] = useState<number | null>(null);
     const [suggestedNote, setSuggestedNote] = useState<string | null>(null);
     const [suggestedGross, setSuggestedGross] = useState<string | null>(null);
+    const [isSuggestionsDismissed, setIsSuggestionsDismissed] = useState(false);
+
+    // Reset suggestions dismissed state when product/supplier changes
+    useEffect(() => {
+        setIsSuggestionsDismissed(false);
+    }, [supplier, product]);
 
     // Persist state
     useEffect(() => {
@@ -181,7 +187,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
             const isNoteDifferent = isNaN(currentNote) || Math.abs(currentNote - expectedNet) > 0.01;
             const isGrossDifferent = isNaN(currentGross) || Math.abs(currentGross - expectedGross) > 0.01;
 
-            if (isNoteDifferent || isGrossDifferent) {
+            if (!isSuggestionsDismissed && (isNoteDifferent || isGrossDifferent)) {
                 setSuggestedNote(expectedNet.toFixed(2));
                 setSuggestedGross(expectedGross.toFixed(2));
             } else {
@@ -197,8 +203,9 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
     const applyNoteSuggestion = () => {
         if (suggestedNote) {
             setNoteWeight(suggestedNote);
+            setIsSuggestionsDismissed(true);
             setSuggestedNote(null);
-            setSuggestedGross(null); // Clear both as requested
+            setSuggestedGross(null);
             showToast("Nota aplicada", "info");
         }
     };
@@ -206,8 +213,9 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
     const applyGrossSuggestion = () => {
         if (suggestedGross) {
             setGrossWeight(suggestedGross);
+            setIsSuggestionsDismissed(true);
             setSuggestedGross(null);
-            setSuggestedNote(null); // Clear both as requested
+            setSuggestedNote(null);
             showToast("Bruto aplicado", "info");
         }
     };
@@ -215,6 +223,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
     const applyWeightSuggestions = () => {
         if (suggestedNote) setNoteWeight(suggestedNote);
         if (suggestedGross) setGrossWeight(suggestedGross);
+        setIsSuggestionsDismissed(true);
         setSuggestedNote(null);
         setSuggestedGross(null);
         setFloatingMessage({ text: "✓ Pesos aplicados", type: 'ai' });
@@ -535,14 +544,18 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                         <div className="w-12 h-12 rounded-2xl bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center shrink-0 text-orange-500 shadow-inner">
                             <span className="material-icons-round text-2xl">inventory_2</span>
                         </div>
-                        <div className="flex-1">
+                        <div className="flex-1 overflow-hidden">
                             <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">PRODUTO</label>
-                            <input
-                                list="products" value={product} onChange={e => setProduct(e.target.value)}
-                                onBlur={() => setProduct(reformatProductName(product))}
-                                className="w-full bg-transparent border-b border-zinc-100 dark:border-white/10 py-1 text-base font-bold text-zinc-900 dark:text-white outline-none focus:border-blue-500 placeholder:text-zinc-300 transition-colors"
-                                placeholder="Produto"
-                            />
+                            <div className="marquee-container">
+                                <input
+                                    list="products"
+                                    value={product}
+                                    onChange={e => setProduct(e.target.value)}
+                                    onBlur={() => setProduct(reformatProductName(product))}
+                                    className={`w-full bg-transparent border-b border-zinc-100 dark:border-white/10 py-1 text-base font-bold text-zinc-900 dark:text-white outline-none focus:border-blue-500 placeholder:text-zinc-300 transition-colors ${product.length > 25 ? 'animate-marquee hover:pause-marquee' : ''}`}
+                                    placeholder="Produto"
+                                />
+                            </div>
                             <datalist id="products">{suggestions.products.map(p => <option key={p} value={p} />)}</datalist>
                         </div>
                     </div>

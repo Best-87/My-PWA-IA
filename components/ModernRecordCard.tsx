@@ -23,6 +23,19 @@ export const ModernRecordCard: React.FC<ModernRecordCardProps> = ({
     const { t } = useTranslation();
     const [showImageModal, setShowImageModal] = useState(false);
 
+    const reformatProductName = (name: string): string => {
+        if (!name) return '';
+        const match = name.match(/\(([^)]+)\)/);
+        if (match) {
+            const parenthesized = match[0];
+            const rest = name.replace(parenthesized, '').trim();
+            return `${parenthesized} ${rest}`;
+        }
+        return name;
+    };
+
+    const formattedProduct = reformatProductName(record.product);
+
     const handleImageClick = (e: React.MouseEvent) => {
         e.stopPropagation();
         setShowImageModal(true);
@@ -47,8 +60,8 @@ export const ModernRecordCard: React.FC<ModernRecordCardProps> = ({
                             </div>
                             <div>
                                 <div className="marquee-container max-w-[180px]">
-                                    <h3 className={`text-lg font-black text-zinc-800 dark:text-white leading-tight ${record.product.length > 20 ? 'animate-marquee' : ''}`}>
-                                        {record.product}
+                                    <h3 className={`text-lg font-black text-zinc-800 dark:text-white leading-tight ${formattedProduct.length > 20 ? 'animate-marquee hover:pause-marquee' : ''}`}>
+                                        {formattedProduct}
                                     </h3>
                                 </div>
                                 <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mt-1 line-clamp-1">{record.supplier}</p>
