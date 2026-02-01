@@ -60,6 +60,17 @@ export interface WeighingFormProps {
 
 let persistentFormState: any = null;
 
+const reformatProductName = (name: string): string => {
+    if (!name) return '';
+    const match = name.match(/\(([^)]+)\)/);
+    if (match) {
+        const parenthesized = match[0];
+        const rest = name.replace(parenthesized, '').trim();
+        return `${parenthesized} ${rest}`;
+    }
+    return name;
+};
+
 export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({ onViewHistory, onDataChange, onRecordSaved }, ref) => {
     const { t, language } = useTranslation();
     const { showToast } = useToast();
@@ -187,6 +198,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
         if (suggestedNote) {
             setNoteWeight(suggestedNote);
             setSuggestedNote(null);
+            setSuggestedGross(null); // Clear both as requested
             showToast("Nota aplicada", "info");
         }
     };
@@ -195,6 +207,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
         if (suggestedGross) {
             setGrossWeight(suggestedGross);
             setSuggestedGross(null);
+            setSuggestedNote(null); // Clear both as requested
             showToast("Bruto aplicado", "info");
         }
     };
@@ -252,11 +265,19 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
     };
 
     const handleSave = async () => {
-        if (!supplier || !product || !grossWeight || !noteWeight) { showToast(t('msg_validation_error'), 'error'); return; }
+        const gWeight = parseSum(grossWeight);
+        const nWeight = Number(noteWeight);
+        if (!supplier || !product || gWeight <= 0 || nWeight <= 0) {
+            showToast(t('msg_validation_error'), 'error');
+            return;
+        }
+
+        const formattedProduct = reformatProductName(product);
+
         const syncResult = await saveRecord({
-            id: Date.now().toString(), timestamp: Date.now(), supplier, product,
+            id: Date.now().toString(), timestamp: Date.now(), supplier, product: formattedProduct,
             batch: batch || undefined, expirationDate: expirationDate || undefined, productionDate: productionDate || undefined,
-            grossWeight: parsedGrossWeight, noteWeight: Number(noteWeight), netWeight, taraTotal: totalTara,
+            grossWeight: gWeight, noteWeight: nWeight, netWeight, taraTotal: totalTara,
             boxes: { qty: Number(boxQty), unitTara: boxTaraKg }, status: Math.abs(difference) > TOLERANCE_KG ? 'error' : 'verified',
             evidence: evidence || undefined, recommendedTemperature: recommendedTemp || undefined
         });
@@ -265,7 +286,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
         showToast(syncResult?.success ? t('msg_cloud_synced') : t('alert_saved'), 'success');
     };
 
-    const hasDataToSave = !!(supplier && product && grossWeight && noteWeight);
+    const hasDataToSave = !!(supplier && product && parseSum(grossWeight) > 0 && Number(noteWeight) > 0);
     useEffect(() => { onDataChange?.(hasDataToSave); }, [hasDataToSave, onDataChange]);
 
     useImperativeHandle(ref, () => ({
