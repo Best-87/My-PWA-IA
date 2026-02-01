@@ -210,4 +210,9 @@
     animation: glint-sweep 6s infinite ease-in-out;
     pointer-events: none;
   }
+
+  /* AI Suggestion Glow */
+  .suggestion-glow {
+    @apply ring-2 ring-purple-500/30 shadow-[0_0_30px_rgba(168, 85, 247, 0.15)] transition-all duration-500;
+  }
 }
