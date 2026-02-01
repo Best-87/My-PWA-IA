@@ -42,7 +42,7 @@ export const createChatSession = (systemInstruction?: string): CustomChatSession
  */
 export const sendMessageStream = async (session: CustomChatSession, message: string) => {
     const text = await generateGeminiContent(message, session.systemInstruction);
-    
+
     // Generador asíncrono para mantener compatibilidad con el bucle 'for await' en ChatInterface.tsx
     async function* generator() {
         yield { text };

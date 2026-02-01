@@ -212,7 +212,9 @@
   }
 
   /* AI Suggestion Glow */
+  /* AI Suggestion Glow */
   .suggestion-glow {
-    @apply ring-2 ring-purple-500/30 shadow-[0_0_30px_rgba(168, 85, 247, 0.15)] transition-all duration-500;
+    @apply ring-2 ring-purple-500/30 transition-all duration-500;
+    box-shadow: 0 0 30px rgba(168, 85, 247, 0.15);
   }
 }
