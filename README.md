@@ -1,20 +1,36 @@
 <div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+<img width="128" height="128" alt="App Icon" src="./public/pwa-192x192.png" />
+<h1>My PWA IA</h1>
+<p>An intelligent Progressive Web App for tracking and weighing records with AI assistance.</p>
 </div>
 
-# Run and deploy your AI Studio app
+## Features
 
-This contains everything you need to run your app locally.
-
-View your app in AI Studio: https://ai.studio/apps/drive/19ZMG-7Zmmn-ZD-_W8Lw64n9oBnG_mi60
+- **AI-Powered Assistance**: Context-aware tips and guidance in the weighing form.
+- **Offline Capable**: Full functionality without internet access, syncing when online.
+- **PWA Ready**: Installable on mobile devices with a native-like experience.
+- **History Tracking**: View and manage past weighing records.
+- **Profile Management**: User profile personalization.
+- **Dark Mode**: Support for light and dark themes.
 
 ## Run Locally
 
-**Prerequisites:**  Node.js
-
+**Prerequisites:** Node.js
 
 1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+   ```bash
+   npm install
+   ```
+2. Set the `VITE_GEMINI_API_KEY` in `.env.local` to your Gemini API key.
 3. Run the app:
-   `npm run dev`
+   ```bash
+   npm run dev
+   ```
+
+## Tech Stack
+
+- React
+- Vite
+- Tailwind CSS
+- Gemini API
+- LocalStorage / IndexedDB (for offline data)
