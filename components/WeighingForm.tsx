@@ -247,12 +247,35 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
 
     const parseSum = (val: string) => {
         if (!val) return 0;
-        return val.split(',').reduce((acc, curr) => {
-            const clean = curr.trim();
-            if (!clean) return acc;
-            const v = parseFloat(clean);
-            return acc + (isNaN(v) ? 0 : v);
-        }, 0);
+
+        // Robust parsing: 
+        // 1. If there's a '+' we treat it as the separator.
+        // 2. If there are commas, we need to check if they are decimal or separators.
+        // Strategy: replace all commas with dots if strictly used as decimals, 
+        // or split by '+' / space if used as separators.
+
+        let normalized = val.replace(/\s+/g, ' '); // Normalize spaces
+
+        // If it contains '+', use that as separator
+        if (normalized.includes('+')) {
+            return normalized.split('+').reduce((acc, curr) => {
+                const v = parseFloat(curr.trim().replace(',', '.'));
+                return acc + (isNaN(v) ? 0 : v);
+            }, 0);
+        }
+
+        // If it contains multiple commas or commas followed by space, it's likely a sum
+        // e.g. "10,5, 20,3" or "10, 20"
+        if (normalized.includes(', ') || (normalized.match(/,/g) || []).length > 1) {
+            return normalized.split(/[, ]+/).reduce((acc, curr) => {
+                const v = parseFloat(curr.trim().replace(',', '.'));
+                return acc + (isNaN(v) ? 0 : v);
+            }, 0);
+        }
+
+        // Single value with possible comma decimal
+        const singleVal = parseFloat(normalized.replace(',', '.'));
+        return isNaN(singleVal) ? 0 : singleVal;
     };
 
     const parsedGrossWeight = useMemo(() => parseSum(grossWeight), [grossWeight]);
@@ -261,11 +284,17 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
         return isNaN(val) ? 0 : val;
     }, [boxTara]);
 
+    const parsedNoteWeight = useMemo(() => {
+        if (!noteWeight) return 0;
+        const v = parseFloat(noteWeight.toString().replace(',', '.'));
+        return isNaN(v) ? 0 : v;
+    }, [noteWeight]);
+
     const boxTaraKg = parsedBoxTara / 1000;
     const totalTara = (Number(boxQty) * boxTaraKg);
     // Prevent negative Net Weight if Gross Weight is not entered
     const netWeight = parsedGrossWeight > 0 ? parsedGrossWeight - totalTara : 0;
-    const difference = netWeight - (Number(noteWeight) || 0);
+    const difference = netWeight - parsedNoteWeight;
 
     const handleReset = () => {
         setSupplier(''); setProduct(''); setBatch(''); setExpirationDate(''); setProductionDate('');
@@ -276,8 +305,8 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
     };
 
     const handleSave = async () => {
-        const gWeight = parseSum(grossWeight);
-        const nWeight = Number(noteWeight);
+        const gWeight = parsedGrossWeight;
+        const nWeight = parsedNoteWeight;
         if (!supplier || !product || gWeight <= 0 || nWeight <= 0) {
             showToast(t('msg_validation_error'), 'error');
             return;
@@ -297,7 +326,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
         showToast(syncResult?.success ? t('msg_cloud_synced') : t('alert_saved'), 'success');
     };
 
-    const hasDataToSave = !!(supplier && product && parseSum(grossWeight) > 0 && Number(noteWeight) > 0);
+    const hasDataToSave = !!(supplier && product && parsedGrossWeight > 0 && parsedNoteWeight > 0);
     useEffect(() => { onDataChange?.(hasDataToSave); }, [hasDataToSave, onDataChange]);
 
     useImperativeHandle(ref, () => ({
