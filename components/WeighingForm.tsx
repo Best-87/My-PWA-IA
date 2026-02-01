@@ -110,6 +110,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
     const [suggestedGross, setSuggestedGross] = useState<string | null>(null);
     const [isSuggestionsDismissed, setIsSuggestionsDismissed] = useState(false);
     const [isProductFocused, setIsProductFocused] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
 
     // Reset suggestions dismissed state when product/supplier changes
     useEffect(() => {
@@ -305,12 +306,16 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
     };
 
     const handleSave = async () => {
+        if (isSaving) return;
         const gWeight = parsedGrossWeight;
         const nWeight = parsedNoteWeight;
         if (!supplier || !product || gWeight <= 0 || nWeight <= 0) {
             showToast(t('msg_validation_error'), 'error');
             return;
         }
+
+        setIsSaving(true);
+        showToast("Salvando...", "info");
 
         const finalProduct = reformatProductName(product);
 
@@ -328,6 +333,8 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
         } catch (error) {
             console.error("Save Error:", error);
             showToast("Erro ao salvar dados (memória cheia?)", "error");
+        } finally {
+            setIsSaving(false);
         }
     };
 
@@ -734,11 +741,15 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
 
                 <button
                     onClick={handleSave}
-                    disabled={!hasDataToSave}
-                    className={`squircle-btn glass-premium ${hasDataToSave ? 'opacity-100 ring-4 ring-emerald-500/20' : 'opacity-50 grayscale'}`}
+                    disabled={!hasDataToSave || isSaving}
+                    className={`squircle-btn glass-premium ${hasDataToSave && !isSaving ? 'opacity-100 ring-4 ring-emerald-500/20' : 'opacity-50 grayscale'}`}
                 >
-                    <span className={`material-icons-round text-4xl ${hasDataToSave ? 'text-emerald-500' : 'text-zinc-400'}`}>save</span>
-                    <span className="text-[10px] font-black uppercase text-zinc-400 tracking-tighter">Salvar</span>
+                    <span className={`material-icons-round text-4xl ${hasDataToSave && !isSaving ? (isSaving ? 'animate-spin text-zinc-400' : 'text-emerald-500') : 'text-zinc-400'}`}>
+                        {isSaving ? 'sync' : 'save'}
+                    </span>
+                    <span className="text-[10px] font-black uppercase text-zinc-400 tracking-tighter">
+                        {isSaving ? 'Salvando...' : 'Salvar'}
+                    </span>
                 </button>
             </div>
 
