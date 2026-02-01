@@ -444,7 +444,7 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                 </header>
 
                 {/* Main Content */}
-                <main className={`relative z-[10] pt-20 px-4 pb-32 max-w-lg mx-auto transform transition-all duration-700 ${isLoading ? 'translate-y-4 opacity-0' : 'translate-y-0 opacity-100'}`}>
+                <main className={`relative z-[10] pt-20 px-4 pb-32 max-w-lg mx-auto ${isLoading ? 'transform translate-y-4 opacity-0 transition-all duration-700' : 'opacity-100 transition-opacity duration-700'}`}>
                     {activeTab === 'weigh' && (
                         <div className="animate-fade-in">
                             <WeighingForm

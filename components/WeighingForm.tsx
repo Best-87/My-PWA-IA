@@ -608,7 +608,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
             </div>
 
             {/* Action Buttons Bar - Modern Squircle Design */}
-            <div className="fixed bottom-24 left-4 right-4 z-[50] flex items-center justify-between gap-3 stagger-6 animate-fade-in-up">
+            <div className="fixed bottom-24 left-4 right-4 z-[50] flex items-center justify-between gap-3 stagger-6 animate-fade-in">
                 <button
                     onClick={() => cameraInputRef.current?.click()}
                     className="flex-[1.5] h-24 rounded-[3rem] bg-gradient-pink-btn flex flex-col items-center justify-center gap-1 text-white btn-press active:scale-95 transition-all shadow-xl relative overflow-hidden glint-effect"
