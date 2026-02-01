@@ -261,6 +261,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
         setSupplier(''); setProduct(''); setBatch(''); setExpirationDate(''); setProductionDate('');
         setGrossWeight(''); setNoteWeight(''); setBoxQty(''); setBoxTara(''); setEvidence(null);
         setStorageType(null); setRecommendedTemp(''); setCriticalWarning(null);
+        setSuggestedNote(null); setSuggestedGross(null);
         persistentFormState = null;
     };
 
@@ -272,10 +273,10 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
             return;
         }
 
-        const formattedProduct = reformatProductName(product);
+        const finalProduct = reformatProductName(product);
 
         const syncResult = await saveRecord({
-            id: Date.now().toString(), timestamp: Date.now(), supplier, product: formattedProduct,
+            id: Date.now().toString(), timestamp: Date.now(), supplier, product: finalProduct,
             batch: batch || undefined, expirationDate: expirationDate || undefined, productionDate: productionDate || undefined,
             grossWeight: gWeight, noteWeight: nWeight, netWeight, taraTotal: totalTara,
             boxes: { qty: Number(boxQty), unitTara: boxTaraKg }, status: Math.abs(difference) > TOLERANCE_KG ? 'error' : 'verified',
@@ -538,6 +539,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                             <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">PRODUTO</label>
                             <input
                                 list="products" value={product} onChange={e => setProduct(e.target.value)}
+                                onBlur={() => setProduct(reformatProductName(product))}
                                 className="w-full bg-transparent border-b border-zinc-100 dark:border-white/10 py-1 text-base font-bold text-zinc-900 dark:text-white outline-none focus:border-blue-500 placeholder:text-zinc-300 transition-colors"
                                 placeholder="Produto"
                             />
