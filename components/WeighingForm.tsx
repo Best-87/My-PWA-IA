@@ -373,7 +373,9 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
             setTimeout(() => setFloatingMessage(null), 2000);
 
             if (data.supplier && !supplier) setSupplier(data.supplier);
-            if (data.product && !product) setProduct(data.product);
+            if (data.product && !product) {
+                setProduct(reformatProductName(data.product));
+            }
             if (data.batch && !batch) setBatch(data.batch);
             if (data.expiration && !expirationDate) setExpirationDate(data.expiration);
             if (data.production && !productionDate) setProductionDate(data.production);
@@ -545,7 +547,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                         <div className="w-12 h-12 rounded-2xl bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center shrink-0 text-orange-500 shadow-inner">
                             <span className="material-icons-round text-2xl">inventory_2</span>
                         </div>
-                        <div className="flex-1 overflow-hidden">
+                        <div className="flex-1">
                             <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">PRODUTO</label>
                             <input
                                 list="products"
