@@ -427,16 +427,17 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
             }
 
             if (data.tara) {
-                let val = parseFloat(String(data.tara));
+                let val = parseFloat(String(data.tara).replace(',', '.'));
                 if (!isNaN(val)) {
-                    if (val < 20) val = val * 1000;
+                    if (val < 20) val = val * 1000; // Si es < 20 asumimos kg y pasamos a g
                     setBoxTara(Math.round(val).toString());
                     setShowBoxes(true);
                 }
             }
 
             if (data.standard_unit_weight) {
-                setStandardUnitWeight(Number(data.standard_unit_weight));
+                let std = parseFloat(String(data.standard_unit_weight).replace(',', '.'));
+                if (!isNaN(std)) setStandardUnitWeight(std);
             }
         } catch (error: any) {
             console.error("AI Analysis Error:", error);

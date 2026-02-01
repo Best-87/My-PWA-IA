@@ -57,7 +57,13 @@ const AppContent = () => {
 
     // Filter States
     const [searchTerm, setSearchTerm] = useState('');
-    const [timeFilter, setTimeFilter] = useState<'all' | 'today' | 'week' | 'month' | 'year'>('all');
+    const [timeFilter, setTimeFilter] = useState<'all' | 'today' | 'week' | 'month' | 'year'>(() => {
+        return (localStorage.getItem('history_time_filter') as any) || 'all';
+    });
+
+    useEffect(() => {
+        localStorage.setItem('history_time_filter', timeFilter);
+    }, [timeFilter]);
 
     // Image Viewer State
     const [viewImage, setViewImage] = useState<string | null>(null);
