@@ -547,32 +547,14 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                         </div>
                         <div className="flex-1 overflow-hidden">
                             <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">PRODUTO</label>
-                            <div className="relative min-h-[40px] flex items-center">
-                                {!isProductFocused && product.length > 25 && (
-                                    <div
-                                        className="absolute inset-0 z-10 cursor-text flex items-center pr-4"
-                                        onClick={() => setIsProductFocused(true)}
-                                    >
-                                        <div className="marquee-container">
-                                            <span className="text-base font-bold text-zinc-900 dark:text-white whitespace-nowrap animate-marquee hover:pause-marquee">
-                                                {product}
-                                            </span>
-                                        </div>
-                                    </div>
-                                )}
-                                <input
-                                    list="products"
-                                    value={product}
-                                    onFocus={() => setIsProductFocused(true)}
-                                    onChange={e => setProduct(e.target.value)}
-                                    onBlur={() => {
-                                        setIsProductFocused(false);
-                                        setProduct(reformatProductName(product));
-                                    }}
-                                    className={`w-full bg-transparent border-b border-zinc-100 dark:border-white/10 py-1 text-base font-bold text-zinc-900 dark:text-white outline-none focus:border-blue-500 placeholder:text-zinc-300 transition-colors ${!isProductFocused && product.length > 25 ? 'opacity-0' : 'opacity-100'}`}
-                                    placeholder="Produto"
-                                />
-                            </div>
+                            <input
+                                list="products"
+                                value={product}
+                                onChange={e => setProduct(e.target.value)}
+                                onBlur={() => setProduct(reformatProductName(product))}
+                                className="w-full bg-transparent border-b border-zinc-100 dark:border-white/10 py-1 text-base font-bold text-zinc-900 dark:text-white outline-none focus:border-blue-500 placeholder:text-zinc-300 transition-colors"
+                                placeholder="Produto"
+                            />
                             <datalist id="products">{suggestions.products.map(p => <option key={p} value={p} />)}</datalist>
                         </div>
                     </div>

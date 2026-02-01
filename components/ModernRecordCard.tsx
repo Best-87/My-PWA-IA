@@ -59,11 +59,9 @@ export const ModernRecordCard: React.FC<ModernRecordCardProps> = ({
                                 <span className="material-icons-round text-3xl">{isError ? 'warning' : 'verified'}</span>
                             </div>
                             <div>
-                                <div className="marquee-container max-w-[180px]">
-                                    <h3 className={`text-lg font-black text-zinc-800 dark:text-white leading-tight ${formattedProduct.length > 25 ? 'animate-marquee hover:pause-marquee' : ''}`}>
-                                        {formattedProduct}
-                                    </h3>
-                                </div>
+                                <h3 className="text-lg font-black text-zinc-800 dark:text-white leading-tight line-clamp-1">
+                                    {formattedProduct}
+                                </h3>
                                 <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mt-1 line-clamp-1">{record.supplier}</p>
                             </div>
                         </div>
