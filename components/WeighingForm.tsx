@@ -314,16 +314,21 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
 
         const finalProduct = reformatProductName(product);
 
-        const syncResult = await saveRecord({
-            id: Date.now().toString(), timestamp: Date.now(), supplier, product: finalProduct,
-            batch: batch || undefined, expirationDate: expirationDate || undefined, productionDate: productionDate || undefined,
-            grossWeight: gWeight, noteWeight: nWeight, netWeight, taraTotal: totalTara,
-            boxes: { qty: Number(boxQty), unitTara: boxTaraKg }, status: Math.abs(difference) > TOLERANCE_KG ? 'error' : 'verified',
-            evidence: evidence || undefined, recommendedTemperature: recommendedTemp || undefined
-        });
-        handleReset();
-        onRecordSaved?.();
-        showToast(syncResult?.success ? t('msg_cloud_synced') : t('alert_saved'), 'success');
+        try {
+            const syncResult = await saveRecord({
+                id: Date.now().toString(), timestamp: Date.now(), supplier, product: finalProduct,
+                batch: batch || undefined, expirationDate: expirationDate || undefined, productionDate: productionDate || undefined,
+                grossWeight: gWeight, noteWeight: nWeight, netWeight, taraTotal: totalTara,
+                boxes: { qty: Number(boxQty), unitTara: boxTaraKg }, status: Math.abs(difference) > TOLERANCE_KG ? 'error' : 'verified',
+                evidence: evidence || undefined, recommendedTemperature: recommendedTemp || undefined
+            });
+            handleReset();
+            onRecordSaved?.();
+            showToast(syncResult?.success ? t('msg_cloud_synced') : t('alert_saved'), 'success');
+        } catch (error) {
+            console.error("Save Error:", error);
+            showToast("Erro ao salvar dados (memória cheia?)", "error");
+        }
     };
 
     const hasDataToSave = !!(supplier && product && parsedGrossWeight > 0 && parsedNoteWeight > 0);
@@ -453,11 +458,12 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
         const file = e.target.files?.[0];
         if (file) {
             const reader = new FileReader();
-            reader.onload = (event) => {
+            reader.onload = async (event) => {
                 const base64 = event.target?.result as string;
-                setEvidence(base64);
-                showToast("Imagen cargada, analizando...", "info");
-                analyzeImageContent(base64);
+                const resized = await resizeImageToMax800(base64);
+                setEvidence(resized);
+                showToast("Imagem processada", "info");
+                analyzeImageContent(resized);
             };
             reader.readAsDataURL(file);
         }
@@ -647,7 +653,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                         <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">PESO NOTA</label>
                         <div className="flex items-baseline gap-1">
                             <input
-                                ref={noteInputRef} type="number" inputMode="decimal" value={noteWeight} onChange={e => setNoteWeight(e.target.value)}
+                                ref={noteInputRef} type="text" inputMode="decimal" value={noteWeight} onChange={e => setNoteWeight(e.target.value)}
                                 className="w-full bg-transparent font-black text-zinc-800 dark:text-white outline-none text-xl tabular-nums"
                                 placeholder={suggestedNote || "0.00"}
                             />
