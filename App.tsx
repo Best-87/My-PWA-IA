@@ -5,6 +5,7 @@ import { WeighingForm, WeighingFormHandle } from './components/WeighingForm';
 import { BottomNav } from './components/BottomNav';
 import { ModernRecordCard } from './components/ModernRecordCard';
 import { ProfileView } from './components/ProfileView';
+import { QuickWeighing } from './components/QuickWeighing';
 import { getRecords, deleteRecord, clearAllRecords, getUserProfile, saveUserProfile, getTheme, saveTheme, generateBackupData, restoreBackupData, syncRecords } from './services/storageService';
 import { WeighingRecord, UserProfile } from './types';
 import { LanguageProvider, useTranslation } from './services/i18n';
@@ -47,7 +48,7 @@ const AppContent = () => {
     const { t, language, setLanguage } = useTranslation();
     const { showToast } = useToast();
     const [isLoading, setIsLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<'weigh' | 'history' | 'profile'>('weigh');
+    const [activeTab, setActiveTab] = useState<'weigh' | 'quick' | 'history' | 'profile'>('weigh');
     const [records, setRecords] = useState<WeighingRecord[]>([]);
     const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
     const [profile, setProfile] = useState<UserProfile>(getUserProfile());
@@ -188,7 +189,7 @@ const AppContent = () => {
         trackEvent('theme_changed', { theme: newTheme });
     };
 
-    const handleTabChange = (tab: 'weigh' | 'history' | 'profile') => {
+    const handleTabChange = (tab: 'weigh' | 'quick' | 'history' | 'profile') => {
         setActiveTab(tab);
         if (tab === 'history') {
             setRecords(getRecords());
@@ -459,6 +460,11 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                                 onDataChange={setHasUnsavedWeighingData}
                                 onRecordSaved={() => setRecords(getRecords())}
                             />
+                        </div>
+                    )}
+                    {activeTab === 'quick' && (
+                        <div className="animate-fade-in">
+                            <QuickWeighing />
                         </div>
                     )}
                     {

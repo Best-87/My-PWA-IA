@@ -1,8 +1,8 @@
 import React from 'react';
 
 interface BottomNavProps {
-    activeTab: 'weigh' | 'history' | 'profile';
-    onTabChange: (tab: 'weigh' | 'history' | 'profile') => void;
+    activeTab: 'weigh' | 'history' | 'profile' | 'quick';
+    onTabChange: (tab: 'weigh' | 'history' | 'profile' | 'quick') => void;
     profilePhoto?: string | null;
     children?: React.ReactNode;
 }
@@ -10,6 +10,7 @@ interface BottomNavProps {
 export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange, profilePhoto, children }) => {
     const tabs = [
         { id: 'weigh' as const, icon: 'scale', label: 'Pesar' },
+        { id: 'quick' as const, icon: 'add_task', label: 'Rápido' },
         { id: 'history' as const, icon: 'history', label: 'Historial' },
         { id: 'profile' as const, icon: 'person', label: 'Perfil' }
     ];
