@@ -6,6 +6,7 @@ interface QuickItem {
     produto: string;
     peso: number;
     bruto: number;
+    nota?: number;
     manufacturingDate?: string;
     expirationDate?: string;
 }
@@ -30,8 +31,22 @@ export const QuickWeighing: React.FC = () => {
     // Form states
     const [product, setProduct] = useState("");
     const [bruto, setBruto] = useState("");
+    const [notaWeight, setNotaWeight] = useState("");
     const [manufacturingDate, setManufacturingDate] = useState("");
     const [expirationDate, setExpirationDate] = useState("");
+
+    // Date auto-formatter
+    const formatDate = (value: string) => {
+        const digits = value.replace(/\D/g, "");
+        if (digits.length <= 2) return digits;
+        if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+        return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4, 8)}`;
+    };
+
+    const handleDateChange = (setter: React.Dispatch<React.SetStateAction<string>>) => (e: React.ChangeEvent<HTMLInputElement>) => {
+        const formatted = formatDate(e.target.value);
+        if (formatted.length <= 10) setter(formatted);
+    };
 
     // Expand states for history
     const [expandedSession, setExpandedSession] = useState<number | null>(null);
@@ -57,6 +72,7 @@ export const QuickWeighing: React.FC = () => {
     const handleAdd = () => {
         const prodTrim = product.trim();
         const brutoVal = parseFloat(bruto.replace(',', '.'));
+        const notaVal = notaWeight ? parseFloat(notaWeight.replace(',', '.')) : undefined;
 
         if (!prodTrim || isNaN(brutoVal) || brutoVal <= 0) {
             showToast("Preencha produto e peso bruto", "warning");
@@ -72,10 +88,12 @@ export const QuickWeighing: React.FC = () => {
             produto: prodTrim,
             peso: brutoVal,
             bruto: brutoVal,
+            nota: notaVal,
             manufacturingDate: manufacturingDate || undefined,
             expirationDate: expirationDate || undefined
         }]);
         setBruto("");
+        setNotaWeight("");
         showToast("Adicionado", "success");
     };
 
@@ -89,6 +107,7 @@ export const QuickWeighing: React.FC = () => {
         setItems([]);
         setProduct("");
         setBruto("");
+        setNotaWeight("");
         setManufacturingDate("");
         setExpirationDate("");
     };
@@ -159,23 +178,45 @@ export const QuickWeighing: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Bruto Input */}
-                <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center shrink-0 text-purple-500 shadow-inner">
-                        <span className="material-icons-round text-2xl">scale</span>
+                {/* Weights Row */}
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-2xl bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center shrink-0 text-purple-500 shadow-inner">
+                            <span className="material-icons-round text-2xl">scale</span>
+                        </div>
+                        <div className="flex-1">
+                            <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Peso Bruto</label>
+                            <div className="flex items-baseline gap-1">
+                                <input
+                                    type="text"
+                                    inputMode="decimal"
+                                    value={bruto}
+                                    onChange={(e) => setBruto(e.target.value)}
+                                    className="w-full bg-transparent border-b border-zinc-100 dark:border-white/10 py-1 text-base font-bold text-zinc-900 dark:text-white outline-none focus:border-blue-500 placeholder:text-zinc-300 transition-colors"
+                                    placeholder="0.00"
+                                />
+                                <span className="text-[10px] font-bold text-zinc-400">kg</span>
+                            </div>
+                        </div>
                     </div>
-                    <div className="flex-1">
-                        <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Peso Bruto (kg)</label>
-                        <div className="flex items-baseline gap-1">
-                            <input
-                                type="text"
-                                inputMode="decimal"
-                                value={bruto}
-                                onChange={(e) => setBruto(e.target.value)}
-                                className="w-full bg-transparent border-b border-zinc-100 dark:border-white/10 py-1 text-base font-bold text-zinc-900 dark:text-white outline-none focus:border-blue-500 placeholder:text-zinc-300 transition-colors"
-                                placeholder="0.00"
-                            />
-                            <span className="text-[10px] font-bold text-zinc-400">kg</span>
+
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center shrink-0 text-blue-500 shadow-inner">
+                            <span className="material-icons-round text-2xl">receipt_long</span>
+                        </div>
+                        <div className="flex-1">
+                            <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Peso Nota</label>
+                            <div className="flex items-baseline gap-1">
+                                <input
+                                    type="text"
+                                    inputMode="decimal"
+                                    value={notaWeight}
+                                    onChange={(e) => setNotaWeight(e.target.value)}
+                                    className="w-full bg-transparent border-b border-zinc-100 dark:border-white/10 py-1 text-base font-bold text-zinc-900 dark:text-white outline-none focus:border-blue-500 placeholder:text-zinc-300 transition-colors"
+                                    placeholder="0.00"
+                                />
+                                <span className="text-[10px] font-bold text-zinc-400">kg</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -190,8 +231,9 @@ export const QuickWeighing: React.FC = () => {
                             <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest">Fabricação</label>
                             <input
                                 type="text"
+                                inputMode="numeric"
                                 value={manufacturingDate}
-                                onChange={(e) => setManufacturingDate(e.target.value)}
+                                onChange={handleDateChange(setManufacturingDate)}
                                 className="w-full bg-transparent border-b border-zinc-100 dark:border-white/10 py-0.5 text-xs font-bold text-zinc-800 dark:text-gray-200 outline-none focus:border-blue-500"
                                 placeholder="DD/MM/YY"
                             />
@@ -205,8 +247,9 @@ export const QuickWeighing: React.FC = () => {
                             <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest">Vencimento</label>
                             <input
                                 type="text"
+                                inputMode="numeric"
                                 value={expirationDate}
-                                onChange={(e) => setExpirationDate(e.target.value)}
+                                onChange={handleDateChange(setExpirationDate)}
                                 className="w-full bg-transparent border-b border-zinc-100 dark:border-white/10 py-0.5 text-xs font-bold text-zinc-800 dark:text-gray-200 outline-none focus:border-blue-500"
                                 placeholder="DD/MM/YY"
                             />
@@ -307,9 +350,15 @@ export const QuickWeighing: React.FC = () => {
                                                             {data.pesagens.map((p, i) => (
                                                                 <div key={i} className="flex justify-between items-start text-[10px] bg-zinc-50 dark:bg-black/20 p-2 rounded-xl">
                                                                     <div className="flex flex-col gap-0.5">
-                                                                        <span className="text-zinc-500 font-bold uppercase tracking-widest text-[8px]">Peso</span>
+                                                                        <span className="text-zinc-500 font-bold uppercase tracking-widest text-[8px]">Bruto</span>
                                                                         <span className="text-zinc-800 dark:text-zinc-200 font-black">{p.bruto} kg</span>
                                                                     </div>
+                                                                    {p.nota && (
+                                                                        <div className="flex flex-col gap-0.5">
+                                                                            <span className="text-zinc-500 font-bold uppercase tracking-widest text-[8px]">Nota</span>
+                                                                            <span className="text-blue-500 font-black">{p.nota} kg</span>
+                                                                        </div>
+                                                                    )}
                                                                     {p.manufacturingDate && (
                                                                         <div className="flex flex-col gap-0.5">
                                                                             <span className="text-zinc-500 font-bold uppercase tracking-widest text-[8px]">Fab</span>
