@@ -93,7 +93,6 @@ export const QuickWeighing: React.FC = () => {
             expirationDate: expirationDate || undefined
         }]);
         setBruto("");
-        setNotaWeight("");
         showToast("Adicionado", "success");
     };
 
@@ -136,22 +135,50 @@ export const QuickWeighing: React.FC = () => {
     };
 
     const totalWeight = items.reduce((acc, item) => acc + item.peso, 0);
+    const currentNota = parseFloat(notaWeight.replace(',', '.')) || 0;
+    const difference = totalWeight - currentNota;
 
     return (
         <div className="space-y-6 animate-fade-in pb-32">
             <h2 className="text-2xl font-black text-center text-zinc-900 dark:text-white mt-4 mb-2">Pesagem Rápida</h2>
 
-            {/* Top Metrics Row - To match main WeighingForm */}
-            <div className="px-1">
-                <div className={`relative bg-gradient-blue-card rounded-[2.5rem] p-6 flex flex-col items-center justify-center min-h-[140px] blue-card-shadow border border-white/30 overflow-hidden glint-effect transition-all ${totalWeight > 0 ? 'scale-105 shadow-xl' : 'opacity-80'}`}>
+            {/* Top Metrics Row - Two Columns for Total and Difference */}
+            <div className="grid grid-cols-2 gap-3 px-1">
+                {/* Total Weight Card */}
+                <div className={`relative bg-gradient-blue-card rounded-[2.5rem] p-5 flex flex-col items-center justify-center min-h-[150px] blue-card-shadow border border-white/30 overflow-hidden glint-effect transition-all ${totalWeight > 0 ? 'shadow-xl' : 'opacity-80'}`}>
                     <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent opacity-50 pointer-events-none"></div>
-                    <span className="text-[11px] font-black uppercase tracking-[0.15em] text-white/80 absolute top-5">PESO TOTAL</span>
-                    <div className="flex flex-col items-center justify-center mt-4">
+                    <span className="text-[10px] font-black uppercase tracking-[0.15em] text-white/80 absolute top-5">PESO TOTAL</span>
+                    <div className="flex flex-col items-center justify-center mt-3">
                         <div className="flex items-baseline text-white drop-shadow-lg">
-                            <span className="text-[3rem] font-black tracking-[-0.03em] tabular-nums leading-none">{Math.floor(totalWeight)}</span>
-                            <span className="text-xl font-bold opacity-70">.{totalWeight.toFixed(2).split('.')[1]}</span>
+                            <span className="text-[2.5rem] font-black tracking-[-0.03em] tabular-nums leading-none">{Math.floor(totalWeight)}</span>
+                            <span className="text-lg font-bold opacity-70">.{totalWeight.toFixed(2).split('.')[1]}</span>
                         </div>
-                        <span className="text-[10px] font-black text-white/50 tracking-[0.2em] mt-2">KG</span>
+                        <span className="text-[9px] font-black text-white/50 tracking-[0.2em] mt-1 uppercase">KG</span>
+                    </div>
+                </div>
+
+                {/* Difference Card - Matches main screen style */}
+                <div className="glass-premium rounded-[2.5rem] flex flex-col min-h-[150px] shadow-sm overflow-hidden">
+                    <div className="flex-1 flex flex-col items-center justify-center bg-white/40 dark:bg-white/5 backdrop-blur-md p-3 relative">
+                        <span className="text-[9px] font-black uppercase tracking-[0.15em] text-zinc-400 mb-2">DIFERENCIA</span>
+
+                        {currentNota > 0 ? (
+                            <div className={`text-xl font-black px-4 py-1.5 rounded-full flex items-center gap-1 transition-colors duration-500 ${Math.abs(difference) > 0.2 ? 'text-red-500 bg-red-50/50 dark:bg-red-900/10' : 'text-emerald-500 bg-emerald-50/50 dark:bg-emerald-900/10'}`}>
+                                <span className="text-sm">{difference > 0 ? '+' : ''}</span>
+                                {difference.toFixed(2)}
+                            </div>
+                        ) : (
+                            <div className="text-zinc-300 dark:text-zinc-600 flex flex-col items-center">
+                                <span className="material-icons-round text-xl mb-1">calculate</span>
+                                <span className="text-[8px] font-black uppercase tracking-tighter">Ingrese Nota</span>
+                            </div>
+                        )}
+
+                        {/* Tiny Note Reference */}
+                        <div className="absolute bottom-3 flex items-center gap-1 opacity-40">
+                            <span className="material-icons-round text-[10px]">receipt_long</span>
+                            <span className="text-[9px] font-bold">Nota: {currentNota.toFixed(2)}</span>
+                        </div>
                     </div>
                 </div>
             </div>
