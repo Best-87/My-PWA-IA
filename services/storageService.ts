@@ -86,8 +86,6 @@ export const getUserProfile = (): UserProfile => {
 // --- Record Functions ---
 
 export const saveRecord = async (record: WeighingRecord) => {
-    const records = getRecords();
-
     // Automatically attach the store from the current profile to the record
     const profile = getUserProfile();
     const enrichedRecord = {
@@ -95,48 +93,39 @@ export const saveRecord = async (record: WeighingRecord) => {
         store: profile.store
     };
 
-    records.unshift(enrichedRecord);
-    localStorage.setItem(KEY_RECORDS, JSON.stringify(records));
+    // Learn from pattern (Lightweight)
     learnFromRecord(enrichedRecord);
 
-    // Sync to Supabase
+    // Sync DIRECTLY to Supabase (Skip local storage for large records/images)
     return await syncRecordToSupabase(enrichedRecord);
 };
 
 export const deleteRecord = async (id: string) => {
-    const records = getRecords();
-    const updatedRecords = records.filter(r => r.id !== id);
-    localStorage.setItem(KEY_RECORDS, JSON.stringify(updatedRecords));
-
     // Also delete from Supabase
     const { deleteRecordFromSupabase } = await import('./supabaseService');
     await deleteRecordFromSupabase(id);
 };
 
 export const clearAllRecords = async () => {
-    localStorage.removeItem(KEY_RECORDS);
-
-    // Also clear from Supabase
+    // Clear from Supabase
     const { clearAllRecordsFromSupabase } = await import('./supabaseService');
     await clearAllRecordsFromSupabase();
 };
 
 export const syncRecords = (cloudRecords: WeighingRecord[]) => {
-    localStorage.setItem(KEY_RECORDS, JSON.stringify(cloudRecords));
+    // We NO LONGER store raw records in localStorage to avoid QuotaExceededError
+    // But we might want to learn from them if they are new
+    cloudRecords.forEach(rec => learnFromRecord(rec));
 };
 
-export const getRecords = (): WeighingRecord[] => {
-    try {
-        const data = localStorage.getItem(KEY_RECORDS);
-        return data ? JSON.parse(data) : [];
-    } catch {
-        return [];
-    }
+export const getRecords = async (): Promise<WeighingRecord[]> => {
+    const { fetchRecordsFromSupabase } = await import('./supabaseService');
+    return await fetchRecordsFromSupabase();
 };
 
 // New helper for AI Context
-export const getLastRecordBySupplier = (supplier: string): WeighingRecord | undefined => {
-    const records = getRecords();
+export const getLastRecordBySupplier = async (supplier: string): Promise<WeighingRecord | undefined> => {
+    const records = await getRecords();
     return records.find(r => r.supplier.toLowerCase() === supplier.toLowerCase());
 };
 

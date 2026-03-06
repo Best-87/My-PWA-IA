@@ -6,6 +6,7 @@ import { useTranslation } from '../services/i18n';
 import { useToast } from './Toast';
 import { sendLocalNotification } from '../services/notificationService';
 import { generateGeminiContent } from '../services/geminiService';
+import { uploadImageToSupabase } from '../services/supabaseService';
 
 // UI Refactor - Match iOS Reference Image
 const TOLERANCE_KG = 0.2;
@@ -320,12 +321,22 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
         const finalProduct = reformatProductName(product);
 
         try {
+            // --- Cloud Image Persistence ---
+            let finalEvidenceUrl = evidence || undefined;
+            if (evidence && evidence.startsWith('data:image')) {
+                const fileName = `evidence_${Date.now()}.jpg`;
+                const uploadedUrl = await uploadImageToSupabase(evidence, fileName);
+                if (uploadedUrl) {
+                    finalEvidenceUrl = uploadedUrl;
+                }
+            }
+
             const syncResult = await saveRecord({
                 id: Date.now().toString(), timestamp: Date.now(), supplier, product: finalProduct,
                 batch: batch || undefined, expirationDate: expirationDate || undefined, productionDate: productionDate || undefined,
                 grossWeight: gWeight, noteWeight: nWeight, netWeight, taraTotal: totalTara,
                 boxes: { qty: Number(boxQty), unitTara: boxTaraKg }, status: Math.abs(difference) > TOLERANCE_KG ? 'error' : 'verified',
-                evidence: evidence || undefined, recommendedTemperature: recommendedTemp || undefined
+                evidence: finalEvidenceUrl, recommendedTemperature: recommendedTemp || undefined
             });
             handleReset();
             onRecordSaved?.();

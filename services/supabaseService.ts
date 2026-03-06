@@ -18,6 +18,40 @@ export const supabase = isSupabaseConfigured()
     })
     : null as any;
 
+const BUCKET_NAME = 'evidences';
+
+// --- Storage Functions ---
+export const uploadImageToSupabase = async (base64Image: string, fileName: string): Promise<string | null> => {
+    if (!supabase) return null;
+
+    try {
+        // Convert base64 to Blob
+        const response = await fetch(base64Image);
+        const blob = await response.blob();
+
+        const { data, error } = await supabase.storage
+            .from(BUCKET_NAME)
+            .upload(fileName, blob, {
+                contentType: 'image/jpeg',
+                upsert: true
+            });
+
+        if (error) {
+            console.error('Supabase Upload Error:', error.message);
+            return null;
+        }
+
+        const { data: { publicUrl } } = supabase.storage
+            .from(BUCKET_NAME)
+            .getPublicUrl(fileName);
+
+        return publicUrl;
+    } catch (err) {
+        console.error('Supabase Storage caught error:', err);
+        return null;
+    }
+};
+
 // --- Auth Functions ---
 export const signUp = async (email: string, password: string, metadata: any) => {
     if (!supabase) return { error: { message: 'Supabase not configured' } };
@@ -264,4 +298,83 @@ export const fetchRecordsFromSupabase = async () => {
         return [];
     }
 };
+
+// --- Quick Weighing Functions ---
+export const syncQuickSessionToSupabase = async (session: any) => {
+    if (!supabase) return { error: 'Not configured' };
+
+    try {
+        const { data: { session: authSession } } = await supabase.auth.getSession();
+        const userId = authSession?.user?.id;
+        if (!userId) return { error: 'User not authenticated' };
+
+        const { error } = await supabase
+            .from('quick_weighing_sessions')
+            .insert({
+                user_id: userId,
+                session_data: session,
+                updated_at: new Date().toISOString()
+            });
+
+        if (error) {
+            console.error('Supabase Quick Session Sync Error:', error.message);
+            return { error: error.message };
+        }
+        return { success: true };
+    } catch (err: any) {
+        console.error('Supabase caught error:', err);
+        return { error: err.message };
+    }
+};
+
+export const fetchQuickSessionsFromSupabase = async () => {
+    if (!supabase) return [];
+
+    try {
+        const { data: { session: authSession } } = await supabase.auth.getSession();
+        const userId = authSession?.user?.id;
+        if (!userId) return [];
+
+        const { data, error } = await supabase
+            .from('quick_weighing_sessions')
+            .select('session_data')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('Supabase fetch quick sessions error:', error);
+            return [];
+        }
+
+        return (data || []).map((item: any) => item.session_data);
+    } catch (err) {
+        console.error('Fetch quick sessions caught error:', err);
+        return [];
+    }
+};
+
+export const clearAllQuickSessionsFromSupabase = async () => {
+    if (!supabase) return { error: 'Not configured' };
+
+    try {
+        const { data: { session: authSession } } = await supabase.auth.getSession();
+        const userId = authSession?.user?.id;
+        if (!userId) return { error: 'Not authenticated' };
+
+        const { error } = await supabase
+            .from('quick_weighing_sessions')
+            .delete()
+            .eq('user_id', userId);
+
+        if (error) {
+            console.error('Supabase clear quick sessions error:', error);
+            return { error: error.message };
+        }
+        return { success: true };
+    } catch (err: any) {
+        console.error('Clear quick sessions caught error:', err);
+        return { error: err.message };
+    }
+};
+
 

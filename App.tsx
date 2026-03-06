@@ -90,7 +90,12 @@ const AppContent = () => {
 
     // Initial Load
     useEffect(() => {
-        setRecords(getRecords());
+        const loadInitialData = async () => {
+            const cloudRecords = await getRecords();
+            setRecords(cloudRecords);
+        };
+        loadInitialData();
+
         const savedTheme = getTheme();
         if (savedTheme === 'dark') {
             document.documentElement.classList.add('dark');
@@ -99,7 +104,10 @@ const AppContent = () => {
         }
 
         // Listen for updates via focus
-        const handleFocus = () => setRecords(getRecords());
+        const handleFocus = async () => {
+            const updatedRecords = await getRecords();
+            setRecords(updatedRecords);
+        };
         window.addEventListener('focus', handleFocus);
 
         // Listen for online/offline status changes
@@ -189,10 +197,11 @@ const AppContent = () => {
         trackEvent('theme_changed', { theme: newTheme });
     };
 
-    const handleTabChange = (tab: 'weigh' | 'quick' | 'history' | 'profile') => {
+    const handleTabChange = async (tab: 'weigh' | 'quick' | 'history' | 'profile') => {
         setActiveTab(tab);
         if (tab === 'history') {
-            setRecords(getRecords());
+            const updatedRecords = await getRecords();
+            setRecords(updatedRecords);
         }
         trackEvent('tab_changed', { tab });
     };
@@ -211,10 +220,11 @@ const AppContent = () => {
         setRecordToDelete(id);
     };
 
-    const confirmDelete = () => {
+    const confirmDelete = async () => {
         if (recordToDelete) {
-            deleteRecord(recordToDelete);
-            setRecords(getRecords());
+            await deleteRecord(recordToDelete);
+            const updatedRecords = await getRecords();
+            setRecords(updatedRecords);
             showToast(t('msg_history_cleared'), 'info');
             setRecordToDelete(null);
         }
@@ -226,8 +236,8 @@ const AppContent = () => {
         }
     };
 
-    const executeClearAll = () => {
-        clearAllRecords();
+    const executeClearAll = async () => {
+        await clearAllRecords();
         setRecords([]);
         setShowDeleteAllModal(false);
         showToast(t('msg_history_cleared'), 'warning');
@@ -458,7 +468,10 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                                 ref={formRef}
                                 onViewHistory={() => handleTabChange('history')}
                                 onDataChange={setHasUnsavedWeighingData}
-                                onRecordSaved={() => setRecords(getRecords())}
+                                onRecordSaved={async () => {
+                                    const updatedRecords = await getRecords();
+                                    setRecords(updatedRecords);
+                                }}
                             />
                         </div>
                     )}

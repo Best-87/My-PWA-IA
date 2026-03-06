@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '../services/i18n';
 import { useToast } from './Toast';
+import { syncQuickSessionToSupabase, fetchQuickSessionsFromSupabase, clearAllQuickSessionsFromSupabase } from '../services/supabaseService';
 
 interface QuickItem {
     produto: string;
@@ -53,15 +54,21 @@ export const QuickWeighing: React.FC = () => {
     const [expandedProduct, setExpandedProduct] = useState<string | null>(null);
 
     useEffect(() => {
-        const savedHistory = JSON.parse(localStorage.getItem(SESSION_KEY) || '[]');
-        const savedProducts = JSON.parse(localStorage.getItem(PROD_KEY) || '[]');
-        setHistory(savedHistory);
-        setProducts(savedProducts);
+        const loadHistory = async () => {
+            const savedHistory = await fetchQuickSessionsFromSupabase();
+            const savedProducts = JSON.parse(localStorage.getItem(PROD_KEY) || '[]'); // Products can stay in lightweight cache
+            setHistory(savedHistory);
+            setProducts(savedProducts);
+        };
+        loadHistory();
     }, []);
 
-    const saveHistory = (newHistory: QuickSession[]) => {
+    const saveHistory = async (newHistory: QuickSession[]) => {
         setHistory(newHistory);
-        localStorage.setItem(SESSION_KEY, JSON.stringify(newHistory));
+        // We sync only the NEWEST session to Supabase as a record
+        if (newHistory.length > 0) {
+            await syncQuickSessionToSupabase(newHistory[0]);
+        }
     };
 
     const saveProducts = (newProducts: string[]) => {
@@ -100,6 +107,12 @@ export const QuickWeighing: React.FC = () => {
         const newItems = [...items];
         newItems.splice(index, 1);
         setItems(newItems);
+    };
+
+    const handleClearHistory = async () => {
+        await clearAllQuickSessionsFromSupabase();
+        setHistory([]);
+        showToast("Historial borrado de la nube", "info");
     };
 
     const handleClearAll = () => {
