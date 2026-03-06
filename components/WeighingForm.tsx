@@ -492,13 +492,13 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
 
             {/* AI Status / Tips Bar - Glass (Top Fixed/Floating style) */}
             <div className={`
-                p-4 rounded-[1.8rem] transition-all duration-300 border mx-1 mb-2
+                p-4 rounded-[1.5rem] transition-all duration-300 border mx-1 mb-2
                 ${floatingMessage
-                    ? (floatingMessage.type === 'success' ? 'bg-emerald-50/90 border-emerald-200/50 dark:bg-emerald-900/20 dark:border-emerald-500/30 backdrop-blur-xl' :
-                        floatingMessage.type === 'warning' ? 'bg-orange-50/90 border-orange-200/50 dark:bg-orange-900/20 dark:border-orange-500/30 backdrop-blur-xl' :
-                            floatingMessage.type === 'ai' ? 'bg-purple-50/90 border-purple-200/50 dark:bg-purple-900/20 dark:border-purple-500/30 backdrop-blur-xl' :
-                                'bg-blue-50/90 border-blue-200/50 dark:bg-blue-900/20 dark:border-blue-500/30 backdrop-blur-xl')
-                    : 'glass-premium'}
+                    ? (floatingMessage.type === 'success' ? 'bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-500/30' :
+                        floatingMessage.type === 'warning' ? 'bg-orange-50 border-orange-200 dark:bg-orange-900/20 dark:border-orange-500/30' :
+                            floatingMessage.type === 'ai' ? 'bg-purple-50 border-purple-200 dark:bg-purple-900/20 dark:border-purple-500/30' :
+                                'bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-500/30')
+                    : 'smart-card'}
             `}>
                 <div className="flex items-center gap-3">
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-sm transition-colors duration-300
@@ -531,7 +531,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
             {/* 1. Top Metrics Row - Redesigned Layout */}
             <div className="grid grid-cols-3 gap-3 stagger-1">
                 {/* Net Weight - Large */}
-                <div className="relative bg-gradient-blue-card rounded-[2.5rem] p-4 flex flex-col items-center justify-center min-h-[165px] blue-card-shadow border border-white/30 overflow-hidden glint-effect">
+                <div className="relative bg-gradient-blue-card rounded-[1.5rem] p-4 flex flex-col items-center justify-center min-h-[165px] blue-card-shadow border border-white/30 overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent opacity-50 pointer-events-none"></div>
                     <span className="text-[11px] font-black uppercase tracking-[0.15em] text-white/80 absolute top-5">PESO LÍQUIDO</span>
                     <div className="flex flex-col items-center justify-center mt-4">
@@ -546,7 +546,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                 {/* Center Card - Split Design (Difference & Tara) */}
                 <div className="glass-premium rounded-[2.5rem] flex flex-col min-h-[165px] shadow-sm overflow-hidden">
                     {/* Top Half: Difference */}
-                    <div className="flex-1 flex flex-col items-center justify-center bg-white/40 dark:bg-white/5 backdrop-blur-md border-b border-zinc-100 dark:border-white/5 p-2">
+                    <div className="flex-1 flex flex-col items-center justify-center bg-zinc-50 dark:bg-zinc-800 border-b border-zinc-200 dark:border-zinc-700 p-2">
                         <span className="text-[9px] font-black uppercase tracking-[0.15em] text-zinc-400 mb-1">DIFERENCIA</span>
                         <div className={`text-2xl font-black px-4 py-1 rounded-full flex items-center gap-1 ${Math.abs(difference) > TOLERANCE_KG ? 'text-red-500 bg-red-50/50 dark:bg-red-900/10' : 'text-emerald-500 bg-emerald-50/50 dark:bg-emerald-900/10'}`}>
                             <span className="text-sm">{difference > 0 ? '+' : ''}</span>
@@ -565,7 +565,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                 </div>
 
                 {/* Gross Weight - Large */}
-                <div className="relative bg-gradient-purple-card rounded-[2.5rem] p-4 flex flex-col items-center justify-center min-h-[165px] purple-card-shadow border border-white/30 overflow-hidden glint-effect">
+                <div className="relative bg-gradient-purple-card rounded-[1.5rem] p-4 flex flex-col items-center justify-center min-h-[165px] purple-card-shadow border border-white/30 overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent opacity-50 pointer-events-none"></div>
                     <span className="text-[11px] font-black uppercase tracking-[0.15em] text-white/80 absolute top-5">PESO BRUTO</span>
                     <div className="flex flex-col items-center justify-center mt-4">
@@ -740,7 +740,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
             <div className="flex items-center justify-between gap-3 stagger-6 animate-fade-in px-1 pt-2">
                 <button
                     onClick={() => cameraInputRef.current?.click()}
-                    className="flex-[1.5] h-24 rounded-[3rem] bg-gradient-pink-btn flex flex-col items-center justify-center gap-1 text-white btn-press active:scale-95 transition-all shadow-xl relative overflow-hidden glint-effect"
+                    className="flex-[1.5] h-24 rounded-[2rem] bg-gradient-pink-btn flex flex-col items-center justify-center gap-1 text-white btn-press active:scale-95 transition-all shadow-md relative overflow-hidden"
                 >
                     <div className="absolute inset-0 bg-white/10 pointer-events-none"></div>
                     <span className="material-icons-round text-4xl drop-shadow-md">photo_camera</span>

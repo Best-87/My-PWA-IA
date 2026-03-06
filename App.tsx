@@ -439,22 +439,16 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
             {isLoading && <SplashScreen onFinish={handleFinishLoading} version={APP_VERSION} />}
 
             <div className={`min-h-screen bg-[#F0F4F9] dark:bg-black pb-20 font-sans selection:bg-blue-500/30 ${isLoading ? 'opacity-0' : 'opacity-100 transition-opacity duration-700'}`}>
-                {/* Visual Background Elements from Image */}
-                <div className="fixed inset-0 pointer-events-none overflow-hidden">
-                    <div className="absolute top-[10%] right-[-10%] w-[80%] h-[40%] bg-blue-200/20 dark:bg-blue-900/10 blur-[100px] rounded-full"></div>
-                    <div className="absolute bottom-[20%] left-[-10%] w-[70%] h-[50%] bg-purple-200/20 dark:bg-purple-900/10 blur-[120px] rounded-full"></div>
-                    <div className="absolute top-[30%] left-[20%] w-2 h-2 bg-white rounded-full blur-[1px] opacity-40 shadow-[0_0_10px_white]"></div>
-                    <div className="absolute top-[60%] right-[30%] w-1.5 h-1.5 bg-white rounded-full blur-[1px] opacity-30 shadow-[0_0_8px_white]"></div>
-                </div>
+                {/* Visual Background Elements Removed for cleaner look */}
 
                 <InstallManager />
                 <input ref={backupInputRef} type="file" accept=".json" className="hidden" onChange={handleRestore} />
                 <input ref={profileInputRef} type="file" accept="image/*" className="hidden" onChange={handleProfilePhotoUpload} />
 
-                {/* Adaptive Minimal Top Bar - Refined per image */}
-                <header className="fixed top-0 left-0 right-0 h-14 bg-white/40 dark:bg-black/40 backdrop-blur-xl flex flex-col items-center justify-center z-[100]">
+                {/* Minimal Top Bar */}
+                <header className="fixed top-0 left-0 right-0 h-14 bg-[#F2F5F8] dark:bg-[#121214] border-b border-zinc-200 dark:border-zinc-800 flex flex-col items-center justify-center z-[100]">
                     <h1 className="text-xs font-black text-zinc-800 dark:text-zinc-200 tracking-tighter uppercase opacity-80">{t('app_name')}</h1>
-                    <div className="mt-1 flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-white/60 dark:bg-white/10 shadow-sm border border-white/40 dark:border-white/5">
+                    <div className="mt-1 flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-white dark:bg-zinc-800 shadow-sm border border-zinc-200 dark:border-zinc-700">
                         <div className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-red-500'}`}></div>
                         <span className="text-[8px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400">{isOnline ? 'Online' : 'Offline'}</span>
                     </div>

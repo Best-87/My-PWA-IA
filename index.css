@@ -21,16 +21,16 @@
 
   /* Reference Gradients from Image */
   .bg-gradient-blue-card {
-    background: linear-gradient(135deg, #60A5FA 0%, #2563EB 100%);
+    @apply bg-blue-600 text-white;
   }
 
   .bg-gradient-purple-card {
-    background: linear-gradient(135deg, #A78BFA 0%, #7C3AED 100%);
+    @apply bg-indigo-600 text-white;
   }
 
   .bg-gradient-pink-btn {
-    background: linear-gradient(135deg, #ff71a4 0%, #f43f5e 100%);
-    box-shadow: 0 8px 25px rgba(244, 63, 94, 0.3);
+    @apply bg-blue-600 text-white;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
   }
 
   .bg-gradient-header {
@@ -40,30 +40,30 @@
 
   /* Refined Smart Card Styles */
   .smart-card {
-    @apply bg-white/80 dark:bg-zinc-900/80 rounded-[2.2rem] border border-white/40 dark:border-white/5 backdrop-blur-xl;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03), 0 4px 10px rgba(0, 0, 0, 0.01);
+    @apply bg-white dark:bg-zinc-900 rounded-[1.5rem] border border-zinc-200 dark:border-zinc-800;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
   }
 
   .smart-shadow {
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.04), 0 8px 20px rgba(0, 0, 0, 0.02);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
   }
 
   /* Specific Card Shadows */
   .blue-card-shadow {
-    box-shadow: 0 12px 30px rgba(37, 99, 235, 0.25);
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.15);
   }
 
   .purple-card-shadow {
-    box-shadow: 0 12px 30px rgba(124, 58, 237, 0.25);
+    box-shadow: 0 4px 15px rgba(79, 70, 229, 0.15);
   }
 
   /* Button Styles */
   .action-btn-circle {
-    @apply w-20 h-20 rounded-full bg-white/90 dark:bg-zinc-800/90 backdrop-blur-md shadow-lg flex flex-col items-center justify-center gap-1 transition-all active:scale-95 border border-white/50 dark:border-white/10;
+    @apply w-20 h-20 rounded-full bg-white dark:bg-zinc-800 shadow-md flex flex-col items-center justify-center gap-1 transition-all active:scale-95 border border-zinc-200 dark:border-zinc-700;
   }
 
   .squircle-btn {
-    @apply w-24 h-24 rounded-[2.5rem] bg-white/90 dark:bg-zinc-800/90 backdrop-blur-md shadow-lg flex flex-col items-center justify-center gap-1 transition-all active:scale-95 border border-white/50 dark:border-white/10;
+    @apply w-24 h-24 rounded-[1.5rem] bg-white dark:bg-zinc-800 shadow-md flex flex-col items-center justify-center gap-1 transition-all active:scale-95 border border-zinc-200 dark:border-zinc-700;
   }
 
   /* Animations */
@@ -144,16 +144,16 @@
   .dark .shadow-lg,
   .dark .shadow-xl,
   .dark .shadow-2xl {
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 4px 10px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
   }
 
   .dark .glass-premium {
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   }
 
   .dark .blue-card-shadow,
   .dark .purple-card-shadow {
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
   }
 
   /* Safe area padding */
@@ -198,47 +198,13 @@
 
   /* Premium Glass Effect - iOS Mode */
   .glass-premium {
-    @apply bg-white/70 dark:bg-zinc-900/60 backdrop-blur-[30px] border border-white/40 dark:border-white/10;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+    @apply bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[1.5rem];
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   }
 
-  /* Glint/Reflection Animation */
-  @keyframes glint-sweep {
-    0% {
-      transform: translateX(-150%) translateY(-150%) rotate(25deg);
-      opacity: 0;
-    }
-
-    15% {
-      opacity: 1;
-    }
-
-    30% {
-      transform: translateX(150%) translateY(150%) rotate(25deg);
-      opacity: 0;
-    }
-
-    100% {
-      transform: translateX(150%) translateY(150%) rotate(25deg);
-      opacity: 0;
-    }
-  }
-
+  /* Glint/Reflection Animation (Disabled for clean look) */
   .glint-effect::after {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(45deg,
-        transparent 40%,
-        rgba(255, 255, 255, 0.1) 47%,
-        rgba(255, 255, 255, 0.5) 50%,
-        rgba(255, 255, 255, 0.1) 53%,
-        transparent 60%);
-    animation: glint-sweep 6s infinite ease-in-out;
-    pointer-events: none;
+    display: none;
   }
 
   /* AI Suggestion Glow */
