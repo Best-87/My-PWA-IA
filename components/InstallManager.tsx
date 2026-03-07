@@ -145,7 +145,7 @@ export const InstallManager: React.FC = () => {
         <>
             {/* TOAST INSTALL PROMPT */}
             {showToast && (
-                <div className="glass dark:glass-dark fixed bottom-5 right-5 z-[100] rounded-[1.5rem] shadow-2xl p-4 max-w-sm w-[90%] border border-white/20 dark:border-white/10 animate-slide-up flex flex-col gap-3">
+                <div className="bg-white dark:bg-zinc-900 border-4 border-zinc-900 dark:border-zinc-100 fixed bottom-5 right-5 z-[100] rounded-none shadow-xl p-4 max-w-sm w-[90%] animate-slide-up flex flex-col gap-3">
                     <div className="flex items-start gap-3">
                         <div className="bg-blue-100 dark:bg-blue-900/30 p-2 rounded-xl text-blue-600 dark:text-blue-400">
                             <span className="material-icons-round text-2xl">install_mobile</span>
@@ -167,26 +167,26 @@ export const InstallManager: React.FC = () => {
                         <div className="flex gap-2 mt-1">
                             <button
                                 onClick={handleInstallClick}
-                                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl text-xs font-bold shadow-lg shadow-blue-500/20 active:scale-95 transition-all"
+                                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white rounded-none py-2.5 text-xs font-bold active:bg-blue-800 transition-colors uppercase tracking-widest border-2 border-blue-800"
                             >
-                                Instalar App
+                                INSTALAR
                             </button>
                             <button
                                 onClick={() => setShowToast(false)}
-                                className="px-4 bg-zinc-100 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300 py-2.5 rounded-xl text-xs font-bold hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors"
+                                className="px-4 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 rounded-none py-2.5 text-xs font-bold hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors uppercase tracking-widest border-2 border-zinc-300 dark:border-zinc-700"
                             >
-                                Después
+                                DEPOIS
                             </button>
                         </div>
                     )}
                 </div>
             )}
 
-            {/* Update Available Notification - Dynamic Island Style */}
+            {/* Update Available Notification */}
             {updateAvailable && (
                 <div className="fixed top-2 left-0 right-0 z-[100] flex justify-center px-4 pointer-events-none">
-                    <div className="pointer-events-auto bg-zinc-900/95 dark:bg-white/95 backdrop-blur-md text-white dark:text-black py-2 pl-2 pr-4 rounded-full shadow-2xl border border-white/10 dark:border-zinc-200 flex items-center gap-3 animate-slide-down max-w-fit ring-4 ring-primary-500/10">
-                        <div className="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center shrink-0 shadow-lg shadow-primary-500/20">
+                    <div className="pointer-events-auto bg-zinc-900 dark:bg-white text-white dark:text-black py-2 px-3 rounded-none shadow-none border-4 border-blue-600 dark:border-blue-500 flex items-center gap-3 animate-slide-down max-w-fit">
+                        <div className="w-8 h-8 rounded-none bg-blue-600 flex items-center justify-center shrink-0">
                             <span className="material-icons-round text-white text-base">refresh</span>
                         </div>
                         <div className="flex flex-col pr-1">
@@ -194,7 +194,7 @@ export const InstallManager: React.FC = () => {
                         </div>
                         <button
                             onClick={updateApp}
-                            className="bg-white dark:bg-black text-black dark:text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-tight hover:scale-105 active:scale-95 transition-all shadow-md"
+                            className="bg-white dark:bg-black text-black dark:text-white px-4 py-1.5 rounded-none border-2 border-white dark:border-black text-[10px] font-black uppercase tracking-tight hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors"
                         >
                             {t('btn_update')}
                         </button>

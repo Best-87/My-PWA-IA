@@ -106,15 +106,15 @@ export const ChatInterface: React.FC = () => {
     }, [input, chatSession, isLoading]);
 
     return (
-        <div className="flex flex-col h-[650px] w-full max-w-5xl mx-auto bg-[#1a1a1a]/80 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl overflow-hidden relative">
+        <div className="flex flex-col h-[650px] w-full max-w-5xl mx-auto bg-zinc-900 border-2 border-zinc-700 rounded-none overflow-hidden relative">
             {/* Header */}
-            <div className="p-4 border-b border-white/5 bg-white/5 flex items-center justify-between">
+            <div className="p-4 border-b-2 border-zinc-800 bg-zinc-900 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                        <span className="font-display font-bold text-white text-lg">C</span>
+                    <div className="w-8 h-8 rounded-none border-2 border-blue-500 bg-zinc-800 flex items-center justify-center text-blue-500">
+                        <span className="font-bold text-lg">C</span>
                     </div>
                     <div>
-                        <h2 className="text-white font-display font-medium text-sm">Sesión Activa</h2>
+                        <h2 className="text-white font-bold text-xs uppercase tracking-widest">Sesión Activa</h2>
                         <div className="flex items-center gap-1.5">
                             <div className={`w-1.5 h-1.5 rounded-full ${navigator.onLine ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
                             <span className="text-white/40 text-xs">{navigator.onLine ? 'Conectado a Gemini 3' : 'Sin Conexión'}</span>
@@ -131,12 +131,12 @@ export const ChatInterface: React.FC = () => {
                         className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                     >
                         <div
-                            className={`max-w-[85%] rounded-2xl px-6 py-4 text-sm leading-7 shadow-sm ${msg.role === 'user'
-                                    ? 'bg-primary text-white rounded-br-sm'
-                                    : 'bg-white/10 text-gray-100 rounded-bl-sm border border-white/5'
+                            className={`max-w-[85%] rounded-none px-4 py-3 text-sm leading-6 border-2 ${msg.role === 'user'
+                                ? 'bg-blue-600 border-blue-700 text-white'
+                                : 'bg-zinc-800 border-zinc-700 text-gray-200'
                                 }`}
                         >
-                            <p className="whitespace-pre-wrap font-sans">{msg.text}</p>
+                            <p className="whitespace-pre-wrap font-mono uppercase text-xs">{msg.text}</p>
                             {msg.role === 'model' && msg.text === '' && (
                                 <div className="flex space-x-1 h-5 items-center">
                                     <div className="w-1.5 h-1.5 bg-white/50 rounded-full animate-bounce"></div>
@@ -151,20 +151,20 @@ export const ChatInterface: React.FC = () => {
             </div>
 
             {/* Input Area */}
-            <div className="p-4 bg-black/40 border-t border-white/5">
+            <div className="p-4 bg-zinc-900 border-t-2 border-zinc-800">
                 <form onSubmit={handleSendMessage} className="relative flex items-center gap-3 max-w-4xl mx-auto">
                     <input
                         type="text"
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
-                        placeholder="Escribe tu consulta o datos a analizar..."
-                        className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 focus:bg-white/10 transition-all font-sans"
+                        placeholder="INGRESE CONSULTA..."
+                        className="flex-1 bg-zinc-800 border-2 border-zinc-700 rounded-none px-4 py-3 text-white text-xs font-mono uppercase tracking-widest placeholder:text-zinc-500 focus:outline-none focus:border-blue-500 transition-colors"
                         disabled={isLoading}
                     />
                     <button
                         type="submit"
                         disabled={isLoading || !input.trim()}
-                        className="bg-primary hover:bg-[#6a11cb] disabled:opacity-50 disabled:cursor-not-allowed text-white p-4 rounded-2xl shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 flex items-center justify-center"
+                        className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 border-2 border-blue-800 text-white w-12 h-12 rounded-none transition-colors flex items-center justify-center shrink-0"
                     >
                         {isLoading ? (
                             <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -172,9 +172,7 @@ export const ChatInterface: React.FC = () => {
                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                             </svg>
                         ) : (
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 transform rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                            </svg>
+                            <span className="material-icons-round text-xl">send</span>
                         )}
                     </button>
                 </form>

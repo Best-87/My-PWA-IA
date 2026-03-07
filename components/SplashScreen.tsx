@@ -46,26 +46,26 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish, version })
                                 <feComposite in="SourceGraphic" in2="blur" operator="over" />
                             </filter>
                         </defs>
-                        {/* Squircle Shape */}
-                        <rect x="56" y="56" width="400" height="400" rx="100" fill="url(#splashGrad)" />
+                        {/* Square Shape */}
+                        <rect x="56" y="56" width="400" height="400" rx="0" fill="url(#splashGrad)" />
                         {/* Checkmark */}
                         <path d="M360 180 L210 360 L140 280"
                             fill="none"
                             stroke="white"
                             strokeWidth="45"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
+                            strokeLinecap="square"
+                            strokeLinejoin="miter"
                             filter="url(#splashGlow)"
                             className="animate-[dash_1.5s_ease-in-out_forwards]"
                             strokeDasharray="400"
                             strokeDashoffset="400"
                         />
                         {/* Dot */}
-                        <circle cx="390" cy="150" r="25" fill="white" className="animate-bounce" style={{ animationDelay: '0.8s' }} />
+                        <rect x="365" y="125" width="50" height="50" fill="white" className="animate-bounce" style={{ animationDelay: '0.8s' }} />
                     </svg>
 
                     {/* Ring Pulse */}
-                    <div className="absolute inset-0 rounded-[2rem] border-2 border-white/10 animate-ping" style={{ animationDuration: '2s' }}></div>
+                    <div className="absolute inset-0 border-4 border-white/10 animate-ping" style={{ animationDuration: '2s' }}></div>
                 </div>
 
                 <h1 className="text-4xl font-black text-white tracking-tighter mb-2 font-sans flex items-center gap-1">

@@ -51,7 +51,7 @@ export const InstallPrompt: React.FC<InstallPromptProps> = ({ className }) => {
         deferredPrompt.prompt();
 
         const { outcome } = await deferredPrompt.userChoice;
-        
+
         if (outcome === 'accepted') {
             setStatus(AppStatus.INSTALLED);
             trackEvent('app_installed', { method: 'user_accepted' });
@@ -66,11 +66,11 @@ export const InstallPrompt: React.FC<InstallPromptProps> = ({ className }) => {
     }
 
     if (isIOS) {
-         return (
-             <div className={`bg-white/5 backdrop-blur-md border border-white/10 p-5 rounded-2xl text-white text-left ${className}`}>
-                <h3 className="font-bold text-white mb-2 flex items-center gap-2 font-display">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M12 12V6m0 0l-3 3m3-3l3 3" />
+        return (
+            <div className={`bg-zinc-900 border-2 border-zinc-700 p-5 rounded-none text-white text-left ${className}`}>
+                <h3 className="font-bold text-white mb-2 flex items-center gap-2 font-display uppercase tracking-widest text-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="square" strokeLinejoin="miter" strokeWidth={2} d="M12 18h.01M12 12V6m0 0l-3 3m3-3l3 3" />
                     </svg>
                     Instalar en iOS
                 </h3>
@@ -79,25 +79,25 @@ export const InstallPrompt: React.FC<InstallPromptProps> = ({ className }) => {
                     <li>Pulsa el botón <strong>Compartir</strong> <span className="inline-block bg-white/20 rounded px-1 text-xs">⎋</span></li>
                     <li>Selecciona <strong>"Añadir a pantalla de inicio"</strong></li>
                 </ol>
-             </div>
-         )
+            </div>
+        )
     }
 
     if (status === AppStatus.INSTALLABLE) {
         return (
-            <div className={`bg-white/5 backdrop-blur-md border border-white/10 p-6 rounded-2xl text-center shadow-xl ${className} relative overflow-hidden group`}>
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-purple-400 to-primary"></div>
-                <div className="text-4xl mb-4 bg-white/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto text-primary">📱</div>
-                <h2 className="text-xl font-bold font-display text-white mb-2">Instalar App Nativa</h2>
-                <p className="text-white/60 mb-6 text-sm max-w-sm mx-auto">Obtén acceso rápido, modo sin conexión y una experiencia inmersiva.</p>
-                <button 
+            <div className={`bg-zinc-900 border-2 border-zinc-700 p-6 rounded-none text-center shadow-sm ${className} relative overflow-hidden group`}>
+                <div className="absolute top-0 left-0 w-full h-1 bg-blue-600"></div>
+                <div className="text-4xl mb-4 bg-zinc-800 w-16 h-16 rounded-none border-2 border-zinc-700 flex items-center justify-center mx-auto text-blue-500">📱</div>
+                <h2 className="text-xl font-bold font-display text-white mb-2 uppercase tracking-widest">Instalar App</h2>
+                <p className="text-zinc-400 mb-6 text-xs max-w-sm mx-auto uppercase tracking-widest">ACCESO OFFLINE Y MAYOR VELOCIDAD</p>
+                <button
                     onClick={handleInstallClick}
-                    className="bg-primary hover:bg-[#6a11cb] text-white font-bold py-3 px-8 rounded-full shadow-lg shadow-primary/30 transform transition-all hover:-translate-y-1 active:translate-y-0 duration-200 w-full sm:w-auto flex items-center justify-center gap-2 mx-auto"
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-none border-2 border-blue-800 transition-colors w-full sm:w-auto flex items-center justify-center gap-2 mx-auto uppercase tracking-widest text-xs"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        <path strokeLinecap="square" strokeLinejoin="miter" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                     </svg>
-                    Instalar Conferente
+                    INSTALAR CONFERENTE
                 </button>
             </div>
         );

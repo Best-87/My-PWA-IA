@@ -74,9 +74,9 @@ const ToastItem: React.FC<{ toast: ToastMessage; onRemove: (id: string) => void 
     const currentStyle = styles[toast.type];
 
     return (
-        <div 
+        <div
             className={`
-                pointer-events-auto flex flex-col p-3 rounded-2xl border shadow-lg backdrop-blur-md max-w-sm w-full transition-all duration-300 transform
+                pointer-events-auto flex flex-col p-3 rounded-none border-2 shadow-sm max-w-sm w-full transition-all duration-300 transform
                 ${currentStyle.bg} ${currentStyle.border}
                 ${isExiting ? 'opacity-0 -translate-y-2 scale-95' : 'opacity-100 translate-y-0 scale-100 animate-slide-down'}
             `}
@@ -98,14 +98,14 @@ const ToastItem: React.FC<{ toast: ToastMessage; onRemove: (id: string) => void 
                 <span className={`material-icons-round text-xl shrink-0 mt-0.5 ${currentStyle.iconColor}`}>
                     {currentStyle.icon}
                 </span>
-                
+
                 <div className="flex-1 pt-0.5">
                     <p className={`text-sm font-bold leading-snug ${currentStyle.text}`}>
                         {toast.msg}
                     </p>
                 </div>
 
-                <button 
+                <button
                     onClick={handleClose}
                     className={`shrink-0 -mr-1 -mt-1 p-1 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors ${currentStyle.text} opacity-60 hover:opacity-100`}
                 >
