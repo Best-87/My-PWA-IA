@@ -47,70 +47,69 @@ export const ModernRecordCard: React.FC<ModernRecordCardProps> = ({
     return (
         <>
             <div
-                className={`glass-premium rounded-[2.5rem] overflow-hidden transition-all duration-300 ${isExpanded ? 'ring-2 ring-purple-500/20 shadow-2xl scale-[1.02]' : 'hover:scale-[1.01]'} mb-6 relative group`}
+                className={`bg-white dark:bg-zinc-900 border-2 rounded transition-all duration-300 mb-4 cursor-pointer ${isExpanded ? 'border-zinc-800 dark:border-zinc-400 shadow-md scale-[1.01]' : 'border-zinc-300 dark:border-zinc-700 hover:border-zinc-400'}`}
                 onClick={onExpand}
             >
-                <div className="p-6 relative z-10">
+                <div className="p-4 relative z-10">
                     {/* Header Row */}
-                    <div className="flex justify-between items-start mb-6">
-                        <div className="flex items-center gap-4">
+                    <div className="flex justify-between items-start mb-4">
+                        <div className="flex items-center gap-3">
                             {/* Icon Box */}
-                            <div className={`w-14 h-14 rounded-[1.2rem] flex items-center justify-center shadow-inner transition-colors duration-300 ${isError ? 'bg-red-50 text-red-500 dark:bg-red-900/20 dark:text-red-400' : 'bg-green-50 text-green-500 dark:bg-green-900/20 dark:text-green-400'}`}>
-                                <span className="material-icons-round text-3xl">{isError ? 'warning' : 'verified'}</span>
+                            <div className={`w-12 h-12 rounded border-2 flex items-center justify-center transition-colors duration-300 ${isError ? 'bg-red-100 text-red-600 border-red-500' : 'bg-emerald-100 text-emerald-600 border-emerald-500'}`}>
+                                <span className="material-icons-round text-2xl">{isError ? 'warning' : 'verified'}</span>
                             </div>
                             <div>
-                                <h3 className="text-lg font-black text-zinc-800 dark:text-white leading-tight line-clamp-1">
+                                <h3 className="text-sm font-bold text-zinc-900 dark:text-white leading-tight uppercase line-clamp-1">
                                     {formattedProduct}
                                 </h3>
                                 <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mt-1 line-clamp-1">{record.supplier}</p>
                             </div>
                         </div>
                         {/* Date Badge */}
-                        <div className="px-3 py-1.5 rounded-full bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/5 whitespace-nowrap">
-                            <span className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                        <div className="px-2 py-1 rounded bg-zinc-200 dark:bg-zinc-800 border-2 border-zinc-300 dark:border-zinc-700 whitespace-nowrap">
+                            <span className="text-[10px] font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-widest">
                                 {new Date(record.timestamp).toLocaleDateString(undefined, { day: '2-digit', month: 'short' })}
                             </span>
                         </div>
                     </div>
 
-                    {/* Hero Metrics (Always visible in collapsed state, shown differently in expanded) */}
+                    {/* Hero Metrics */}
                     {!isExpanded && (
-                        <div className="flex items-end justify-between animate-fade-in">
+                        <div className="flex items-end justify-between animate-fade-in border-t-2 border-zinc-100 dark:border-zinc-800 pt-3">
                             <div>
-                                <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block mb-1">{t('lbl_net')}</span>
+                                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block mb-1">NETO (KG)</span>
                                 <div className="flex items-baseline gap-1">
-                                    <span className="text-3xl font-black text-zinc-800 dark:text-white tracking-tight">{record.netWeight.toFixed(2)}</span>
-                                    <span className="text-xs font-bold text-zinc-400">kg</span>
+                                    <span className="text-2xl font-mono font-bold text-zinc-900 dark:text-white">{record.netWeight.toFixed(2)}</span>
                                 </div>
                             </div>
-                            <div className={`flex flex-col items-end ${isError ? 'text-red-500' : 'text-emerald-500'}`}>
-                                <span className="text-[10px] font-black uppercase tracking-widest mb-1">{isError ? 'Diferencia' : 'Exacto'}</span>
-                                <span className="text-xl font-black">{diff > 0 ? '+' : ''}{diff.toFixed(2)} kg</span>
+                            <div className={`flex flex-col items-end ${isError ? 'text-red-600' : 'text-emerald-600'}`}>
+                                <span className="text-[10px] font-bold uppercase tracking-widest mb-1">{isError ? 'DIFERENCIA' : 'EXACTO'}</span>
+                                <span className="text-lg font-mono font-bold bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded border-2 border-transparent">{diff > 0 ? '+' : ''}{diff.toFixed(2)}</span>
                             </div>
                         </div>
                     )}
 
                     {/* Expanded Content */}
                     {isExpanded && (
-                        <div className="animate-fade-in space-y-6 mt-2">
-                            {/* Weights Grid (Glass Inner) */}
-                            <div className="grid grid-cols-3 gap-2 bg-zinc-50/50 dark:bg-black/20 rounded-3xl p-5 border border-zinc-100 dark:border-white/5">
-                                <div className="text-center">
-                                    <span className="text-[8px] font-black text-zinc-400 uppercase tracking-widest block mb-2">Neto</span>
-                                    <span className="text-2xl font-black text-zinc-800 dark:text-white">{record.netWeight.toFixed(2)}</span>
+                        <div className="animate-fade-in space-y-4 mt-4 border-t-2 border-zinc-200 dark:border-zinc-700 pt-4">
+                            {/* Weights Grid */}
+                            <div className="grid grid-cols-3 gap-2">
+                                <div className="bg-zinc-100 dark:bg-zinc-800 rounded border-2 border-zinc-200 dark:border-zinc-700 p-2 text-center">
+                                    <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest block mb-1">NETO(KG)</span>
+                                    <span className="text-xl font-mono font-bold text-zinc-900 dark:text-white">{record.netWeight.toFixed(2)}</span>
                                 </div>
-                                <div className="text-center border-l border-zinc-200/50 dark:border-white/10">
-                                    <span className="text-[8px] font-black text-zinc-400 uppercase tracking-widest block mb-2">Bruto</span>
-                                    <span className="text-lg font-bold text-zinc-600 dark:text-zinc-300">{record.grossWeight.toFixed(2)}</span>
+                                <div className="bg-zinc-100 dark:bg-zinc-800 rounded border-2 border-zinc-200 dark:border-zinc-700 p-2 text-center">
+                                    <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest block mb-1">BRUTO(KG)</span>
+                                    <span className="text-lg font-mono font-bold text-zinc-700 dark:text-zinc-300">{record.grossWeight.toFixed(2)}</span>
                                 </div>
-                                <div className="text-center border-l border-zinc-200/50 dark:border-white/10">
-                                    <span className="text-[8px] font-black text-zinc-400 uppercase tracking-widest block mb-2">Tara</span>
-                                    <span className="text-lg font-bold text-zinc-600 dark:text-zinc-300">{record.taraTotal.toFixed(2)}</span>
+                                <div className="bg-zinc-100 dark:bg-zinc-800 rounded border-2 border-zinc-200 dark:border-zinc-700 p-2 text-center">
+                                    <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest block mb-1">TARA(KG)</span>
+                                    <span className="text-lg font-mono font-bold text-zinc-700 dark:text-zinc-300">{record.taraTotal.toFixed(2)}</span>
                                 </div>
                             </div>
 
                             {/* Difference Detail Box */}
-                            <div className={`p-4 rounded-2xl flex items-center justify-between ${isError ? 'bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-800/30' : 'bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-800/30'}`}>
+                            <div className={`p-3 rounded border-2 flex items-center justify-between ${isError ? 'bg-red-50 border-red-500 text-red-900' : 'bg-emerald-50 border-emerald-500 text-emerald-900'}`}>
                                 <div className="flex items-center gap-3">
                                     <span className={`material-icons-round ${isError ? 'text-red-500' : 'text-emerald-500'}`}>
                                         {isError ? 'error_outline' : 'check_circle_outline'}
@@ -126,31 +125,31 @@ export const ModernRecordCard: React.FC<ModernRecordCardProps> = ({
                             </div>
 
                             {/* Logistics Data (Grid) */}
-                            <div className="space-y-3">
-                                <h4 className="text-[10px] font-black text-zinc-300 uppercase tracking-widest px-1">Datos Logísticos</h4>
-                                <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-2">
+                                <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">LOGÍSTICA</h4>
+                                <div className="grid grid-cols-2 gap-2">
                                     {/* Batch */}
-                                    <div className="bg-white/40 dark:bg-white/5 p-4 rounded-2xl border border-white/20 dark:border-white/5">
-                                        <span className="text-[8px] font-black text-zinc-400 uppercase tracking-widest block mb-1">Lote / Batch</span>
-                                        <span className="text-sm font-bold text-zinc-700 dark:text-zinc-200">{record.batch || 'N/A'}</span>
+                                    <div className="bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded border-2 border-zinc-200 dark:border-zinc-700">
+                                        <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest block mb-1">LOTE</span>
+                                        <span className="text-sm font-mono font-bold text-zinc-900 dark:text-zinc-100 uppercase">{record.batch || 'N/A'}</span>
                                     </div>
                                     {/* Expiration */}
-                                    <div className="bg-white/40 dark:bg-white/5 p-4 rounded-2xl border border-white/20 dark:border-white/5">
-                                        <span className="text-[8px] font-black text-zinc-400 uppercase tracking-widest block mb-1">Vencimiento</span>
-                                        <span className="text-sm font-bold text-zinc-700 dark:text-zinc-200">{record.expirationDate || 'N/A'}</span>
+                                    <div className="bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded border-2 border-zinc-200 dark:border-zinc-700">
+                                        <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest block mb-1">VENCIMIENTO</span>
+                                        <span className="text-sm font-mono font-bold text-zinc-900 dark:text-zinc-100 uppercase">{record.expirationDate || 'N/A'}</span>
                                     </div>
                                     {/* Production */}
                                     {record.productionDate && (
-                                        <div className="bg-white/40 dark:bg-white/5 p-4 rounded-2xl border border-white/20 dark:border-white/5">
-                                            <span className="text-[8px] font-black text-zinc-400 uppercase tracking-widest block mb-1">Fabricación</span>
-                                            <span className="text-sm font-bold text-zinc-700 dark:text-zinc-200">{record.productionDate}</span>
+                                        <div className="bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded border-2 border-zinc-200 dark:border-zinc-700">
+                                            <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest block mb-1">FABRICACIÓN</span>
+                                            <span className="text-sm font-mono font-bold text-zinc-900 dark:text-zinc-100 uppercase">{record.productionDate}</span>
                                         </div>
                                     )}
                                     {/* Temp */}
                                     {record.recommendedTemperature && (
-                                        <div className="bg-white/40 dark:bg-white/5 p-4 rounded-2xl border border-white/20 dark:border-white/5">
-                                            <span className="text-[8px] font-black text-zinc-400 uppercase tracking-widest block mb-1">Temperatura</span>
-                                            <span className="text-sm font-bold text-zinc-700 dark:text-zinc-200">{record.recommendedTemperature}</span>
+                                        <div className="bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded border-2 border-zinc-200 dark:border-zinc-700">
+                                            <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest block mb-1">TEMP REC.</span>
+                                            <span className="text-sm font-mono font-bold text-zinc-900 dark:text-zinc-100 uppercase">{record.recommendedTemperature}</span>
                                         </div>
                                     )}
                                 </div>
@@ -158,9 +157,9 @@ export const ModernRecordCard: React.FC<ModernRecordCardProps> = ({
 
                             {/* Evidence Image */}
                             {record.evidence && (
-                                <div className="space-y-3">
-                                    <h4 className="text-[10px] font-black text-zinc-300 uppercase tracking-widest px-1">Evidencia Visual</h4>
-                                    <div className="relative h-48 rounded-[2rem] overflow-hidden group shadow-lg" onClick={handleImageClick}>
+                                <div className="space-y-2 mt-2">
+                                    <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">EVIDENCIA VISUAL</h4>
+                                    <div className="relative h-40 rounded border-4 border-zinc-200 dark:border-zinc-700 overflow-hidden cursor-pointer" onClick={handleImageClick}>
                                         <img src={record.evidence} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
                                         <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                             <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center">
@@ -177,29 +176,29 @@ export const ModernRecordCard: React.FC<ModernRecordCardProps> = ({
 
                             {/* Analysis Text */}
                             {record.aiAnalysis && (
-                                <div className="bg-purple-50 dark:bg-purple-900/10 p-5 rounded-[2rem] border border-purple-100 dark:border-purple-800/20 shadow-inner">
-                                    <div className="flex items-center gap-2 mb-3">
-                                        <span className="material-icons-round text-purple-500 text-lg">auto_awesome</span>
-                                        <span className="text-[10px] font-black text-purple-400 uppercase tracking-widest">Análisis IA</span>
+                                <div className="bg-purple-100 dark:bg-purple-900/20 p-3 rounded border-2 border-purple-400 dark:border-purple-600 mt-2">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <span className="material-icons-round text-purple-600 text-lg">auto_awesome</span>
+                                        <span className="text-[10px] font-bold text-purple-700 dark:text-purple-300 uppercase tracking-widest">ANÁLISIS IA</span>
                                     </div>
-                                    <p className="text-xs text-zinc-600 dark:text-zinc-300 leading-relaxed font-medium">{record.aiAnalysis}</p>
+                                    <p className="text-xs text-purple-900 dark:text-purple-100 leading-relaxed font-bold">{record.aiAnalysis}</p>
                                 </div>
                             )}
 
                             {/* Actions */}
-                            <div className="flex gap-3 pt-4 border-t border-zinc-100 dark:border-white/5">
+                            <div className="grid grid-cols-4 gap-2 pt-4 border-t-2 border-zinc-200 dark:border-zinc-700 mt-2">
                                 <button
                                     onClick={onShare}
-                                    className="flex-1 h-14 rounded-[1.5rem] bg-zinc-900 dark:bg-white text-white dark:text-black font-black text-xs uppercase tracking-wider shadow-xl dark:shadow-white/10 active:scale-95 transition-transform flex items-center justify-center gap-2"
+                                    className="col-span-3 h-12 rounded bg-blue-600 text-white font-bold text-xs uppercase tracking-widest border-2 border-blue-800 active:bg-blue-700 flex items-center justify-center gap-2"
                                 >
-                                    <span className="material-icons-round text-xl">share</span>
-                                    Compartir
+                                    <span className="material-icons-round text-lg">share</span>
+                                    COMPARTIR
                                 </button>
                                 <button
                                     onClick={onDelete}
-                                    className="w-14 h-14 rounded-[1.5rem] bg-red-50 dark:bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-100 dark:hover:bg-red-500/20 active:scale-95 transition-transform border border-red-100 dark:border-red-500/20"
+                                    className="col-span-1 h-12 rounded bg-red-600 text-white flex items-center justify-center active:bg-red-700 border-2 border-red-800"
                                 >
-                                    <span className="material-icons-round text-xl">delete</span>
+                                    <span className="material-icons-round text-lg">delete</span>
                                 </button>
                             </div>
                         </div>
@@ -224,15 +223,15 @@ export const ModernRecordCard: React.FC<ModernRecordCardProps> = ({
                         <img
                             src={record.evidence}
                             alt="Evidencia Full"
-                            className="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl animate-scale-in"
+                            className="max-w-full max-h-[85vh] object-contain rounded border-4 border-zinc-500 bg-zinc-900 animate-scale-in"
                         />
 
-                        <div className="mt-6 flex gap-4">
+                        <div className="mt-6 flex gap-4 w-full max-w-sm">
                             <button
                                 onClick={onShare}
-                                className="px-6 py-3 bg-blue-600 rounded-full text-white font-bold text-sm tracking-wide flex items-center gap-2 shadow-lg shadow-blue-600/30"
+                                className="w-full py-4 bg-blue-600 rounded text-white font-bold text-sm uppercase tracking-widest flex items-center justify-center gap-2 border-2 border-blue-800 active:bg-blue-700"
                             >
-                                <span className="material-icons-round text-lg">share</span> Compartir Imagen
+                                <span className="material-icons-round text-lg">share</span> COMPARTIR
                             </button>
                         </div>
                     </div>

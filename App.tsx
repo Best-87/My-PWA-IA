@@ -477,22 +477,22 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                     {
                         activeTab === 'history' && (
                             <div className="animate-fade-in space-y-6">
-                                <div className="flex items-center justify-between px-2 mt-4 mb-6">
-                                    <h2 className="text-2xl font-black tracking-tight text-zinc-900 dark:text-white">{t('hist_recent')}</h2>
+                                <div className="flex items-center justify-between px-2 mt-4 mb-4">
+                                    <h2 className="text-xl font-bold tracking-widest text-zinc-900 dark:text-white uppercase">Historial</h2>
                                     <div className="flex gap-2">
-                                        <button onClick={handleExportCSV} title="Exportar CSV" className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 flex items-center justify-center hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all active:scale-95 border border-zinc-200 dark:border-white/10">
+                                        <button onClick={handleExportCSV} title="Exportar CSV" className="w-10 h-10 rounded bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 flex items-center justify-center hover:bg-zinc-300 transition-colors border-2 border-zinc-300 dark:border-zinc-700 active:bg-zinc-400">
                                             <span className="material-icons-round text-xl">download</span>
                                         </button>
-                                        <button onClick={handleBackup} title="Descargar Backup" className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 flex items-center justify-center hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all active:scale-95 border border-zinc-200 dark:border-white/10">
+                                        <button onClick={handleBackup} title="Descargar Backup" className="w-10 h-10 rounded bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 flex items-center justify-center hover:bg-zinc-300 transition-colors border-2 border-zinc-300 dark:border-zinc-700 active:bg-zinc-400">
                                             <span className="material-icons-round text-xl">save_alt</span>
                                         </button>
                                     </div>
                                 </div>
 
                                 {/* Floating Filter & Search Card */}
-                                <div className="smart-card p-4 space-y-4 smart-shadow">
+                                <div className="bg-white dark:bg-zinc-900 border-2 border-zinc-300 dark:border-zinc-700 rounded p-4 space-y-4 mx-1">
                                     {/* Time Filters */}
-                                    <div className="flex gap-2 overflow-x-auto no-scrollbar">
+                                    <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
                                         {[
                                             { id: 'all', label: t('filter_all') },
                                             { id: 'today', label: t('filter_today') },
@@ -503,9 +503,9 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                                             <button
                                                 key={filter.id}
                                                 onClick={() => setTimeFilter(filter.id as any)}
-                                                className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-wider transition-all border ${timeFilter === filter.id
-                                                    ? 'bg-blue-500 text-white border-blue-500 shadow-md'
-                                                    : 'bg-zinc-50 dark:bg-zinc-800 text-zinc-400 border-zinc-100 dark:border-white/5'
+                                                className={`px-3 py-2 rounded text-[10px] font-bold uppercase tracking-widest transition-colors border-2 whitespace-nowrap ${timeFilter === filter.id
+                                                    ? 'bg-zinc-800 text-white border-zinc-900 dark:bg-zinc-200 dark:text-black dark:border-white'
+                                                    : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 border-zinc-200 dark:border-zinc-700 hover:bg-zinc-200'
                                                     }`}
                                             >
                                                 {filter.label}
@@ -514,15 +514,15 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                                     </div>
 
                                     <div className="relative group">
-                                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                            <span className="material-icons-round text-zinc-400 group-focus-within:text-blue-500 transition-colors">search</span>
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <span className="material-icons-round text-zinc-400">search</span>
                                         </div>
                                         <input
                                             type="text"
                                             value={searchTerm}
                                             onChange={(e) => setSearchTerm(e.target.value)}
-                                            placeholder={t('ph_search')}
-                                            className="w-full pl-12 pr-4 py-4 rounded-[1.5rem] bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white outline-none shadow-sm border border-transparent focus:border-blue-500/20 focus:ring-4 focus:ring-blue-500/5 transition-all text-sm font-bold placeholder:text-zinc-300"
+                                            placeholder="BUSCAR REGISTRO..."
+                                            className="w-full pl-10 pr-3 py-3 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white outline-none border-2 border-zinc-200 dark:border-zinc-700 focus:border-blue-500 text-sm font-bold placeholder:text-zinc-400 uppercase"
                                         />
                                     </div>
                                 </div>
@@ -555,8 +555,8 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                                             }, {} as Record<string, WeighingRecord[]>);
 
                                             return Object.entries(grouped).map(([dateLabel, groupRecords]) => (
-                                                <div key={dateLabel} className="animate-slide-up-fade">
-                                                    <h3 className="sticky top-0 bg-[#F0F4F9]/80 dark:bg-black/80 backdrop-blur-xl py-3 px-2 z-10 text-[10px] uppercase font-black tracking-[0.2em] text-zinc-400 dark:text-zinc-500 mb-2">
+                                                <div key={dateLabel} className="animate-slide-up-fade px-1">
+                                                    <h3 className="sticky top-0 bg-[#F2F5F8]/90 dark:bg-[#121214]/90 backdrop-blur-md py-2 px-1 z-10 text-[10px] uppercase font-bold tracking-widest text-zinc-500 mb-2 border-b-2 border-zinc-200 dark:border-zinc-800">
                                                         {dateLabel}
                                                     </h3>
                                                     <div className="space-y-3">
