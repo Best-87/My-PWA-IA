@@ -490,20 +490,18 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
     return (
         <div className="space-y-6 pb-20 animate-fade-in pt-4">
 
-            {/* AI Status / Tips Bar - Glass (Top Fixed/Floating style) */}
+            {/* System Status Banner (Utilitarian) */}
             <div className={`
-                p-3 rounded-xl transition-all duration-300 border mx-1 mb-2
+                p-2 rounded border-2 mx-1 mb-2
                 ${floatingMessage
-                    ? (floatingMessage.type === 'success' ? 'bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-500/30' :
-                        floatingMessage.type === 'warning' ? 'bg-orange-50 border-orange-200 dark:bg-orange-900/20 dark:border-orange-500/30' :
-                            floatingMessage.type === 'ai' ? 'bg-purple-50 border-purple-200 dark:bg-purple-900/20 dark:border-purple-500/30' :
-                                'bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-500/30')
-                    : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800'}
+                    ? (floatingMessage.type === 'success' ? 'bg-emerald-100 border-emerald-500 text-emerald-900' :
+                        floatingMessage.type === 'warning' ? 'bg-amber-100 border-amber-500 text-amber-900' :
+                            floatingMessage.type === 'ai' ? 'bg-purple-100 border-purple-500 text-purple-900' :
+                                'bg-blue-100 border-blue-500 text-blue-900')
+                    : 'bg-zinc-100 dark:bg-zinc-800 border-zinc-400 dark:border-zinc-500'}
             `}>
-                <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-sm transition-colors duration-300
-                        ${floatingMessage ? 'bg-white dark:bg-zinc-800' : 'bg-zinc-100 dark:bg-zinc-800'}`}
-                    >
+                <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-center shrink-0">
                         <span className={`material-icons-round text-xl ${floatingMessage ? (floatingMessage.type === 'ai' ? 'text-purple-500' : floatingMessage.type === 'success' ? 'text-emerald-500' : floatingMessage.type === 'warning' ? 'text-orange-500' : 'text-blue-500') : 'text-zinc-400'}`}>
                             {floatingMessage
                                 ? (floatingMessage.type === 'success' ? 'check_circle' :
@@ -528,89 +526,73 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
             </div>
 
             {/* 1. Top Metrics Row (Matches Image) */}
-            {/* 1. Top Metrics Row - Redesigned Layout */}
-            <div className="grid grid-cols-3 gap-3 stagger-1">
-                {/* Net Weight - Large */}
-                <div className="bg-blue-600 rounded-xl p-4 flex flex-col items-center justify-center min-h-[140px] border border-blue-700/50">
-                    <span className="text-[10px] font-black uppercase tracking-[0.1em] text-white/80 absolute top-4">PESO LÍQUIDO</span>
-                    <div className="flex flex-col items-center justify-center mt-3">
+            {/* 1. Main Metrics - Utilitarian Grid */}
+            <div className="grid grid-cols-3 gap-2 stagger-1 px-1">
+                {/* Net Weight */}
+                <div className="bg-zinc-900 text-white rounded border-2 border-zinc-600 p-2 flex flex-col items-center justify-center min-h-[120px]">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">NETO (KG)</span>
+                    <div className="flex flex-col items-center justify-center mt-2">
                         <div className="flex items-baseline text-white">
-                            <span className="text-[2rem] font-black tracking-[-0.03em] tabular-nums leading-none">{Math.floor(netWeight)}</span>
-                            <span className="text-base font-bold opacity-80">.{netWeight.toFixed(3).split('.')[1]}</span>
+                            <span className="text-3xl font-mono font-bold tracking-tighter">{Math.floor(netWeight)}</span>
+                            <span className="text-lg font-mono font-bold text-zinc-400">.{netWeight.toFixed(3).split('.')[1]}</span>
                         </div>
-                        <span className="text-[9px] font-bold text-white/50 tracking-[0.1em] mt-1">KG</span>
                     </div>
                 </div>
 
-                {/* Center Card - Split Design (Difference & Tara) */}
-                <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl flex flex-col min-h-[140px] overflow-hidden">
-                    {/* Top Half: Difference */}
-                    <div className="flex-1 flex flex-col items-center justify-center p-2 border-b border-zinc-100 dark:border-zinc-800/50">
-                        <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400 mb-1">DIFERENCIA</span>
-                        <div className={`text-xl font-black px-3 py-0.5 rounded-lg flex items-center gap-1 ${Math.abs(difference) > TOLERANCE_KG ? 'text-red-600 bg-red-50 dark:bg-red-900/10 dark:text-red-400' : 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/10 dark:text-emerald-400'}`}>
-                            <span className="text-sm">{difference > 0 ? '+' : ''}</span>
-                            {difference.toFixed(3)}
+                {/* Center Card (Diff & Tara) */}
+                <div className="bg-white dark:bg-zinc-900 border-2 border-zinc-300 dark:border-zinc-700 rounded flex flex-col min-h-[120px]">
+                    <div className="flex-1 flex flex-col items-center justify-center p-1 border-b-2 border-zinc-200 dark:border-zinc-800">
+                        <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-500 mb-1">DIF</span>
+                        <div className={`text-lg font-mono font-bold px-2 py-0.5 rounded-sm flex items-center gap-1 ${Math.abs(difference) > TOLERANCE_KG ? 'text-white bg-red-600' : 'text-zinc-900 bg-emerald-400 dark:bg-emerald-500'}`}>
+                            {difference > 0 ? '+' : ''}{difference.toFixed(3)}
                         </div>
                     </div>
-                    {/* Bottom Half: Tara Info */}
-                    <div className="h-[45%] bg-zinc-50 dark:bg-zinc-900/50 flex flex-col items-center justify-center p-2">
-                        <div className="flex items-center gap-1 mb-0.5 text-indigo-600 dark:text-indigo-400">
-                            <span className="text-[10px] font-black uppercase tracking-wide">TARA</span>
-                            <span className="material-icons-round text-sm">inventory_2</span>
-                            <span className="text-[11px] font-bold">{boxQty || '0'} <span className="text-[9px] opacity-70">X</span> {boxTara}g</span>
+                    <div className="h-[45%] bg-zinc-100 dark:bg-zinc-800 flex flex-col items-center justify-center p-1">
+                        <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-500">TARA</span>
+                        <div className="flex items-baseline gap-1 mt-1">
+                            <span className="text-sm font-mono font-bold text-zinc-800 dark:text-zinc-200">-{totalTara.toFixed(2)}</span>
+                            <span className="text-[9px] font-bold text-zinc-500">KG</span>
                         </div>
-                        <span className="text-xl font-black text-zinc-800 dark:text-zinc-200 tabular-nums leading-none">-{totalTara.toFixed(2)}<span className="text-[10px] text-zinc-400 ml-0.5 font-bold">kg</span></span>
                     </div>
                 </div>
 
-                {/* Gross Weight - Large */}
-                <div className="bg-indigo-600 rounded-xl p-4 flex flex-col items-center justify-center min-h-[140px] border border-indigo-700/50">
-                    <span className="text-[10px] font-black uppercase tracking-[0.1em] text-white/80 absolute top-4">PESO BRUTO</span>
-                    <div className="flex flex-col items-center justify-center mt-3">
+                {/* Gross Weight */}
+                <div className="bg-zinc-900 text-white rounded border-2 border-zinc-600 p-2 flex flex-col items-center justify-center min-h-[120px]">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">BRUTO (KG)</span>
+                    <div className="flex flex-col items-center justify-center mt-2">
                         <div className="flex items-baseline text-white">
-                            <span className="text-[2rem] font-black tracking-[-0.03em] tabular-nums leading-none">{Math.floor(parsedGrossWeight)}</span>
-                            <span className="text-base font-bold opacity-80">.{parsedGrossWeight.toFixed(3).split('.')[1]}</span>
+                            <span className="text-3xl font-mono font-bold tracking-tighter">{Math.floor(parsedGrossWeight)}</span>
+                            <span className="text-lg font-mono font-bold text-zinc-400">.{parsedGrossWeight.toFixed(3).split('.')[1]}</span>
                         </div>
-                        <span className="text-[9px] font-bold text-white/50 tracking-[0.1em] mt-1">KG</span>
                     </div>
                 </div>
             </div>
 
-            {/* 3. Input Identity Card */}
-            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-5 stagger-3">
-                <div className="space-y-6">
+            {/* 3. Input Identity */}
+            <div className="bg-white dark:bg-zinc-900 border-2 border-zinc-300 dark:border-zinc-700 rounded p-4 mx-1 stagger-3">
+                <div className="space-y-4">
                     {/* Provedor */}
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center shrink-0 text-blue-500 shadow-inner">
-                            <span className="material-icons-round text-2xl">store</span>
-                        </div>
-                        <div className="flex-1">
-                            <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">PROVEDOR</label>
-                            <input
-                                list="suppliers" value={supplier} onChange={e => setSupplier(e.target.value)}
-                                className="w-full bg-transparent border-b border-zinc-100 dark:border-white/10 py-1 text-base font-bold text-zinc-900 dark:text-white outline-none focus:border-blue-500 placeholder:text-zinc-300 transition-colors"
-                                placeholder="Fornecedor"
-                            />
-                            <datalist id="suppliers">{suggestions.suppliers.map(s => <option key={s} value={s} />)}</datalist>
-                        </div>
+                    <div className="flex flex-col">
+                        <label className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-1">PROVEDOR</label>
+                        <input
+                            list="suppliers" value={supplier} onChange={e => setSupplier(e.target.value)}
+                            className="bg-zinc-100 dark:bg-zinc-800 border-2 border-zinc-200 dark:border-zinc-700 rounded p-2 text-sm font-bold text-zinc-900 dark:text-white outline-none focus:border-blue-500 uppercase"
+                            placeholder="Ingrese Proveedor..."
+                        />
+                        <datalist id="suppliers">{suggestions.suppliers.map(s => <option key={s} value={s} />)}</datalist>
                     </div>
                     {/* Producto */}
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center shrink-0 text-orange-500 shadow-inner">
-                            <span className="material-icons-round text-2xl">inventory_2</span>
-                        </div>
-                        <div className="flex-1">
-                            <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">PRODUTO</label>
-                            <input
-                                list="products"
-                                value={product}
-                                onChange={e => setProduct(e.target.value)}
-                                onBlur={() => setProduct(reformatProductName(product))}
-                                className="w-full bg-transparent border-b border-zinc-100 dark:border-white/10 py-1 text-base font-bold text-zinc-900 dark:text-white outline-none focus:border-blue-500 placeholder:text-zinc-300 transition-colors"
-                                placeholder="Produto"
-                            />
-                            <datalist id="products">{suggestions.products.map(p => <option key={p} value={p} />)}</datalist>
-                        </div>
+                    <div className="flex flex-col">
+                        <label className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-1">PRODUTO</label>
+                        <input
+                            list="products"
+                            value={product}
+                            onChange={e => setProduct(e.target.value)}
+                            onBlur={() => setProduct(reformatProductName(product))}
+                            className="bg-zinc-100 dark:bg-zinc-800 border-2 border-zinc-200 dark:border-zinc-700 rounded p-2 text-sm font-bold text-zinc-900 dark:text-white outline-none focus:border-blue-500 uppercase"
+                            placeholder="Ingrese Producto..."
+                        />
+                        <datalist id="products">{suggestions.products.map(p => <option key={p} value={p} />)}</datalist>
                     </div>
                 </div>
             </div>
@@ -661,72 +643,55 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                 )}
 
                 {/* Note Input */}
-                <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 flex items-center gap-4 h-20 transition-all focus-within:border-blue-500">
-                    <div className="w-12 h-12 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center shrink-0 text-zinc-400 shadow-inner">
-                        <span className="material-icons-round text-2xl">description</span>
-                    </div>
-                    <div>
-                        <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">PESO NOTA</label>
-                        <div className="flex items-baseline gap-1">
-                            <input
-                                ref={noteInputRef} type="text" inputMode="decimal" value={noteWeight} onChange={e => setNoteWeight(e.target.value)}
-                                className="w-full bg-transparent font-black text-zinc-800 dark:text-white outline-none text-xl tabular-nums"
-                                placeholder={suggestedNote || "0.00"}
-                            />
-                            <span className="text-[10px] font-bold text-zinc-400">kg</span>
-                        </div>
+                <div className="bg-white dark:bg-zinc-900 border-2 border-zinc-300 dark:border-zinc-700 rounded p-4 flex flex-col justify-center gap-2 h-20 transition-all focus-within:border-blue-500">
+                    <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">PESO NOTA (KG)</label>
+                    <div className="flex items-baseline gap-1">
+                        <input
+                            ref={noteInputRef} type="text" inputMode="decimal" value={noteWeight} onChange={e => setNoteWeight(e.target.value)}
+                            className="w-full bg-transparent font-mono font-bold text-zinc-800 dark:text-white outline-none text-2xl"
+                            placeholder={suggestedNote || "0.00"}
+                        />
                     </div>
                 </div>
 
                 {/* Gross Input */}
-                <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 flex items-center gap-4 h-20 transition-all focus-within:border-indigo-500">
-                    <div className="w-12 h-12 rounded-2xl bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center shrink-0 text-purple-500 shadow-inner">
-                        <span className="material-icons-round text-2xl">scale</span>
-                    </div>
-                    <div>
-                        <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">PESO BRUTO</label>
-                        <div className="flex items-baseline gap-1">
-                            <input
-                                ref={grossInputRef} type="text" inputMode="decimal" value={grossWeight} onChange={e => setGrossWeight(e.target.value)}
-                                className="w-full bg-transparent font-black text-zinc-800 dark:text-white outline-none text-xl tabular-nums"
-                                placeholder={suggestedGross || "0.00"}
-                            />
-                            <span className="text-[10px] font-bold text-zinc-400">kg</span>
-                        </div>
+                <div className="bg-white dark:bg-zinc-900 border-2 border-zinc-300 dark:border-zinc-700 rounded p-4 flex flex-col justify-center gap-2 h-20 transition-all focus-within:border-indigo-500">
+                    <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">PESO BRUTO (KG)</label>
+                    <div className="flex items-baseline gap-1">
+                        <input
+                            ref={grossInputRef} type="text" inputMode="decimal" value={grossWeight} onChange={e => setGrossWeight(e.target.value)}
+                            className="w-full bg-transparent font-mono font-bold text-zinc-800 dark:text-white outline-none text-2xl"
+                            placeholder={suggestedGross || "0.00"}
+                        />
                     </div>
                 </div>
             </div>
 
             {/* Tara Section Accordion */}
-            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden stagger-5">
-                <div className="p-6 flex items-center justify-between cursor-pointer active:bg-zinc-50 dark:active:bg-zinc-800 transition-colors" onClick={() => setShowBoxes(!showBoxes)}>
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center shrink-0 text-orange-500 shadow-inner">
-                            <span className="material-icons-round text-2xl">grid_view</span>
-                        </div>
-                        <div>
-                            <h4 className="text-sm font-black text-zinc-800 dark:text-white uppercase tracking-tight">Tara e embalagens</h4>
-                            <p className="text-[10px] font-bold text-blue-500 tracking-tighter">
-                                {boxQty || '0'} caixas × {boxTaraKg.toFixed(3)} kg = {totalTara.toFixed(3)} kg
-                            </p>
-                        </div>
+            <div className="bg-white dark:bg-zinc-900 border-2 border-zinc-300 dark:border-zinc-700 rounded overflow-hidden stagger-5 mx-1">
+                <div className="p-4 flex items-center justify-between cursor-pointer active:bg-zinc-100 dark:active:bg-zinc-800 transition-colors" onClick={() => setShowBoxes(!showBoxes)}>
+                    <div>
+                        <h4 className="text-[11px] font-bold text-zinc-800 dark:text-zinc-200 uppercase tracking-widest mb-1">TARA Y EMBALAJE</h4>
+                        <p className="text-xs font-mono font-bold text-indigo-600 dark:text-indigo-400">
+                            {boxQty || '0'} CAJAS × {boxTaraKg.toFixed(3)} KG = {totalTara.toFixed(3)} KG
+                        </p>
                     </div>
-                    <span className={`material-icons-round transition-transform duration-300 text-zinc-300 ${showBoxes ? 'rotate-180' : ''}`}>expand_more</span>
+                    <span className={`material-icons-round transition-transform duration-300 text-zinc-400 ${showBoxes ? 'rotate-180' : ''}`}>expand_more</span>
                 </div>
                 {showBoxes && (
-                    <div className="p-6 pt-0 grid grid-cols-2 gap-4 animate-fade-in pl-20">
+                    <div className="p-4 pt-0 grid grid-cols-2 gap-3 animate-fade-in border-t-2 border-zinc-100 dark:border-zinc-800">
                         <div className="space-y-1">
-                            <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">UNIT PESO (g)</label>
-                            <input type="tel" value={boxTara} onChange={e => setBoxTara(e.target.value)} className="w-full bg-zinc-50 dark:bg-zinc-800/50 rounded-xl px-4 py-3 text-sm font-bold outline-none border border-zinc-100 dark:border-white/5 focus:border-blue-500 transition-colors" placeholder="0" />
+                            <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">UNIT PESO (g)</label>
+                            <input type="tel" value={boxTara} onChange={e => setBoxTara(e.target.value)} className="w-full bg-zinc-100 dark:bg-zinc-800 rounded p-2 text-sm font-mono font-bold outline-none border-2 border-zinc-200 dark:border-zinc-700 focus:border-blue-500" placeholder="0" />
                         </div>
                         <div className="space-y-1">
-                            <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">CANTIDAD</label>
+                            <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">CANTIDAD</label>
                             <input
                                 type="tel"
                                 value={boxQty}
                                 onChange={e => setBoxQty(e.target.value)}
                                 onBlur={() => { if (boxQty) setShowBoxes(false); }}
-                                className="w-full bg-zinc-50 dark:bg-zinc-800/50 rounded-xl px-4 py-3 text-sm font-bold outline-none border border-zinc-100 dark:border-white/5 focus:border-blue-500 transition-colors"
+                                className="w-full bg-zinc-100 dark:bg-zinc-800 rounded p-2 text-sm font-mono font-bold outline-none border-2 border-zinc-200 dark:border-zinc-700 focus:border-blue-500"
                                 placeholder="0"
                             />
                         </div>
@@ -734,38 +699,33 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                 )}
             </div>
 
-            {/* Action Buttons Bar - Modern Squircle Design */}
-            <div className="flex items-center justify-between gap-3 stagger-6 animate-fade-in px-1 pt-2">
+            {/* Action Buttons */}
+            <div className="grid grid-cols-4 gap-2 stagger-6 animate-fade-in px-1 pt-2">
                 <button
                     onClick={() => cameraInputRef.current?.click()}
-                    className="flex-[1.5] h-20 rounded-xl bg-blue-600 flex flex-col items-center justify-center gap-1 text-white active:scale-95 transition-transform"
+                    className="col-span-2 h-16 rounded bg-blue-600 flex items-center justify-center gap-2 text-white active:bg-blue-700 transition-colors border-2 border-blue-800"
                 >
-                    <div className="absolute inset-0 bg-white/10 pointer-events-none"></div>
-                    <span className="material-icons-round text-4xl drop-shadow-md">photo_camera</span>
-                    <span className="text-sm font-black uppercase tracking-[0.2em] drop-shadow-sm">Scan</span>
-                </button>
-
-                <button onClick={() => galleryInputRef.current?.click()} className="squircle-btn bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
-                    <span className="material-icons-round text-4xl text-purple-500">image</span>
-                    <span className="text-[10px] font-black uppercase text-zinc-400 tracking-tighter">Galeria</span>
-                </button>
-
-                <button onClick={() => setShowConfirmReset(true)} className="squircle-btn bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
-                    <span className="material-icons-round text-4xl text-zinc-400 dark:text-zinc-500">delete_sweep</span>
-                    <span className="text-[10px] font-black uppercase text-zinc-400 tracking-tighter">Limpar</span>
+                    <span className="material-icons-round">qr_code_scanner</span>
+                    <span className="text-sm font-bold uppercase tracking-widest">SCAN</span>
                 </button>
 
                 <button
                     onClick={handleSave}
                     disabled={!hasDataToSave || isSaving}
-                    className={`squircle-btn bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 ${hasDataToSave && !isSaving ? 'opacity-100 border-emerald-500' : 'opacity-50 grayscale'}`}
+                    className={`col-span-2 h-16 rounded flex items-center justify-center gap-2 transition-colors border-2 ${hasDataToSave && !isSaving ? 'bg-emerald-600 border-emerald-800 text-white active:bg-emerald-700' : 'bg-zinc-200 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-700 text-zinc-400 cursor-not-allowed'}`}
                 >
-                    <span className={`material-icons-round text-4xl ${hasDataToSave && !isSaving ? (isSaving ? 'animate-spin text-zinc-400' : 'text-emerald-500') : 'text-zinc-400'}`}>
-                        {isSaving ? 'sync' : 'save'}
-                    </span>
-                    <span className="text-[10px] font-black uppercase text-zinc-400 tracking-tighter">
-                        {isSaving ? 'Salvando...' : 'Salvar'}
-                    </span>
+                    <span className={`material-icons-round ${isSaving ? 'animate-spin' : ''}`}>{isSaving ? 'sync' : 'save'}</span>
+                    <span className="text-sm font-bold uppercase tracking-widest">{isSaving ? 'PROCESANDO' : 'GUARDAR'}</span>
+                </button>
+
+                <button onClick={() => galleryInputRef.current?.click()} className="col-span-2 h-12 rounded bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center gap-2 text-zinc-700 dark:text-zinc-300 active:bg-zinc-300 transition-colors border-2 border-zinc-300 dark:border-zinc-700">
+                    <span className="material-icons-round text-lg">image</span>
+                    <span className="text-xs font-bold uppercase tracking-widest">GALERIA</span>
+                </button>
+
+                <button onClick={() => setShowConfirmReset(true)} className="col-span-2 h-12 rounded bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center gap-2 text-red-600 dark:text-red-400 active:bg-zinc-300 transition-colors border-2 border-zinc-300 dark:border-zinc-700">
+                    <span className="material-icons-round text-lg">delete_sweep</span>
+                    <span className="text-xs font-bold uppercase tracking-widest">LIMPIAR</span>
                 </button>
             </div>
 
@@ -776,15 +736,15 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
             {showConfirmReset && createPortal(
                 <div className="fixed inset-0 z-[200] flex items-center justify-center px-6">
                     <div className="absolute inset-0 bg-black/60" onClick={() => setShowConfirmReset(false)} />
-                    <div className="relative bg-white dark:bg-zinc-900 w-full max-w-xs rounded-xl p-8 shadow-2xl animate-fade-in-up">
-                        <div className="w-16 h-16 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center mx-auto mb-6 text-red-500">
-                            <span className="material-icons-round text-3xl">delete_forever</span>
+                    <div className="relative bg-white dark:bg-zinc-900 w-full max-w-xs rounded border-4 border-red-600 p-6 animate-fade-in-up">
+                        <div className="flex items-center gap-3 border-b-2 border-zinc-200 dark:border-zinc-800 pb-4 mb-4">
+                            <span className="material-icons-round text-3xl text-red-600">warning</span>
+                            <h3 className="font-bold text-zinc-900 dark:text-white text-lg uppercase">¿BORRAR DATOS?</h3>
                         </div>
-                        <h3 className="text-center font-black text-zinc-900 dark:text-white text-lg mb-2">¿Limpiar todo?</h3>
-                        <p className="text-center text-xs font-bold text-zinc-500 mb-8 px-4 leading-relaxed">Se perderán todos los datos actuales del formulario.</p>
-                        <div className="grid grid-cols-2 gap-3">
-                            <button onClick={() => setShowConfirmReset(false)} className="py-3 bg-zinc-100 dark:bg-zinc-800 text-zinc-500 rounded-lg font-black text-xs uppercase">No</button>
-                            <button onClick={() => { handleReset(); setShowConfirmReset(false); }} className="py-3 bg-red-600 text-white rounded-lg font-black text-xs uppercase">Si, Limpiar</button>
+                        <p className="text-sm font-bold text-zinc-500 dark:text-zinc-400 mb-6 uppercase">La información no guardada se perderá.</p>
+                        <div className="grid grid-cols-2 gap-2">
+                            <button onClick={() => setShowConfirmReset(false)} className="py-3 bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-2 border-zinc-300 dark:border-zinc-700 rounded font-bold uppercase tracking-widest active:bg-zinc-300">NO</button>
+                            <button onClick={() => { handleReset(); setShowConfirmReset(false); }} className="py-3 bg-red-600 text-white border-2 border-red-800 rounded font-bold uppercase tracking-widest active:bg-red-700">SI, BORRAR</button>
                         </div>
                     </div>
                 </div>, document.body
