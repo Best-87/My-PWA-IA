@@ -535,15 +535,15 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                     <div className="flex justify-between items-start z-10">
                         <div className="flex flex-col">
                             <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-600">BRUTO</span>
-                            <span className="text-sm font-mono font-bold text-amber-500">{parsedGrossWeight.toFixed(3)} <span className="text-[9px] text-amber-700">KG</span></span>
+                            <span className="text-3xl font-mono font-bold text-amber-500">{parsedGrossWeight.toFixed(3)} <span className="text-[10px] text-amber-700">KG</span></span>
                         </div>
                         <div className="flex flex-col items-center">
                             <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-600">OBJETIVO (NOTA)</span>
-                            <span className="text-sm font-mono font-bold text-blue-500">{parsedNoteWeight.toFixed(3)} <span className="text-[9px] text-blue-800">KG</span></span>
+                            <span className="text-3xl font-mono font-bold text-blue-500">{parsedNoteWeight.toFixed(3)} <span className="text-[10px] text-blue-800">KG</span></span>
                         </div>
                         <div className="flex flex-col items-end">
                             <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-600">TARA TOTAL</span>
-                            <span className="text-sm font-mono font-bold text-amber-500">- {totalTara.toFixed(3)} <span className="text-[9px] text-amber-700">KG</span></span>
+                            <span className="text-3xl font-mono font-bold text-amber-500">- {totalTara.toFixed(3)} <span className="text-[10px] text-amber-700">KG</span></span>
                         </div>
                     </div>
 
@@ -551,10 +551,10 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                     <div className="flex flex-col items-center justify-center z-10 my-4">
                         <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-zinc-500 mb-1">PESO LÍQUIDO ACTUAL</span>
                         <div className="flex items-baseline gap-2">
-                            <span className="text-5xl font-mono font-bold tracking-tighter text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.5)]">
+                            <span className="text-2xl font-mono font-bold tracking-tighter text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.5)]">
                                 {netWeight.toFixed(3)}
                             </span>
-                            <span className="text-xl font-mono font-bold text-emerald-700">KG</span>
+                            <span className="text-sm font-mono font-bold text-emerald-700">KG</span>
                         </div>
                     </div>
 

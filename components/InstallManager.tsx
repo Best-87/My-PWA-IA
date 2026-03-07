@@ -44,14 +44,10 @@ export const InstallManager: React.FC = () => {
         window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
         window.addEventListener('appinstalled', handleAppInstalled);
 
-        // Service Worker Updates - SKIP in Preview Envs to avoid Origin Errors
-        const isPreviewEnv = window.location.hostname.includes('scf.usercontent.goog') ||
-            window.location.hostname.includes('webcontainer') ||
-            window.location.hostname.includes('ai.studio');
+        let updateInterval: NodeJS.Timeout;
+        let onVisibilityChange: () => void;
 
-        let updateInterval: any;
-
-        if ('serviceWorker' in navigator && !isPreviewEnv) {
+        if ('serviceWorker' in navigator) {
             const checkUpdate = () => {
                 navigator.serviceWorker.getRegistration().then((reg) => {
                     if (!reg) return;
@@ -83,8 +79,16 @@ export const InstallManager: React.FC = () => {
             // Initial check
             checkUpdate();
 
-            // Periodic check every 60 seconds to detect Vercel deploys
-            updateInterval = setInterval(checkUpdate, 60000);
+            // Periodic check every 30 seconds to aggressively detect Vercel deploys
+            updateInterval = setInterval(checkUpdate, 30000);
+
+            // Aggressively check when user returns to app
+            onVisibilityChange = () => {
+                if (document.visibilityState === 'visible') {
+                    checkUpdate();
+                }
+            };
+            document.addEventListener('visibilitychange', onVisibilityChange);
 
             let refreshing = false;
             navigator.serviceWorker.addEventListener('controllerchange', () => {
@@ -104,6 +108,7 @@ export const InstallManager: React.FC = () => {
             window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
             window.removeEventListener('appinstalled', handleAppInstalled);
             if (updateInterval) clearInterval(updateInterval);
+            if (onVisibilityChange) document.removeEventListener('visibilitychange', onVisibilityChange);
         };
     }, []);
 
