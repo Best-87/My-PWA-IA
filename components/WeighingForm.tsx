@@ -525,44 +525,44 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                 </div>
             </div>
 
-            {/* 1. Top Metrics Row (Matches Image) */}
-            {/* 1. Main Metrics - Utilitarian Grid */}
-            <div className="grid grid-cols-3 gap-2 stagger-1 px-1">
-                {/* Net Weight */}
-                <div className="bg-zinc-900 text-white rounded border-2 border-zinc-600 p-2 flex flex-col items-center justify-center min-h-[120px]">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">NETO (KG)</span>
-                    <div className="flex flex-col items-center justify-center mt-2">
-                        <div className="flex items-baseline text-white">
-                            <span className="text-3xl font-mono font-bold tracking-tighter">{Math.floor(netWeight)}</span>
-                            <span className="text-lg font-mono font-bold text-zinc-400">.{netWeight.toFixed(3).split('.')[1]}</span>
+            {/* 1. Main Metrics - Industrial LCD Display */}
+            <div className="px-1 stagger-1">
+                <div className="bg-[#0A0A0A] border-4 border-zinc-800 rounded-none p-4 relative overflow-hidden shadow-inner flex flex-col justify-between min-h-[140px]">
+                    {/* LCD Glare Effect */}
+                    <div className="absolute top-0 left-0 right-0 h-1/2 bg-white/5 pointer-events-none"></div>
+
+                    {/* Top Row: Labels */}
+                    <div className="flex justify-between items-start z-10">
+                        <div className="flex flex-col">
+                            <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-600">BRUTO</span>
+                            <span className="text-sm font-mono font-bold text-amber-500">{parsedGrossWeight.toFixed(3)} <span className="text-[9px] text-amber-700">KG</span></span>
+                        </div>
+                        <div className="flex flex-col items-center">
+                            <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-600">OBJETIVO (NOTA)</span>
+                            <span className="text-sm font-mono font-bold text-blue-500">{parsedNoteWeight.toFixed(3)} <span className="text-[9px] text-blue-800">KG</span></span>
+                        </div>
+                        <div className="flex flex-col items-end">
+                            <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-600">TARA TOTAL</span>
+                            <span className="text-sm font-mono font-bold text-amber-500">- {totalTara.toFixed(3)} <span className="text-[9px] text-amber-700">KG</span></span>
                         </div>
                     </div>
-                </div>
 
-                {/* Center Card (Diff & Tara) */}
-                <div className="bg-white dark:bg-zinc-900 border-2 border-zinc-300 dark:border-zinc-700 rounded flex flex-col min-h-[120px]">
-                    <div className="flex-1 flex flex-col items-center justify-center p-1 border-b-2 border-zinc-200 dark:border-zinc-800">
-                        <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-500 mb-1">DIF</span>
-                        <div className={`text-lg font-mono font-bold px-2 py-0.5 rounded-sm flex items-center gap-1 ${Math.abs(difference) > TOLERANCE_KG ? 'text-white bg-red-600' : 'text-zinc-900 bg-emerald-400 dark:bg-emerald-500'}`}>
+                    {/* Main Center: Net Weight */}
+                    <div className="flex flex-col items-center justify-center z-10 my-4">
+                        <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-zinc-500 mb-1">PESO LÍQUIDO ACTUAL</span>
+                        <div className="flex items-baseline gap-2">
+                            <span className="text-5xl font-mono font-bold tracking-tighter text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.5)]">
+                                {netWeight.toFixed(3)}
+                            </span>
+                            <span className="text-xl font-mono font-bold text-emerald-700">KG</span>
+                        </div>
+                    </div>
+
+                    {/* Bottom Row: Difference & Tolerance Status */}
+                    <div className="flex items-center justify-between border-t border-dashed border-zinc-800/80 pt-3 mt-1 z-10">
+                        <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-500">DESVIACIÓN (TOL: ±{TOLERANCE_KG}KG)</span>
+                        <div className={`flex items-center gap-1 font-mono font-bold text-xl px-2 py-0.5 border-2 ${Math.abs(difference) > TOLERANCE_KG ? 'border-red-500/30 text-red-500 bg-red-500/10 drop-shadow-[0_0_5px_rgba(239,68,68,0.5)]' : 'border-emerald-500/30 text-emerald-400 bg-emerald-500/10 drop-shadow-[0_0_5px_rgba(52,211,153,0.5)]'}`}>
                             {difference > 0 ? '+' : ''}{difference.toFixed(3)}
-                        </div>
-                    </div>
-                    <div className="h-[45%] bg-zinc-100 dark:bg-zinc-800 flex flex-col items-center justify-center p-1">
-                        <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-500">TARA</span>
-                        <div className="flex items-baseline gap-1 mt-1">
-                            <span className="text-sm font-mono font-bold text-zinc-800 dark:text-zinc-200">-{totalTara.toFixed(2)}</span>
-                            <span className="text-[9px] font-bold text-zinc-500">KG</span>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Gross Weight */}
-                <div className="bg-zinc-900 text-white rounded border-2 border-zinc-600 p-2 flex flex-col items-center justify-center min-h-[120px]">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">BRUTO (KG)</span>
-                    <div className="flex flex-col items-center justify-center mt-2">
-                        <div className="flex items-baseline text-white">
-                            <span className="text-3xl font-mono font-bold tracking-tighter">{Math.floor(parsedGrossWeight)}</span>
-                            <span className="text-lg font-mono font-bold text-zinc-400">.{parsedGrossWeight.toFixed(3).split('.')[1]}</span>
                         </div>
                     </div>
                 </div>
