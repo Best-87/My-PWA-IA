@@ -492,13 +492,13 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
 
             {/* AI Status / Tips Bar - Glass (Top Fixed/Floating style) */}
             <div className={`
-                p-4 rounded-[1.5rem] transition-all duration-300 border mx-1 mb-2
+                p-3 rounded-xl transition-all duration-300 border mx-1 mb-2
                 ${floatingMessage
                     ? (floatingMessage.type === 'success' ? 'bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-500/30' :
                         floatingMessage.type === 'warning' ? 'bg-orange-50 border-orange-200 dark:bg-orange-900/20 dark:border-orange-500/30' :
                             floatingMessage.type === 'ai' ? 'bg-purple-50 border-purple-200 dark:bg-purple-900/20 dark:border-purple-500/30' :
                                 'bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-500/30')
-                    : 'smart-card'}
+                    : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800'}
             `}>
                 <div className="flex items-center gap-3">
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-sm transition-colors duration-300
@@ -531,55 +531,53 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
             {/* 1. Top Metrics Row - Redesigned Layout */}
             <div className="grid grid-cols-3 gap-3 stagger-1">
                 {/* Net Weight - Large */}
-                <div className="relative bg-gradient-blue-card rounded-[1.5rem] p-4 flex flex-col items-center justify-center min-h-[165px] blue-card-shadow border border-white/30 overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent opacity-50 pointer-events-none"></div>
-                    <span className="text-[11px] font-black uppercase tracking-[0.15em] text-white/80 absolute top-5">PESO LÍQUIDO</span>
-                    <div className="flex flex-col items-center justify-center mt-4">
-                        <div className="flex items-baseline text-white drop-shadow-lg">
-                            <span className="text-[2.5rem] font-black tracking-[-0.03em] tabular-nums leading-none">{Math.floor(netWeight)}</span>
-                            <span className="text-lg font-bold opacity-70">.{netWeight.toFixed(3).split('.')[1]}</span>
+                <div className="bg-blue-600 rounded-xl p-4 flex flex-col items-center justify-center min-h-[140px] border border-blue-700/50">
+                    <span className="text-[10px] font-black uppercase tracking-[0.1em] text-white/80 absolute top-4">PESO LÍQUIDO</span>
+                    <div className="flex flex-col items-center justify-center mt-3">
+                        <div className="flex items-baseline text-white">
+                            <span className="text-[2rem] font-black tracking-[-0.03em] tabular-nums leading-none">{Math.floor(netWeight)}</span>
+                            <span className="text-base font-bold opacity-80">.{netWeight.toFixed(3).split('.')[1]}</span>
                         </div>
-                        <span className="text-[10px] font-black text-white/50 tracking-[0.2em] mt-2">KG</span>
+                        <span className="text-[9px] font-bold text-white/50 tracking-[0.1em] mt-1">KG</span>
                     </div>
                 </div>
 
                 {/* Center Card - Split Design (Difference & Tara) */}
-                <div className="glass-premium rounded-[2.5rem] flex flex-col min-h-[165px] shadow-sm overflow-hidden">
+                <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl flex flex-col min-h-[140px] overflow-hidden">
                     {/* Top Half: Difference */}
-                    <div className="flex-1 flex flex-col items-center justify-center bg-zinc-50 dark:bg-zinc-800 border-b border-zinc-200 dark:border-zinc-700 p-2">
-                        <span className="text-[9px] font-black uppercase tracking-[0.15em] text-zinc-400 mb-1">DIFERENCIA</span>
-                        <div className={`text-2xl font-black px-4 py-1 rounded-full flex items-center gap-1 ${Math.abs(difference) > TOLERANCE_KG ? 'text-red-500 bg-red-50/50 dark:bg-red-900/10' : 'text-emerald-500 bg-emerald-50/50 dark:bg-emerald-900/10'}`}>
+                    <div className="flex-1 flex flex-col items-center justify-center p-2 border-b border-zinc-100 dark:border-zinc-800/50">
+                        <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400 mb-1">DIFERENCIA</span>
+                        <div className={`text-xl font-black px-3 py-0.5 rounded-lg flex items-center gap-1 ${Math.abs(difference) > TOLERANCE_KG ? 'text-red-600 bg-red-50 dark:bg-red-900/10 dark:text-red-400' : 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/10 dark:text-emerald-400'}`}>
                             <span className="text-sm">{difference > 0 ? '+' : ''}</span>
                             {difference.toFixed(3)}
                         </div>
                     </div>
                     {/* Bottom Half: Tara Info */}
-                    <div className="h-[45%] bg-zinc-50/50 dark:bg-black/20 flex flex-col items-center justify-center p-2">
-                        <div className="flex items-center gap-1.5 mb-0.5 text-purple-600 dark:text-purple-400">
-                            <span className="text-[12px] font-black uppercase tracking-wide opacity-80">TARA</span>
-                            <span className="material-icons-round text-base">inventory_2</span>
-                            <span className="text-[14px] font-black tracking-tight">{boxQty || '0'} <span className="text-[10px] opacity-70">X</span> {boxTara}g</span>
+                    <div className="h-[45%] bg-zinc-50 dark:bg-zinc-900/50 flex flex-col items-center justify-center p-2">
+                        <div className="flex items-center gap-1 mb-0.5 text-indigo-600 dark:text-indigo-400">
+                            <span className="text-[10px] font-black uppercase tracking-wide">TARA</span>
+                            <span className="material-icons-round text-sm">inventory_2</span>
+                            <span className="text-[11px] font-bold">{boxQty || '0'} <span className="text-[9px] opacity-70">X</span> {boxTara}g</span>
                         </div>
-                        <span className="text-2xl font-black text-zinc-800 dark:text-gray-100 tabular-nums leading-none">-{totalTara.toFixed(2)}<span className="text-[11px] text-zinc-400 ml-0.5 font-bold">kg</span></span>
+                        <span className="text-xl font-black text-zinc-800 dark:text-zinc-200 tabular-nums leading-none">-{totalTara.toFixed(2)}<span className="text-[10px] text-zinc-400 ml-0.5 font-bold">kg</span></span>
                     </div>
                 </div>
 
                 {/* Gross Weight - Large */}
-                <div className="relative bg-gradient-purple-card rounded-[1.5rem] p-4 flex flex-col items-center justify-center min-h-[165px] purple-card-shadow border border-white/30 overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent opacity-50 pointer-events-none"></div>
-                    <span className="text-[11px] font-black uppercase tracking-[0.15em] text-white/80 absolute top-5">PESO BRUTO</span>
-                    <div className="flex flex-col items-center justify-center mt-4">
-                        <div className="flex items-baseline text-white drop-shadow-lg">
-                            <span className="text-[2.5rem] font-black tracking-[-0.03em] tabular-nums leading-none">{Math.floor(parsedGrossWeight)}</span>
-                            <span className="text-lg font-bold opacity-70">.{parsedGrossWeight.toFixed(3).split('.')[1]}</span>
+                <div className="bg-indigo-600 rounded-xl p-4 flex flex-col items-center justify-center min-h-[140px] border border-indigo-700/50">
+                    <span className="text-[10px] font-black uppercase tracking-[0.1em] text-white/80 absolute top-4">PESO BRUTO</span>
+                    <div className="flex flex-col items-center justify-center mt-3">
+                        <div className="flex items-baseline text-white">
+                            <span className="text-[2rem] font-black tracking-[-0.03em] tabular-nums leading-none">{Math.floor(parsedGrossWeight)}</span>
+                            <span className="text-base font-bold opacity-80">.{parsedGrossWeight.toFixed(3).split('.')[1]}</span>
                         </div>
-                        <span className="text-[10px] font-black text-white/50 tracking-[0.2em] mt-2">KG</span>
+                        <span className="text-[9px] font-bold text-white/50 tracking-[0.1em] mt-1">KG</span>
                     </div>
                 </div>
             </div>
 
-            {/* 3. Input Identity Card - Glass Premium */}
-            <div className="glass-premium rounded-[2.2rem] p-6 stagger-3 shadow-lg">
+            {/* 3. Input Identity Card */}
+            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-5 stagger-3">
                 <div className="space-y-6">
                     {/* Provedor */}
                     <div className="flex items-center gap-4">
@@ -618,7 +616,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
             </div>
 
             {/* Logistics & Weights */}
-            <div className={`grid grid-cols-2 gap-4 stagger-4 p-2 rounded-[2.5rem] transition-all duration-500 ${suggestedNote || suggestedGross ? 'suggestion-glow bg-purple-50/30' : ''}`}>
+            <div className={`grid grid-cols-2 gap-3 stagger-4 pt-2 transition-all duration-500`}>
 
                 {/* AI Suggestion Banner (Purple) */}
                 {(suggestedNote || suggestedGross) && (
@@ -662,8 +660,8 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                     </div>
                 )}
 
-                {/* Note Input - Glass (Moved to the left to match Net Weight metric) */}
-                <div className="glass-premium rounded-[2.2rem] p-5 flex items-center gap-4 h-24 shadow-lg focus-within:ring-2 focus-within:ring-blue-500/30 transition-all">
+                {/* Note Input */}
+                <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 flex items-center gap-4 h-20 transition-all focus-within:border-blue-500">
                     <div className="w-12 h-12 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center shrink-0 text-zinc-400 shadow-inner">
                         <span className="material-icons-round text-2xl">description</span>
                     </div>
@@ -680,8 +678,8 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                     </div>
                 </div>
 
-                {/* Gross Input - Glass (Moved to the right to match Gross Weight metric) */}
-                <div className="glass-premium rounded-[2.2rem] p-5 flex items-center gap-4 h-24 shadow-lg focus-within:ring-2 focus-within:ring-purple-500/30 transition-all">
+                {/* Gross Input */}
+                <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 flex items-center gap-4 h-20 transition-all focus-within:border-indigo-500">
                     <div className="w-12 h-12 rounded-2xl bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center shrink-0 text-purple-500 shadow-inner">
                         <span className="material-icons-round text-2xl">scale</span>
                     </div>
@@ -699,8 +697,8 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                 </div>
             </div>
 
-            {/* Tara Section Accordion - Glass */}
-            <div className="glass-premium rounded-[2.2rem] overflow-hidden stagger-5 shadow-lg">
+            {/* Tara Section Accordion */}
+            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden stagger-5">
                 <div className="p-6 flex items-center justify-between cursor-pointer active:bg-zinc-50 dark:active:bg-zinc-800 transition-colors" onClick={() => setShowBoxes(!showBoxes)}>
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center shrink-0 text-orange-500 shadow-inner">
@@ -740,19 +738,19 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
             <div className="flex items-center justify-between gap-3 stagger-6 animate-fade-in px-1 pt-2">
                 <button
                     onClick={() => cameraInputRef.current?.click()}
-                    className="flex-[1.5] h-24 rounded-[2rem] bg-gradient-pink-btn flex flex-col items-center justify-center gap-1 text-white btn-press active:scale-95 transition-all shadow-md relative overflow-hidden"
+                    className="flex-[1.5] h-20 rounded-xl bg-blue-600 flex flex-col items-center justify-center gap-1 text-white active:scale-95 transition-transform"
                 >
                     <div className="absolute inset-0 bg-white/10 pointer-events-none"></div>
                     <span className="material-icons-round text-4xl drop-shadow-md">photo_camera</span>
                     <span className="text-sm font-black uppercase tracking-[0.2em] drop-shadow-sm">Scan</span>
                 </button>
 
-                <button onClick={() => galleryInputRef.current?.click()} className="squircle-btn glass-premium">
+                <button onClick={() => galleryInputRef.current?.click()} className="squircle-btn bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
                     <span className="material-icons-round text-4xl text-purple-500">image</span>
                     <span className="text-[10px] font-black uppercase text-zinc-400 tracking-tighter">Galeria</span>
                 </button>
 
-                <button onClick={() => setShowConfirmReset(true)} className="squircle-btn glass-premium">
+                <button onClick={() => setShowConfirmReset(true)} className="squircle-btn bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
                     <span className="material-icons-round text-4xl text-zinc-400 dark:text-zinc-500">delete_sweep</span>
                     <span className="text-[10px] font-black uppercase text-zinc-400 tracking-tighter">Limpar</span>
                 </button>
@@ -760,7 +758,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                 <button
                     onClick={handleSave}
                     disabled={!hasDataToSave || isSaving}
-                    className={`squircle-btn glass-premium ${hasDataToSave && !isSaving ? 'opacity-100 ring-4 ring-emerald-500/20' : 'opacity-50 grayscale'}`}
+                    className={`squircle-btn bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 ${hasDataToSave && !isSaving ? 'opacity-100 border-emerald-500' : 'opacity-50 grayscale'}`}
                 >
                     <span className={`material-icons-round text-4xl ${hasDataToSave && !isSaving ? (isSaving ? 'animate-spin text-zinc-400' : 'text-emerald-500') : 'text-zinc-400'}`}>
                         {isSaving ? 'sync' : 'save'}
@@ -777,16 +775,16 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
             {/* Reset Confirmation Portal */}
             {showConfirmReset && createPortal(
                 <div className="fixed inset-0 z-[200] flex items-center justify-center px-6">
-                    <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowConfirmReset(false)} />
-                    <div className="relative bg-white dark:bg-zinc-900 w-full max-w-xs rounded-[2rem] p-8 shadow-2xl animate-fade-in-up">
+                    <div className="absolute inset-0 bg-black/60" onClick={() => setShowConfirmReset(false)} />
+                    <div className="relative bg-white dark:bg-zinc-900 w-full max-w-xs rounded-xl p-8 shadow-2xl animate-fade-in-up">
                         <div className="w-16 h-16 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center mx-auto mb-6 text-red-500">
                             <span className="material-icons-round text-3xl">delete_forever</span>
                         </div>
                         <h3 className="text-center font-black text-zinc-900 dark:text-white text-lg mb-2">¿Limpiar todo?</h3>
                         <p className="text-center text-xs font-bold text-zinc-500 mb-8 px-4 leading-relaxed">Se perderán todos los datos actuales del formulario.</p>
                         <div className="grid grid-cols-2 gap-3">
-                            <button onClick={() => setShowConfirmReset(false)} className="py-4 bg-zinc-100 dark:bg-zinc-800 text-zinc-500 rounded-3xl font-black text-[10px] uppercase tracking-widest">No</button>
-                            <button onClick={() => { handleReset(); setShowConfirmReset(false); }} className="py-4 bg-red-500 text-white rounded-3xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-red-500/25">Si, Limpiar</button>
+                            <button onClick={() => setShowConfirmReset(false)} className="py-3 bg-zinc-100 dark:bg-zinc-800 text-zinc-500 rounded-lg font-black text-xs uppercase">No</button>
+                            <button onClick={() => { handleReset(); setShowConfirmReset(false); }} className="py-3 bg-red-600 text-white rounded-lg font-black text-xs uppercase">Si, Limpiar</button>
                         </div>
                     </div>
                 </div>, document.body
