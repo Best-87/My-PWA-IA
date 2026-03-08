@@ -31,6 +31,8 @@ export interface WeighingRecord {
     productionDate?: string; // Data de fabricação
     recommendedTemperature?: string; // Temperatura recomendada de almacenamiento
     store?: string; // Tienda donde se realizó el registro
+    cnpj?: string; // CNPJ do emitente da nota
+    noteNumber?: string; // Número da nota fiscal
 }
 
 export interface KnowledgeBase {

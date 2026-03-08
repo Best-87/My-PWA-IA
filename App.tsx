@@ -14,6 +14,8 @@ import { trackEvent } from './services/analyticsService';
 import { ChatInterface } from './components/ChatInterface';
 import { isSupabaseConfigured, signIn, signUp, signOut, onAuthStateChange, fetchRecordsFromSupabase } from './services/supabaseService';
 import { SplashScreen } from './components/SplashScreen';
+import { V2Shell } from './components/v2/V2Shell';
+import { ProfileViewV2 } from './components/v2/ProfileViewV2';
 
 // APP CONFIGURATION
 const APP_VERSION = '1.0.1';
@@ -61,6 +63,7 @@ const AppContent = () => {
     const [timeFilter, setTimeFilter] = useState<'all' | 'today' | 'week' | 'month' | 'year'>(() => {
         return (localStorage.getItem('history_time_filter') as any) || 'all';
     });
+    const [useV2, setUseV2] = useState(() => localStorage.getItem('app_v2_preview') === 'true');
 
     useEffect(() => {
         localStorage.setItem('history_time_filter', timeFilter);
@@ -120,13 +123,24 @@ const AppContent = () => {
         const handleSWUpdate = () => setShowUpdate(true);
         window.addEventListener('sw-update', handleSWUpdate);
 
+        // Dynamic Font Injection for V2
+        if (useV2) {
+            const link = document.createElement('link');
+            link.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap';
+            link.rel = 'stylesheet';
+            document.head.appendChild(link);
+            localStorage.setItem('app_v2_preview', 'true');
+        } else {
+            localStorage.setItem('app_v2_preview', 'false');
+        }
+
         return () => {
             window.removeEventListener('focus', handleFocus);
             window.removeEventListener('online', handleOnline);
             window.removeEventListener('offline', handleOffline);
             window.removeEventListener('sw-update', handleSWUpdate);
         };
-    }, []);
+    }, [useV2]);
 
     // Screen Wake Lock
     useEffect(() => {
@@ -438,44 +452,95 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
         <>
             {isLoading && <SplashScreen onFinish={handleFinishLoading} version={APP_VERSION} />}
 
-            <div className={`min-h-screen bg-[#F0F4F9] dark:bg-black pb-20 font-sans selection:bg-blue-500/30 ${isLoading ? 'opacity-0' : 'opacity-100 transition-opacity duration-700'}`}>
-                {/* Visual Background Elements Removed for cleaner look */}
-
-                <InstallManager />
-                <input ref={backupInputRef} type="file" accept=".json" className="hidden" onChange={handleRestore} />
-                <input ref={profileInputRef} type="file" accept="image/*" className="hidden" onChange={handleProfilePhotoUpload} />
-
-                {/* Minimal Top Bar */}
-                <header className="fixed top-0 left-0 right-0 h-14 bg-[#F2F5F8] dark:bg-[#121214] border-b border-zinc-200 dark:border-zinc-800 flex flex-col items-center justify-center z-[100]">
-                    <h1 className="text-xs font-black text-zinc-800 dark:text-zinc-200 tracking-tighter uppercase opacity-80">{t('app_name')}</h1>
-                    <div className="mt-1 flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-white dark:bg-zinc-800 shadow-sm border border-zinc-200 dark:border-zinc-700">
-                        <div className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-red-500'}`}></div>
-                        <span className="text-[8px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400">{isOnline ? 'Online' : 'Offline'}</span>
-                    </div>
-                </header>
-
-                {/* Main Content */}
-                <main className={`relative z-[10] pt-20 px-4 pb-32 max-w-lg mx-auto ${isLoading ? 'transform translate-y-4 opacity-0 transition-all duration-700' : 'opacity-100 transition-opacity duration-700'}`}>
-                    {activeTab === 'weigh' && (
-                        <div className="animate-fade-in">
-                            <WeighingForm
-                                ref={formRef}
-                                onViewHistory={() => handleTabChange('history')}
-                                onDataChange={setHasUnsavedWeighingData}
-                                onRecordSaved={async () => {
-                                    const updatedRecords = await getRecords();
-                                    setRecords(updatedRecords);
-                                }}
-                            />
+            {useV2 ? (
+                <V2Shell
+                    records={records}
+                    profile={profile}
+                    onRecordSaved={async () => {
+                        const updatedRecords = await getRecords();
+                        setRecords(updatedRecords);
+                    }}
+                    historyContent={
+                        <div className="space-y-6">
+                            {records.length === 0 ? (
+                                <div className="flex flex-col items-center justify-center py-20 opacity-50">
+                                    <p className="text-zinc-500 dark:text-zinc-400">Histórico Vazio</p>
+                                </div>
+                            ) : (
+                                filteredRecords.map((rec) => (
+                                    <ModernRecordCard
+                                        key={rec.id}
+                                        record={rec}
+                                        isExpanded={expandedIds.has(rec.id)}
+                                        onExpand={() => toggleExpand(rec.id)}
+                                        onDelete={(e) => handleDelete(rec.id, e)}
+                                        onShare={(e) => handleShareWhatsapp(rec, e)}
+                                    />
+                                ))
+                            )}
                         </div>
-                    )}
-                    {activeTab === 'quick' && (
-                        <div className="animate-fade-in">
-                            <QuickWeighing />
+                    }
+                    profileContent={
+                        <ProfileViewV2
+                            profile={profile}
+                            session={session}
+                            email={email}
+                            isAuthLoading={isAuthLoading}
+                            onSaveProfile={handleSaveProfile}
+                            onSignOut={handleSignOut}
+                            onPhotoUpload={handleProfilePhotoUpload}
+                            onThemeChange={toggleTheme}
+                            theme={theme}
+                            onLanguageChange={setLanguage}
+                            currentLanguage={language}
+                            onProfileChange={(field, value) => setProfile(prev => ({ ...prev, [field]: value }))}
+                            version={APP_VERSION}
+                            onBackup={handleBackup}
+                            onRestore={() => backupInputRef.current?.click()}
+                            password={password}
+                            onPasswordChange={setPassword}
+                            onLogin={handleLogin}
+                            onSignup={handleSignup}
+                            isAuthModeLogin={isAuthModeLogin}
+                            onToggleAuthMode={() => setIsAuthModeLogin(!isAuthModeLogin)}
+                            onEmailChange={setEmail}
+                        />
+                    }
+                />
+            ) : (
+                <div className={`min-h-screen bg-[#F0F4F9] dark:bg-black pb-20 font-sans selection:bg-blue-500/30 ${isLoading ? 'opacity-0' : 'opacity-100 transition-opacity duration-700'}`}>
+                    <InstallManager />
+                    <input ref={backupInputRef} type="file" accept=".json" className="hidden" onChange={handleRestore} />
+                    <input ref={profileInputRef} type="file" accept="image/*" className="hidden" onChange={handleProfilePhotoUpload} />
+
+                    <header className="fixed top-0 left-0 right-0 h-14 bg-[#F2F5F8] dark:bg-[#121214] border-b border-zinc-200 dark:border-zinc-800 flex flex-col items-center justify-center z-[100]">
+                        <h1 className="text-xs font-black text-zinc-800 dark:text-zinc-200 tracking-tighter uppercase opacity-80">{t('app_name')}</h1>
+                        <div className="mt-1 flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-white dark:bg-zinc-800 shadow-sm border border-zinc-200 dark:border-zinc-700">
+                            <div className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-red-500'}`}></div>
+                            <span className="text-[8px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400">{isOnline ? 'Online' : 'Offline'}</span>
                         </div>
-                    )}
-                    {
-                        activeTab === 'history' && (
+                    </header>
+
+                    <main className={`relative z-[10] pt-20 px-4 pb-32 max-w-lg mx-auto ${isLoading ? 'transform translate-y-4 opacity-0 transition-all duration-700' : 'opacity-100 transition-opacity duration-700'}`}>
+                        {activeTab === 'weigh' && (
+                            <div className="animate-fade-in">
+                                <WeighingForm
+                                    ref={formRef}
+                                    onViewHistory={() => handleTabChange('history')}
+                                    onDataChange={setHasUnsavedWeighingData}
+                                    onRecordSaved={async () => {
+                                        const updatedRecords = await getRecords();
+                                        setRecords(updatedRecords);
+                                    }}
+                                />
+                            </div>
+                        )}
+                        {activeTab === 'quick' && (
+                            <div className="animate-fade-in">
+                                <QuickWeighing />
+                            </div>
+                        )}
+                        {activeTab === 'history' && (
                             <div className="animate-fade-in space-y-6">
                                 <div className="flex items-center justify-between px-2 mt-4 mb-4">
                                     <h2 className="text-xl font-bold tracking-widest text-zinc-900 dark:text-white uppercase">Historial</h2>
@@ -489,139 +554,55 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                                     </div>
                                 </div>
 
-                                {/* Floating Filter & Search Card */}
                                 <div className="bg-white dark:bg-zinc-900 border-2 border-zinc-300 dark:border-zinc-700 rounded p-4 space-y-4 mx-1">
-                                    {/* Time Filters */}
                                     <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-                                        {[
-                                            { id: 'all', label: t('filter_all') },
-                                            { id: 'today', label: t('filter_today') },
-                                            { id: 'week', label: t('filter_week') },
-                                            { id: 'month', label: t('filter_month') },
-                                            { id: 'year', label: t('filter_year') }
-                                        ].map(filter => (
+                                        {['all', 'today', 'week', 'month', 'year'].map(id => (
                                             <button
-                                                key={filter.id}
-                                                onClick={() => setTimeFilter(filter.id as any)}
-                                                className={`px-3 py-2 rounded text-[10px] font-bold uppercase tracking-widest transition-colors border-2 whitespace-nowrap ${timeFilter === filter.id
-                                                    ? 'bg-zinc-800 text-white border-zinc-900 dark:bg-zinc-200 dark:text-black dark:border-white'
-                                                    : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 border-zinc-200 dark:border-zinc-700 hover:bg-zinc-200'
-                                                    }`}
+                                                key={id}
+                                                onClick={() => setTimeFilter(id as any)}
+                                                className={`px-3 py-2 rounded text-[10px] font-bold uppercase tracking-widest border-2 whitespace-nowrap ${timeFilter === id ? 'bg-zinc-800 text-white border-zinc-900 dark:bg-zinc-200 dark:text-black' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500'}`}
                                             >
-                                                {filter.label}
+                                                {t(`filter_${id}`)}
                                             </button>
                                         ))}
                                     </div>
-
-                                    <div className="relative group">
-                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <span className="material-icons-round text-zinc-400">search</span>
-                                        </div>
-                                        <input
-                                            type="text"
-                                            value={searchTerm}
-                                            onChange={(e) => setSearchTerm(e.target.value)}
-                                            placeholder="BUSCAR REGISTRO..."
-                                            className="w-full pl-10 pr-3 py-3 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white outline-none border-2 border-zinc-200 dark:border-zinc-700 focus:border-blue-500 text-sm font-bold placeholder:text-zinc-400 uppercase"
-                                        />
-                                    </div>
+                                    <input
+                                        type="text"
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        placeholder="BUSCAR REGISTRO..."
+                                        className="w-full px-4 py-3 rounded bg-zinc-100 dark:bg-zinc-800 border-2 text-sm font-bold uppercase"
+                                    />
                                 </div>
 
                                 {records.length === 0 ? (
-                                    <div className="flex flex-col items-center justify-center py-20 opacity-50">
-                                        <span className="material-icons-round text-6xl text-zinc-300 dark:text-zinc-700 mb-4">history_toggle_off</span>
-                                        <p className="text-zinc-500 dark:text-zinc-400">{t('hist_empty')}</p>
-                                    </div>
-                                ) : filteredRecords.length === 0 ? (
-                                    <div className="text-center py-10 text-zinc-500 dark:text-zinc-400">
-                                        No se encontraron resultados.
-                                    </div>
+                                    <p className="text-center py-20 text-zinc-500">{t('hist_empty')}</p>
                                 ) : (
-                                    <div className="space-y-6">
-                                        {(() => {
-                                            const grouped = filteredRecords.reduce((acc, rec) => {
-                                                const date = new Date(rec.timestamp);
-                                                const today = new Date();
-                                                const yesterday = new Date(today);
-                                                yesterday.setDate(yesterday.getDate() - 1);
-
-                                                let key = date.toLocaleDateString();
-                                                if (date.toDateString() === today.toDateString()) key = "Hoy";
-                                                else if (date.toDateString() === yesterday.toDateString()) key = "Ayer";
-
-                                                if (!acc[key]) acc[key] = [];
-                                                acc[key].push(rec);
-                                                return acc;
-                                            }, {} as Record<string, WeighingRecord[]>);
-
-                                            return Object.entries(grouped).map(([dateLabel, groupRecords]) => (
-                                                <div key={dateLabel} className="animate-slide-up-fade px-1">
-                                                    <h3 className="sticky top-0 bg-[#F2F5F8]/90 dark:bg-[#121214]/90 backdrop-blur-md py-2 px-1 z-10 text-[10px] uppercase font-bold tracking-widest text-zinc-500 mb-2 border-b-2 border-zinc-200 dark:border-zinc-800">
-                                                        {dateLabel}
-                                                    </h3>
-                                                    <div className="space-y-3">
-                                                        {groupRecords.map((rec) => (
-                                                            <ModernRecordCard
-                                                                key={rec.id}
-                                                                record={rec}
-                                                                isExpanded={expandedIds.has(rec.id)}
-                                                                onExpand={() => toggleExpand(rec.id)}
-                                                                onDelete={(e) => handleDelete(rec.id, e)}
-                                                                onShare={(e) => handleShareWhatsapp(rec, e)}
-                                                            />
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            ));
-                                        })()}
+                                    <div className="space-y-3">
+                                        {filteredRecords.map(rec => (
+                                            <ModernRecordCard key={rec.id} record={rec} isExpanded={expandedIds.has(rec.id)} onExpand={() => toggleExpand(rec.id)} onDelete={(e) => handleDelete(rec.id, e)} onShare={(e) => handleShareWhatsapp(rec, e)} />
+                                        ))}
                                     </div>
                                 )}
-
-
                             </div>
-                        )
-                    }
-                    {
-                        activeTab === 'profile' && (
+                        )}
+                        {activeTab === 'profile' && (
                             <ProfileView
                                 profile={profile}
                                 session={session}
                                 email={email}
                                 isAuthLoading={isAuthLoading}
-                                onSaveProfile={() => {
-                                    saveUserProfile(profile);
-                                    showToast(t('profile_saved') || 'Guardado', 'success');
-                                }}
+                                onSaveProfile={handleSaveProfile}
                                 onSignOut={handleSignOut}
                                 onPhotoUpload={handleProfilePhotoUpload}
-                                onThemeChange={() => {
-                                    const newTheme = theme === 'dark' ? 'light' : 'dark';
-                                    setThemeState(newTheme);
-                                    saveTheme(newTheme);
-                                    if (newTheme === 'dark') {
-                                        document.documentElement.classList.add('dark');
-                                    } else {
-                                        document.documentElement.classList.remove('dark');
-                                    }
-                                }}
+                                onThemeChange={toggleTheme}
                                 theme={theme}
                                 onLanguageChange={setLanguage}
                                 currentLanguage={language}
                                 onProfileChange={(field, value) => setProfile(prev => ({ ...prev, [field]: value }))}
                                 version={APP_VERSION}
-                                onBackup={() => {
-                                    const data = generateBackupData();
-                                    const blob = new Blob([data], { type: 'application/json' });
-                                    const url = URL.createObjectURL(blob);
-                                    const a = document.createElement('a');
-                                    a.href = url;
-                                    a.download = `conferente_backup_${new Date().toISOString().split('T')[0]}.json`;
-                                    a.click();
-                                    showToast("Backup local descargado", "success");
-                                }}
+                                onBackup={handleBackup}
                                 onRestore={() => backupInputRef.current?.click()}
-
-                                // Auth Props
                                 password={password}
                                 onPasswordChange={setPassword}
                                 onLogin={handleLogin}
@@ -630,149 +611,44 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                                 onToggleAuthMode={() => setIsAuthModeLogin(!isAuthModeLogin)}
                                 onEmailChange={setEmail}
                             />
-                        )
-                    }
-                </main >
+                        )}
+                    </main>
 
-                {/* Image Viewer Modal */}
-                {
-                    viewImage && (
-                        <div className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4 animate-fade-in" onClick={() => setViewImage(null)}>
-                            <div className="relative max-w-full max-h-full" onClick={e => e.stopPropagation()}>
-                                <img src={viewImage} alt="Evidencia Full" className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl" />
-                                <button onClick={() => setViewImage(null)} className="absolute top-4 right-4 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 transition-colors">
-                                    <span className="material-icons-round text-2xl">close</span>
-                                </button>
-                            </div>
+                    <BottomNav activeTab={activeTab} onTabChange={handleTabChange} profilePhoto={profile.photo} />
+                </div>
+            )}
+
+            {/* Common Modals */}
+            {viewImage && (
+                <div className="fixed inset-0 z-[200] bg-black/95 flex items-center justify-center p-4" onClick={() => setViewImage(null)}>
+                    <img src={viewImage} alt="Full" className="max-w-full max-h-[90vh] object-contain rounded-lg" />
+                </div>
+            )}
+
+            {recordToDelete && (
+                <div className="fixed inset-0 z-[200] bg-black/60 flex items-center justify-center p-4" onClick={() => setRecordToDelete(null)}>
+                    <div className="bg-white dark:bg-zinc-900 rounded-[2rem] p-6 text-center" onClick={e => e.stopPropagation()}>
+                        <h3 className="text-xl font-black mb-4">{t('msg_confirm_delete')}</h3>
+                        <div className="flex gap-3">
+                            <button onClick={() => setRecordToDelete(null)} className="flex-1 py-3 bg-zinc-100 rounded-xl font-bold">{t('btn_not_now')}</button>
+                            <button onClick={confirmDelete} className="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold">{t('btn_erase')}</button>
                         </div>
-                    )
-                }
-
-                {/* Delete Confirmation Modal (Single Record) */}
-                {
-                    recordToDelete && (
-                        <div
-                            className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in"
-                            role="dialog"
-                            aria-modal="true"
-                            aria-labelledby="modal-delete-title"
-                            onClick={() => setRecordToDelete(null)}
-                        >
-                            <div className="bg-white dark:bg-zinc-900 rounded-[2rem] w-full max-w-sm p-6 shadow-2xl animate-slide-up ring-1 ring-white/10 relative overflow-hidden" onClick={e => e.stopPropagation()}>
-                                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-red-500/10 blur-[60px] pointer-events-none"></div>
-                                <div className="flex flex-col items-center text-center relative z-10">
-                                    <div className="relative mb-5">
-                                        <div className="absolute inset-0 bg-red-500 blur-xl opacity-20 rounded-full"></div>
-                                        <div className="w-20 h-20 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center relative shadow-sm border border-red-100 dark:border-red-900/30">
-                                            <span className="material-icons-round text-3xl text-red-500">delete_forever</span>
-                                        </div>
-                                    </div>
-                                    <h3 id="modal-delete-title" className="text-xl font-black text-zinc-900 dark:text-white mb-2 leading-tight">{t('msg_confirm_delete')}</h3>
-                                    <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-8 leading-relaxed px-4">Esta acción no se puede deshacer. El registro será eliminado permanentemente.</p>
-                                    <div className="grid grid-cols-2 gap-3 w-full">
-                                        <button onClick={() => setRecordToDelete(null)} className="py-3.5 rounded-xl font-bold text-sm bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors">{t('btn_not_now')}</button>
-                                        <button onClick={confirmDelete} className="py-3.5 rounded-xl font-bold text-sm bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/30 transition-all active:scale-95">{t('btn_erase')}</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )
-                }
-
-                {/* Delete All Confirmation Modal */}
-                {
-                    showDeleteAllModal && (
-                        <div
-                            className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in"
-                            role="dialog"
-                            aria-modal="true"
-                            aria-labelledby="modal-delete-all-title"
-                            onClick={() => setShowDeleteAllModal(false)}
-                        >
-                            <div className="bg-white dark:bg-zinc-900 rounded-[2rem] w-full max-w-sm p-6 shadow-2xl animate-slide-up ring-1 ring-white/10 relative overflow-hidden" onClick={e => e.stopPropagation()}>
-                                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-red-500/10 blur-[60px] pointer-events-none"></div>
-                                <div className="flex flex-col items-center text-center relative z-10">
-                                    <div className="relative mb-5">
-                                        <div className="absolute inset-0 bg-red-500 blur-xl opacity-20 rounded-full"></div>
-                                        <div className="w-20 h-20 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center relative shadow-sm border border-red-100 dark:border-red-900/30">
-                                            <span className="material-icons-round text-3xl text-red-500">delete_sweep</span>
-                                        </div>
-                                    </div>
-                                    <h3 id="modal-delete-all-title" className="text-xl font-black text-zinc-900 dark:text-white mb-2 leading-tight">{t('msg_confirm_delete_all')}</h3>
-                                    <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-8 leading-relaxed px-4">Esta acción es irreversible. Se eliminarán todos los registros guardados localmente.</p>
-                                    <div className="grid grid-cols-2 gap-3 w-full">
-                                        <button onClick={() => setShowDeleteAllModal(false)} className="py-3.5 rounded-xl font-bold text-sm bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors">{t('btn_not_now')}</button>
-                                        <button onClick={executeClearAll} className="py-3.5 rounded-xl font-bold text-sm bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/30 transition-all active:scale-95">{t('btn_delete_all_history')}</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )
-                }
-
-
-
-                {/* Chat Modal */}
-                {
-                    showChat && (
-                        <div className="fixed inset-0 z-[120] bg-black/60 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in" onClick={() => setShowChat(false)}>
-                            <div className="w-full max-w-4xl max-h-[90vh] h-[800px] animate-scale-in" onClick={e => e.stopPropagation()}>
-                                <div className="relative h-full">
-                                    <button
-                                        onClick={() => setShowChat(false)}
-                                        className="absolute -top-4 -right-4 z-50 w-10 h-10 bg-white dark:bg-zinc-800 text-black dark:text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
-                                    >
-                                        <span className="material-icons-round">close</span>
-                                    </button>
-                                    <ChatInterface />
-                                </div>
-                            </div>
-                        </div>
-                    )
-                }
-
-
-            </div >
-
-            {/* ELEMENTS OUTSIDE MAIN CONTAINER TO ENSURE FIXED POSITIONING WORKS CORRECTLY */}
-
-            {/* Update Notification Banner */}
-            {showUpdate && (
-                <div className="fixed bottom-24 left-4 right-4 z-[100] animate-slide-up">
-                    <div className="bg-zinc-900/90 dark:bg-white/90 backdrop-blur-md text-white dark:text-black p-4 rounded-2xl shadow-2xl border border-white/10 flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center shrink-0">
-                                <span className="material-icons-round text-blue-400 dark:text-blue-600 animate-pulse">system_update</span>
-                            </div>
-                            <div>
-                                <h4 className="font-bold text-sm leading-tight">{t('update_available')}</h4>
-                                <p className="text-xs text-zinc-400 dark:text-zinc-600">Nueva versión lista.</p>
-                            </div>
-                        </div>
-                        <button
-                            onClick={() => window.location.reload()}
-                            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold uppercase tracking-wide rounded-xl shadow-lg shadow-blue-500/20 transition-all active:scale-95"
-                        >
-                            {t('btn_update')}
-                        </button>
                     </div>
                 </div>
             )}
 
-            {/* Modern Bottom Navigation */}
-            <BottomNav
-                activeTab={activeTab}
-                onTabChange={handleTabChange}
-                profilePhoto={profile.photo}
-            />
-
-            {/* DEV ONLY: Hidden trigger to test update UI - triple click bottom right corner if needed */}
-            {import.meta.env.DEV && (
-                <div
-                    className="fixed bottom-0 right-0 w-10 h-10 z-[200]"
-                    onClick={(e) => { if (e.detail === 3) setShowUpdate(true); }}
-                />
+            {showUpdate && (
+                <div className="fixed bottom-24 left-4 right-4 z-[100] bg-zinc-900 text-white p-4 rounded-2xl flex items-center justify-between">
+                    <span className="text-xs font-bold uppercase">{t('update_available')}</span>
+                    <button onClick={() => window.location.reload()} className="px-4 py-2 bg-blue-500 rounded-xl text-xs font-bold uppercase">{t('btn_update')}</button>
+                </div>
             )}
+
+            {/* V2 TOGGLE (Triple click top left) */}
+            <div
+                className="fixed top-0 left-0 w-20 h-20 z-[300]"
+                onClick={(e) => { if (e.detail === 3) setUseV2(!useV2); }}
+            />
         </>
     );
 };

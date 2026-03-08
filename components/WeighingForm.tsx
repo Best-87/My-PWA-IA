@@ -91,11 +91,15 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
     const [storageType, setStorageType] = useState<'frozen' | 'refrigerated' | 'dry' | null>(persistentFormState?.storageType || null);
     const [recommendedTemp, setRecommendedTemp] = useState<string>(persistentFormState?.recommendedTemp || '');
     const [criticalWarning, setCriticalWarning] = useState<string | null>(persistentFormState?.criticalWarning || null);
+    const [cnpj, setCnpj] = useState<string>(persistentFormState?.cnpj || '');
+    const [noteNumber, setNoteNumber] = useState<string>(persistentFormState?.noteNumber || '');
 
     const grossInputRef = useRef<HTMLInputElement>(null);
     const noteInputRef = useRef<HTMLInputElement>(null);
     const cameraInputRef = useRef<HTMLInputElement>(null);
     const galleryInputRef = useRef<HTMLInputElement>(null);
+    const nfCameraInputRef = useRef<HTMLInputElement>(null);
+    const nfGalleryInputRef = useRef<HTMLInputElement>(null);
     const isAiPopulating = useRef(false);
 
     const [suggestions, setSuggestions] = useState<{ products: string[], suppliers: string[] }>({ products: [], suppliers: [] });
@@ -123,9 +127,9 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
         persistentFormState = {
             supplier, product, batch, expirationDate, productionDate,
             grossWeight, noteWeight, evidence, showBoxes, boxQty, boxTara,
-            storageType, recommendedTemp, criticalWarning
+            storageType, recommendedTemp, criticalWarning, cnpj, noteNumber
         };
-    }, [supplier, product, batch, expirationDate, productionDate, grossWeight, noteWeight, evidence, showBoxes, boxQty, boxTara, storageType, recommendedTemp, criticalWarning]);
+    }, [supplier, product, batch, expirationDate, productionDate, grossWeight, noteWeight, evidence, showBoxes, boxQty, boxTara, storageType, recommendedTemp, criticalWarning, cnpj, noteNumber]);
 
     useEffect(() => {
         const kb = getKnowledgeBase();
@@ -302,6 +306,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
         setSupplier(''); setProduct(''); setBatch(''); setExpirationDate(''); setProductionDate('');
         setGrossWeight(''); setNoteWeight(''); setBoxQty(''); setBoxTara(''); setEvidence(null);
         setStorageType(null); setRecommendedTemp(''); setCriticalWarning(null);
+        setCnpj(''); setNoteNumber('');
         setSuggestedNote(null); setSuggestedGross(null);
         persistentFormState = null;
     };
@@ -336,7 +341,8 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                 batch: batch || undefined, expirationDate: expirationDate || undefined, productionDate: productionDate || undefined,
                 grossWeight: gWeight, noteWeight: nWeight, netWeight, taraTotal: totalTara,
                 boxes: { qty: Number(boxQty), unitTara: boxTaraKg }, status: Math.abs(difference) > TOLERANCE_KG ? 'error' : 'verified',
-                evidence: finalEvidenceUrl, recommendedTemperature: recommendedTemp || undefined
+                evidence: finalEvidenceUrl, recommendedTemperature: recommendedTemp || undefined,
+                cnpj: cnpj || undefined, noteNumber: noteNumber || undefined
             });
             handleReset();
             onRecordSaved?.();
@@ -472,6 +478,71 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
         }
     };
 
+    const analyzeInvoiceContent = async (base64Image: string) => {
+        if (!navigator.onLine) {
+            setFloatingMessage({ text: "Modo Offline: IA no disponible", type: 'warning' });
+            setTimeout(() => setFloatingMessage(null), 3000);
+            return;
+        }
+        setIsReadingImage(true);
+        setFloatingMessage({ text: "🔍 Escaneando Nota Fiscal...", type: 'info' });
+        isAiPopulating.current = true;
+
+        try {
+            const resizedBase64 = await resizeImageToMax800(base64Image);
+            const base64Data = resizedBase64.includes(',') ? resizedBase64.split(',')[1] : resizedBase64;
+
+            const promptText = `EXTRACT_INVOICE_DATA_JSON (DANFE/NF-e):
+            {
+              "cnpj_emitente": "string",
+              "numero_nota": "string",
+              "peso_liquido": "number_kg" | null,
+              "peso_bruto": "number_kg" | null,
+              "fornecedor": "string" | null
+            }
+            Rules: Extract official Invoice (Nota Fiscal) data. Output ONLY raw JSON. No markdown. Use null if not found.`;
+
+            const prompt = {
+                parts: [
+                    { inlineData: { mimeType: 'image/jpeg', data: base64Data } },
+                    { text: promptText }
+                ]
+            };
+
+            const text = await generateGeminiContent(prompt);
+            if (!text) throw new Error("Empty response");
+
+            let cleanJson = text.replace(/```json|```/g, '').trim();
+            const firstBrace = cleanJson.indexOf('{');
+            const lastBrace = cleanJson.lastIndexOf('}');
+            if (firstBrace !== -1 && lastBrace !== -1) {
+                cleanJson = cleanJson.substring(firstBrace, lastBrace + 1);
+            }
+
+            const data = JSON.parse(cleanJson);
+            setFloatingMessage({ text: "✓ Nota Fiscal procesada", type: 'success' });
+            setTimeout(() => setFloatingMessage(null), 2000);
+
+            if (data.cnpj_emitente) setCnpj(data.cnpj_emitente);
+            if (data.numero_nota) setNoteNumber(data.numero_nota);
+            if (data.peso_liquido) setNoteWeight(data.peso_liquido.toString());
+            if (data.fornecedor && !supplier) setSupplier(data.fornecedor);
+
+            // Also notify weights found
+            if (data.peso_liquido) {
+                showToast(`Peso Nota: ${data.peso_liquido}kg extraído`, "success");
+            }
+
+        } catch (error) {
+            console.error("NF OCR Error:", error);
+            setFloatingMessage({ text: "Error al leer Nota Fiscal", type: 'warning' });
+            setTimeout(() => setFloatingMessage(null), 3000);
+        } finally {
+            setIsReadingImage(false);
+            setTimeout(() => { isAiPopulating.current = false; }, 1500);
+        }
+    };
+
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
@@ -482,6 +553,21 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                 setEvidence(resized);
                 showToast("Imagem processada", "info");
                 analyzeImageContent(resized);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleNFUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                const base64 = event.target?.result as string;
+                const resized = await resizeImageToMax800(base64);
+                setEvidence(resized); // Optional: keep as evidence?
+                showToast("Nota Fiscal capturada", "info");
+                analyzeInvoiceContent(resized);
             };
             reader.readAsDataURL(file);
         }
@@ -499,10 +585,10 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                             floatingMessage.type === 'ai' ? 'bg-purple-100 border-purple-500 text-purple-900' :
                                 'bg-blue-100 border-blue-500 text-blue-900')
                     : 'bg-zinc-100 dark:bg-zinc-800 border-zinc-400 dark:border-zinc-500'}
-            `}>
+`}>
                 <div className="flex items-center gap-2">
                     <div className="flex items-center justify-center shrink-0">
-                        <span className={`material-icons-round text-xl ${floatingMessage ? (floatingMessage.type === 'ai' ? 'text-purple-500' : floatingMessage.type === 'success' ? 'text-emerald-500' : floatingMessage.type === 'warning' ? 'text-orange-500' : 'text-blue-500') : 'text-zinc-400'}`}>
+                        <span className={`material-icons-round text-xl ${floatingMessage ? (floatingMessage.type === 'ai' ? 'text-purple-500' : floatingMessage.type === 'success' ? 'text-emerald-500' : floatingMessage.type === 'warning' ? 'text-orange-500' : 'text-blue-500') : 'text-zinc-400'} `}>
                             {floatingMessage
                                 ? (floatingMessage.type === 'success' ? 'check_circle' :
                                     floatingMessage.type === 'warning' ? 'warning' :
@@ -517,7 +603,8 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                                     floatingMessage.type === 'warning' ? 'text-orange-700 dark:text-orange-300' :
                                         floatingMessage.type === 'ai' ? 'text-purple-700 dark:text-purple-300' :
                                             'text-blue-700 dark:text-blue-300')
-                                : 'text-zinc-600 dark:text-zinc-400'}`}
+                                : 'text-zinc-600 dark:text-zinc-400'
+                            } `}
                         >
                             {floatingMessage ? floatingMessage.text : (isReadingImage ? "Analisando rótulo..." : carouselTip)}
                         </p>
@@ -550,7 +637,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                     {/* Main Center: Difference */}
                     <div className="flex flex-col items-center justify-center z-10 my-2">
                         <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-zinc-500 mb-1">DIFERENCIA (DESVIACIÓN)</span>
-                        <div className={`flex items-baseline gap-2 ${Math.abs(difference) > TOLERANCE_KG ? 'text-red-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 'text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.5)]'}`}>
+                        <div className={`flex items-baseline gap-2 ${Math.abs(difference) > TOLERANCE_KG ? 'text-red-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 'text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.5)]'} `}>
                             <span className="text-6xl font-mono font-bold tracking-tighter">
                                 {difference > 0 ? '+' : ''}{difference.toFixed(3)}
                             </span>
@@ -566,7 +653,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                         </div>
                         <div className="flex flex-col items-end">
                             <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-500">ESTADO (TOL: ±{TOLERANCE_KG}KG)</span>
-                            <span className={`text-[11px] font-bold uppercase tracking-widest px-2 py-0.5 border mt-0.5 ${Math.abs(difference) > TOLERANCE_KG ? 'border-red-500/30 text-red-500 bg-red-500/10' : 'border-emerald-500/30 text-emerald-400 bg-emerald-500/10'}`}>
+                            <span className={`text-[11px] font-bold uppercase tracking-widest px-2 py-0.5 border mt-0.5 ${Math.abs(difference) > TOLERANCE_KG ? 'border-red-500/30 text-red-500 bg-red-500/10' : 'border-emerald-500/30 text-emerald-400 bg-emerald-500/10'} `}>
                                 {Math.abs(difference) > TOLERANCE_KG ? 'FUERA TOLERANCIA' : 'OK'}
                             </span>
                         </div>
@@ -587,6 +674,27 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                         />
                         <datalist id="suppliers">{suggestions.suppliers.map(s => <option key={s} value={s} />)}</datalist>
                     </div>
+
+                    {/* CNPJ & Nota (New Fields) */}
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className="flex flex-col">
+                            <label className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-1">CNPJ EMITENTE</label>
+                            <input
+                                value={cnpj} onChange={e => setCnpj(e.target.value)}
+                                className="bg-zinc-100 dark:bg-zinc-800 border-2 border-zinc-200 dark:border-zinc-700 rounded p-2 text-xs font-bold text-zinc-900 dark:text-white outline-none focus:border-blue-500"
+                                placeholder="00.000.000/0000-00"
+                            />
+                        </div>
+                        <div className="flex flex-col">
+                            <label className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-1">№ NOTA FISCAL</label>
+                            <input
+                                value={noteNumber} onChange={e => setNoteNumber(e.target.value)}
+                                className="bg-zinc-100 dark:bg-zinc-800 border-2 border-zinc-200 dark:border-zinc-700 rounded p-2 text-xs font-bold text-zinc-900 dark:text-white outline-none focus:border-blue-500"
+                                placeholder="..."
+                            />
+                        </div>
+                    </div>
+
                     {/* Producto */}
                     <div className="flex flex-col">
                         <label className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-1">PRODUTO</label>
@@ -682,7 +790,7 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
                             {boxQty || '0'} CAJAS × {boxTaraKg.toFixed(3)} KG = {totalTara.toFixed(3)} KG
                         </p>
                     </div>
-                    <span className={`material-icons-round transition-transform duration-300 text-zinc-400 ${showBoxes ? 'rotate-180' : ''}`}>expand_more</span>
+                    <span className={`material-icons-round transition-transform duration-300 text-zinc-400 ${showBoxes ? 'rotate-180' : ''} `}>expand_more</span>
                 </div>
                 {showBoxes && (
                     <div className="p-4 pt-0 grid grid-cols-2 gap-3 animate-fade-in border-t-2 border-zinc-100 dark:border-zinc-800">
@@ -709,18 +817,26 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
             <div className="grid grid-cols-4 gap-2 stagger-6 animate-fade-in px-1 pt-2">
                 <button
                     onClick={() => cameraInputRef.current?.click()}
-                    className="col-span-2 h-16 rounded bg-blue-600 flex items-center justify-center gap-2 text-white active:bg-blue-700 transition-colors border-2 border-blue-800"
+                    className="col-span-2 h-16 rounded bg-indigo-600 flex flex-col items-center justify-center gap-0 text-white active:bg-indigo-700 transition-colors border-b-4 border-indigo-800"
                 >
-                    <span className="material-icons-round">qr_code_scanner</span>
-                    <span className="text-sm font-bold uppercase tracking-widest">SCAN</span>
+                    <span className="material-icons-round text-xl">label</span>
+                    <span className="text-[10px] font-black uppercase tracking-tighter">SCAN ETIQUETA / LOG</span>
+                </button>
+
+                <button
+                    onClick={() => nfCameraInputRef.current?.click()}
+                    className="col-span-2 h-16 rounded bg-blue-600 flex flex-col items-center justify-center gap-0 text-white active:bg-blue-700 transition-colors border-b-4 border-blue-800"
+                >
+                    <span className="material-icons-round text-xl">receipt_long</span>
+                    <span className="text-[10px] font-black uppercase tracking-tighter">SCAN NOTA FISCAL</span>
                 </button>
 
                 <button
                     onClick={handleSave}
                     disabled={!hasDataToSave || isSaving}
-                    className={`col-span-2 h-16 rounded flex items-center justify-center gap-2 transition-colors border-2 ${hasDataToSave && !isSaving ? 'bg-emerald-600 border-emerald-800 text-white active:bg-emerald-700' : 'bg-zinc-200 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-700 text-zinc-400 cursor-not-allowed'}`}
+                    className={`col-span-2 h-16 rounded flex items-center justify-center gap-2 transition-colors border-2 ${hasDataToSave && !isSaving ? 'bg-emerald-600 border-emerald-800 text-white active:bg-emerald-700' : 'bg-zinc-200 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-700 text-zinc-400 cursor-not-allowed'} `}
                 >
-                    <span className={`material-icons-round ${isSaving ? 'animate-spin' : ''}`}>{isSaving ? 'sync' : 'save'}</span>
+                    <span className={`material-icons-round ${isSaving ? 'animate-spin' : ''} `}>{isSaving ? 'sync' : 'save'}</span>
                     <span className="text-sm font-bold uppercase tracking-widest">{isSaving ? 'PROCESANDO' : 'GUARDAR'}</span>
                 </button>
 
@@ -737,6 +853,8 @@ export const WeighingForm = forwardRef<WeighingFormHandle, WeighingFormProps>(({
 
             <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleImageUpload} />
             <input ref={galleryInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+            <input ref={nfCameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleNFUpload} />
+            <input ref={nfGalleryInputRef} type="file" accept="image/*" className="hidden" onChange={handleNFUpload} />
 
             {/* Reset Confirmation Portal */}
             {showConfirmReset && createPortal(

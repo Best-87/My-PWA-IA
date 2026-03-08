@@ -1,0 +1,213 @@
+import React, { useState, useRef } from 'react';
+import { Camera, FileSearch, Loader2, Check, X, ScanText, Tag } from 'lucide-react';
+import { generateGeminiContent } from '../../services/geminiService';
+
+interface OCRProcessorProps {
+    mode: 'nf' | 'label';
+    onDataExtracted: (data: any) => void;
+    onClose: () => void;
+}
+
+export const NFScanner: React.FC<OCRProcessorProps> = ({ mode, onDataExtracted, onClose }) => {
+    const [isProcessing, setIsProcessing] = useState(false);
+    const [progress, setProgress] = useState(0);
+    const [preview, setPreview] = useState<string | null>(null);
+    const [ocrText, setOcrText] = useState<string>('');
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const galleryInputRef = useRef<HTMLInputElement>(null);
+
+    const resizeImage = (base64Str: string): Promise<string> => {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const MAX_WIDTH = 800;
+                let width = img.width;
+                let height = img.height;
+                if (width > MAX_WIDTH) {
+                    height *= MAX_WIDTH / width;
+                    width = MAX_WIDTH;
+                }
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx?.drawImage(img, 0, 0, width, height);
+                resolve(canvas.toDataURL('image/jpeg', 0.7));
+            };
+            img.src = base64Str;
+        });
+    };
+
+    const processImage = async (imageSrc: string) => {
+        setIsProcessing(true);
+        setPreview(imageSrc);
+        setProgress(30);
+
+        try {
+            const resized = await resizeImage(imageSrc);
+            const base64Data = resized.includes(',') ? resized.split(',')[1] : resized;
+            setProgress(60);
+
+            const promptText = mode === 'nf'
+                ? `EXTRACT_INVOICE_DATA (DANFE): Return JSON { "cnpj": "string", "invoiceNumber": "string", "grossWeight": number, "totalWeight": number, "supplier": "string" }`
+                : `EXTRACT_LABEL_DATA: Return JSON { "product": "string", "batch": "string", "expirationDate": "DD/MM/YYYY" | null, "supplier": "string" | null }`;
+
+            const prompt = {
+                parts: [
+                    { inlineData: { mimeType: 'image/jpeg', data: base64Data } },
+                    { text: promptText + " Output ONLY raw JSON." }
+                ]
+            };
+
+            const text = await generateGeminiContent(prompt);
+            setProgress(90);
+
+            let cleanJson = text.replace(/```json|```/g, '').trim();
+            const firstBrace = cleanJson.indexOf('{');
+            const lastBrace = cleanJson.lastIndexOf('}');
+            if (firstBrace !== -1 && lastBrace !== -1) {
+                cleanJson = cleanJson.substring(firstBrace, lastBrace + 1);
+            }
+
+            const data = JSON.parse(cleanJson);
+
+            // Map keys robustly (handling different variants Gemini might return)
+            const mappedData: any = {
+                cnpj: data.cnpj || data.cnpj_emitente || data.CNPJ || '',
+                invoiceNumber: data.invoiceNumber || data.numero_nota || data.numero || '',
+                grossWeight: data.grossWeight || data.peso_bruto || data.peso_bruto_kg || null,
+                totalWeight: data.totalWeight || data.peso_liquido || data.peso_liquido_kg || null,
+                supplier: data.supplier || data.fornecedor || data.emitente || '',
+                product: data.product || data.produto || data.item || '',
+                batch: data.batch || data.lote || '',
+                expirationDate: data.expirationDate || data.data_validade || data.validade || data.exp || null
+            };
+
+            setOcrText(JSON.stringify(mappedData, null, 2));
+            onDataExtracted(mappedData);
+            setProgress(100);
+        } catch (error) {
+            console.error("OCR Error:", error);
+            setOcrText("Error en el escaneo. Intente nuevamente.");
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
+    const handleCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                if (event.target?.result) {
+                    processImage(event.target.result as string);
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 z-[300] bg-black/90 backdrop-blur-xl flex flex-col items-center justify-center p-6 animate-fade-in">
+            <button
+                onClick={onClose}
+                className="absolute top-6 right-6 p-2 bg-white/10 rounded-full text-white hover:bg-white/20 transition-colors"
+            >
+                <X className="w-6 h-6" />
+            </button>
+
+            <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-[2.5rem] overflow-hidden shadow-2xl animate-scale-in">
+                {!preview ? (
+                    <div className="p-10 flex flex-col items-center text-center">
+                        <div className="w-20 h-20 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center mb-6">
+                            {mode === 'nf' ? <FileSearch className="w-10 h-10 text-blue-600" /> : <ScanText className="w-10 h-10 text-purple-600" />}
+                        </div>
+                        <h2 className="text-xl font-black text-zinc-900 dark:text-white mb-2 uppercase tracking-tight">
+                            {mode === 'nf' ? 'Scanner de Notas' : 'Scanner de Rótulo'}
+                        </h2>
+                        <p className="text-sm text-zinc-500 mb-8 px-6">
+                            {mode === 'nf'
+                                ? 'Posicione a nota fiscal ou romaneio para extração de CNPJ e pesos.'
+                                : 'Posicione o rótulo do produto para extração de lote, validade e produto.'}
+                        </p>
+
+                        <div className="grid grid-cols-2 gap-4 w-full px-8 mb-10">
+                            <button
+                                onClick={() => fileInputRef.current?.click()}
+                                className="flex flex-col items-center gap-3 p-6 bg-blue-600 text-white rounded-[2rem] shadow-lg shadow-blue-500/30 active:scale-95 transition-all"
+                            >
+                                <Camera className="w-8 h-8 opacity-90" />
+                                <span className="text-[10px] font-black uppercase tracking-widest">Câmera</span>
+                            </button>
+
+                            <button
+                                onClick={() => galleryInputRef.current?.click()}
+                                className="flex flex-col items-center gap-3 p-6 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white rounded-[2rem] shadow-sm border border-zinc-200 dark:border-zinc-700 active:scale-95 transition-all"
+                            >
+                                <FileSearch className="w-8 h-8 opacity-70" />
+                                <span className="text-[10px] font-black uppercase tracking-widest">Galeria</span>
+                            </button>
+                        </div>
+
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            className="hidden"
+                            accept="image/*"
+                            capture="environment"
+                            onChange={handleCapture}
+                        />
+                        <input
+                            ref={galleryInputRef}
+                            type="file"
+                            className="hidden"
+                            accept="image/*"
+                            onChange={handleCapture}
+                        />
+                    </div>
+                ) : (
+                    <div className="p-6">
+                        <div className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-black mb-6">
+                            <img src={preview} className="w-full h-full object-cover opacity-60" alt="Preview" />
+                            {isProcessing ? (
+                                <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
+                                    <Loader2 className="w-8 h-8 animate-spin mb-4" />
+                                    <div className="w-3/4 h-1.5 bg-white/20 rounded-full overflow-hidden">
+                                        <div className="h-full bg-blue-500 transition-all" style={{ width: `${progress}%` }}></div>
+                                    </div>
+                                    <span className="text-[10px] font-bold uppercase tracking-widest mt-2">Processando {progress}%</span>
+                                </div>
+                            ) : (
+                                <div className="absolute bottom-4 left-4 right-4 bg-emerald-500 text-white p-3 rounded-xl flex items-center justify-center gap-2 font-bold animate-slide-up">
+                                    <Check className="w-5 h-5" /> Scanner Concluído
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="space-y-3 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Texto Detectado (Preview)</span>
+                            <p className="text-[11px] text-zinc-500 font-mono leading-relaxed bg-zinc-50 dark:bg-zinc-800/50 p-3 rounded-xl border border-zinc-100 dark:border-zinc-800">
+                                {ocrText || "Analisando padrões..."}
+                            </p>
+                        </div>
+
+                        <div className="mt-8 flex gap-3">
+                            <button
+                                onClick={() => { setPreview(null); setOcrText(''); }}
+                                className="flex-1 py-4 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 rounded-2xl font-bold text-sm"
+                            >
+                                Tentar Novamente
+                            </button>
+                            <button
+                                onClick={onClose}
+                                className="flex-1 py-4 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-2xl font-bold text-sm shadow-xl shadow-zinc-900/10"
+                            >
+                                Aplicar Dados
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
