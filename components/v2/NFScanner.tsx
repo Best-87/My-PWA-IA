@@ -80,7 +80,8 @@ export const NFScanner: React.FC<OCRProcessorProps> = ({ mode, onDataExtracted, 
                 supplier: data.supplier || data.fornecedor || data.emitente || '',
                 product: data.product || data.produto || data.item || '',
                 batch: data.batch || data.lote || '',
-                expirationDate: data.expirationDate || data.data_validade || data.validade || data.exp || null
+                expirationDate: data.expirationDate || data.data_validade || data.validade || data.exp || null,
+                evidence: preview || imageSrc // Include the image
             };
 
             setOcrText(JSON.stringify(mappedData, null, 2));

@@ -674,7 +674,7 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
             )}
 
             <div
-                className="fixed top-0 left-0 w-20 h-20 z-[300] bg-transparent opacity-0"
+                className="fixed bottom-0 right-0 w-10 h-10 z-[300] bg-transparent opacity-0"
                 onClick={(e) => {
                     if (e.detail === 3) {
                         setUseV2(!useV2);

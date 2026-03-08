@@ -29,7 +29,8 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
         exp: '',
         storage: 'dry',
         cnpj: '',
-        noteNumber: ''
+        noteNumber: '',
+        evidence: null as string | null
     });
 
     const parsedGross = parseFloat(form.gross.replace(',', '.')) || 0;
@@ -75,7 +76,8 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
                 expirationDate: form.exp,
                 storage: form.storage,
                 cnpj: form.cnpj,
-                noteNumber: form.noteNumber
+                noteNumber: form.noteNumber,
+                evidence: form.evidence // Save the photo
             };
 
             const result: any = await saveRecord(record as any);
@@ -87,7 +89,8 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
             setForm({
                 supplier: '', product: '', gross: '', note: '',
                 qty: '', tara: '0', batch: '', exp: '',
-                storage: 'dry', cnpj: '', noteNumber: ''
+                storage: 'dry', cnpj: '', noteNumber: '',
+                evidence: null
             });
 
             if (onRecordSaved) onRecordSaved();
@@ -343,7 +346,7 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
             {/* 4. Action Buttons */}
             <div className="grid grid-cols-2 gap-3 pb-20">
                 <button
-                    onClick={() => setForm({ supplier: '', product: '', gross: '', note: '', qty: '', tara: '0', batch: '', exp: '', storage: 'dry', cnpj: '', noteNumber: '' })}
+                    onClick={() => setForm({ supplier: '', product: '', gross: '', note: '', qty: '', tara: '0', batch: '', exp: '', storage: 'dry', cnpj: '', noteNumber: '', evidence: null })}
                     className="py-4 rounded-2xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 font-bold flex items-center justify-center gap-2 active:scale-95 transition-all"
                 >
                     <Trash2 className="w-5 h-5" /> Limpar
@@ -366,12 +369,14 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
                             if (data.cnpj) updateForm('cnpj', data.cnpj);
                             if (data.invoiceNumber) updateForm('noteNumber', data.invoiceNumber);
                             if (data.supplier) updateForm('supplier', data.supplier);
+                            if (data.evidence) updateForm('evidence', data.evidence);
                             showToast("Nota Fiscal processada!", "success");
                         } else {
                             if (data.product) updateForm('product', data.product);
                             if (data.batch) updateForm('batch', data.batch);
                             if (data.expirationDate) updateForm('exp', data.expirationDate);
                             if (data.supplier) updateForm('supplier', data.supplier);
+                            if (data.evidence) updateForm('evidence', data.evidence);
                             showToast("Rótulo processado!", "success");
                         }
                     }}
