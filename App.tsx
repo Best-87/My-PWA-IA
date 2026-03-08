@@ -63,7 +63,11 @@ const AppContent = () => {
     const [timeFilter, setTimeFilter] = useState<'all' | 'today' | 'week' | 'month' | 'year'>(() => {
         return (localStorage.getItem('history_time_filter') as any) || 'all';
     });
-    const [useV2, setUseV2] = useState(() => localStorage.getItem('app_v2_preview') === 'true');
+    const [useV2, setUseV2] = useState(() => localStorage.getItem('app_v2_preview') !== 'false');
+
+    useEffect(() => {
+        localStorage.setItem('app_v2_preview', useV2.toString());
+    }, [useV2]);
 
     useEffect(() => {
         localStorage.setItem('history_time_filter', timeFilter);
@@ -644,10 +648,14 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                 </div>
             )}
 
-            {/* V2 TOGGLE (Triple click top left) */}
             <div
-                className="fixed top-0 left-0 w-20 h-20 z-[300]"
-                onClick={(e) => { if (e.detail === 3) setUseV2(!useV2); }}
+                className="fixed top-0 left-0 w-20 h-20 z-[300] bg-transparent opacity-0"
+                onClick={(e) => {
+                    if (e.detail === 3) {
+                        setUseV2(!useV2);
+                        showToast(`Modo ${!useV2 ? 'V2 PRO' : 'V1 Core'} Ativado`, 'info');
+                    }
+                }}
             />
         </>
     );
