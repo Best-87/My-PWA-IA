@@ -182,18 +182,20 @@ const AppContent = () => {
 
     // Initialize Session & Auth
     useEffect(() => {
-        onAuthStateChange((_event, session) => {
+        onAuthStateChange(async (_event, session) => {
+            console.log("Auth Event:", _event, session?.user?.email);
             setSession(session);
+
             if (session?.user) {
-                // If logged in, update profile email
                 setProfile(prev => ({ ...prev, email: session.user.email }));
-                // Force record refresh from Supabase and sync to local automatically
-                fetchRecordsFromSupabase().then(cloudRecords => {
-                    if (cloudRecords.length > 0) {
-                        setRecords(cloudRecords);
-                        syncRecords(cloudRecords); // AUTO DOWNLOAD/SYNC
-                    }
-                });
+                // Force record refresh from Supabase
+                const cloudRecords = await fetchRecordsFromSupabase();
+                if (cloudRecords && cloudRecords.length > 0) {
+                    setRecords(cloudRecords);
+                    syncRecords(cloudRecords);
+                }
+            } else if (_event === 'SIGNED_OUT') {
+                setRecords([]);
             }
         });
     }, []);

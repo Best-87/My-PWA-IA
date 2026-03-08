@@ -62,24 +62,25 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
 
             const record = {
                 id: crypto.randomUUID(),
-                timestamp: new Date().toISOString(),
+                timestamp: Date.now(), // Use Number (Unix timestamp)
                 supplier: form.supplier,
                 product: form.product,
                 grossWeight: gross,
                 noteWeight: noteWeight,
                 netWeight: netWeight,
                 taraTotal: totalTara,
-                taraUnit: parseFloat(form.tara),
-                quantity: qty,
+                boxes: { qty: qty, unitTara: parseFloat(form.tara) || 0 }, // Nested object as per type
+                status: Math.abs(netWeight - noteWeight) <= 0.2 ? 'verified' : 'error',
                 batch: form.batch,
                 expirationDate: form.exp,
                 storage: form.storage,
                 cnpj: form.cnpj,
-                noteNumber: form.noteNumber,
-                status: Math.abs(netWeight - noteWeight) <= 0.2 ? 'OK' : 'DIVERGENTE'
+                noteNumber: form.noteNumber
             };
 
-            await saveRecord(record as any);
+            const result: any = await saveRecord(record as any);
+            if (result?.error) throw new Error(result.error);
+
             showToast("Conferência salva com sucesso!", "success");
 
             // Reset form
