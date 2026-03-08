@@ -8,6 +8,8 @@ import {
 import { WeighingFormProps } from '../WeighingForm';
 import { NFScanner } from './NFScanner';
 import { useToast } from '../Toast';
+import { saveRecord } from '../../services/storageService';
+import { trackEvent } from '../../services/analyticsService';
 
 export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onDataChange, onRecordSaved }) => {
     const { showToast } = useToast();
@@ -42,6 +44,56 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
     const updateForm = (field: string, val: any) => {
         setForm(prev => ({ ...prev, [field]: val }));
         if (onDataChange) onDataChange(true);
+    };
+
+    const handleSave = async () => {
+        if (!form.supplier || !form.product || !form.gross) {
+            showToast("Preencha Fornecedor, Produto e Peso Bruto", "error");
+            return;
+        }
+
+        try {
+            const qty = parseFloat(form.qty) || 0;
+            const taraUnitKg = (parseFloat(form.tara) / 1000) || 0;
+            const totalTara = qty * taraUnitKg;
+            const gross = parseFloat(form.gross.replace(',', '.')) || 0;
+            const noteWeight = parseFloat(form.note.replace(',', '.')) || 0;
+            const netWeight = gross - totalTara;
+
+            const record = {
+                id: crypto.randomUUID(),
+                timestamp: new Date().toISOString(),
+                supplier: form.supplier,
+                product: form.product,
+                grossWeight: gross,
+                noteWeight: noteWeight,
+                netWeight: netWeight,
+                taraTotal: totalTara,
+                taraUnit: parseFloat(form.tara),
+                quantity: qty,
+                batch: form.batch,
+                expirationDate: form.exp,
+                storage: form.storage,
+                cnpj: form.cnpj,
+                noteNumber: form.noteNumber,
+                status: Math.abs(netWeight - noteWeight) <= 0.2 ? 'OK' : 'DIVERGENTE'
+            };
+
+            await saveRecord(record as any);
+            showToast("Conferência salva com sucesso!", "success");
+
+            // Reset form
+            setForm({
+                supplier: '', product: '', gross: '', note: '',
+                qty: '', tara: '0', batch: '', exp: '',
+                storage: 'dry', cnpj: '', noteNumber: ''
+            });
+
+            if (onRecordSaved) onRecordSaved();
+        } catch (error) {
+            console.error("Save Error:", error);
+            showToast("Erro ao salvar", "error");
+        }
     };
 
     return (
@@ -296,6 +348,7 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
                     <Trash2 className="w-5 h-5" /> Limpar
                 </button>
                 <button
+                    onClick={handleSave}
                     className="py-4 rounded-2xl bg-zinc-900 dark:bg-white text-white dark:text-black font-bold flex items-center justify-center gap-2 shadow-xl active:scale-95 transition-all"
                 >
                     <Save className="w-5 h-5" /> Salvar Tudo
