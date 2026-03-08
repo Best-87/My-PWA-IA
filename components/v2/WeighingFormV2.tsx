@@ -101,77 +101,75 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
     };
 
     return (
-        <div className="space-y-6 animate-fade-in-up">
+        <div className="space-y-4 animate-fade-in-up">
             {/* 1. Summary Card - LCD Modernized */}
-            <div className={`relative overflow-hidden p-6 rounded-[2.5rem] border transition-all duration-500 shadow-sm ${isOk ? 'bg-emerald-50/50 border-emerald-100 dark:bg-emerald-950/20 dark:border-emerald-900/40' :
+            <div className={`relative overflow-hidden p-4 rounded-[2rem] border transition-all duration-500 shadow-sm ${isOk ? 'bg-emerald-50/50 border-emerald-100 dark:bg-emerald-950/20 dark:border-emerald-900/40' :
                 'bg-red-50/50 border-red-100 dark:bg-red-950/20 dark:border-red-900/40'
                 }`}>
-                <div className="flex justify-between items-center mb-6">
+                <div className="flex justify-between items-center mb-4">
                     <div>
-                        <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Status da Conferência</span>
-                        <div className="flex items-center gap-2 mt-1">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Status</span>
+                        <div className="flex items-center gap-2 mt-0.5">
                             <div className={`w-2 h-2 rounded-full animate-pulse ${isOk ? 'bg-emerald-500' : 'bg-red-500'}`}></div>
-                            <span className={`text-sm font-bold uppercase tracking-tight ${isOk ? 'text-emerald-600' : 'text-red-600'}`}>
-                                {isOk ? 'Conformidade OK' : 'Divergência Detectada'}
+                            <span className={`text-[11px] font-bold uppercase tracking-tight ${isOk ? 'text-emerald-600' : 'text-red-600'}`}>
+                                {isOk ? 'OK' : 'Divergência'}
                             </span>
                         </div>
                     </div>
-                    <div className="p-3 bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-zinc-100 dark:border-zinc-800">
-                        <Scale className={`w-6 h-6 ${isOk ? 'text-emerald-500' : 'text-red-500'}`} />
+                    <div className="p-2.5 bg-white dark:bg-zinc-900 rounded-xl shadow-sm border border-zinc-100 dark:border-zinc-800">
+                        <Scale className={`w-5 h-5 ${isOk ? 'text-emerald-500' : 'text-red-500'}`} />
                     </div>
                 </div>
 
-                <div className="flex flex-col items-center justify-center py-4">
-                    <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-zinc-400 mb-2">Diferença Líquida</span>
-                    <div className="flex items-baseline gap-2">
-                        <span className={`text-6xl font-black tracking-tighter ${isOk ? 'text-zinc-900 dark:text-white' : 'text-red-600'}`}>
+                <div className="flex flex-col items-center justify-center py-2">
+                    <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-400 mb-1">Diferença</span>
+                    <div className="flex items-baseline gap-1.5">
+                        <span className={`text-5xl font-black tracking-tighter ${isOk ? 'text-zinc-900 dark:text-white' : 'text-red-600'}`}>
                             {diff > 0 ? '+' : ''}{diff.toFixed(3)}
                         </span>
-                        <span className="text-xl font-bold text-zinc-400">KG</span>
+                        <span className="text-sm font-bold text-zinc-400">KG</span>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-zinc-200/50 dark:border-zinc-800/50">
+                <div className="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-zinc-200/50 dark:border-zinc-800/50">
                     <div className="text-center">
-                        <span className="text-[9px] font-black text-zinc-400 uppercase tracking-wider block mb-1">Bruto</span>
-                        <span className="text-sm font-bold text-zinc-700 dark:text-zinc-300">{parsedGross.toFixed(3)}</span>
+                        <span className="text-[8px] font-black text-zinc-400 uppercase tracking-wider block">Bruto</span>
+                        <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300">{parsedGross.toFixed(3)}</span>
                     </div>
                     <div className="text-center border-x border-zinc-200/50 dark:border-zinc-800/50">
-                        <span className="text-[9px] font-black text-zinc-400 uppercase tracking-wider block mb-1">Líquido</span>
-                        <span className="text-md font-black text-zinc-900 dark:text-white">{netWeight.toFixed(3)}</span>
+                        <span className="text-[8px] font-black text-zinc-400 uppercase tracking-wider block">Líquido</span>
+                        <span className="text-xs font-black text-zinc-900 dark:text-white">{netWeight.toFixed(3)}</span>
                     </div>
                     <div className="text-center">
-                        <span className="text-[9px] font-black text-zinc-400 uppercase tracking-wider block mb-1">Nota</span>
-                        <span className="text-sm font-bold text-zinc-700 dark:text-zinc-300">{parsedNote.toFixed(3)}</span>
+                        <span className="text-[8px] font-black text-zinc-400 uppercase tracking-wider block">Nota</span>
+                        <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300">{parsedNote.toFixed(3)}</span>
                     </div>
                 </div>
             </div>
 
             {/* 2. OCR Scanners Triggers */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2">
                 <button
                     onClick={() => { setScannerMode('nf'); setShowScanner(true); }}
-                    className="group bg-gradient-to-br from-blue-600 to-indigo-700 p-4 rounded-3xl text-white shadow-lg flex flex-col items-center justify-center gap-2 active:scale-95 transition-all"
+                    className="group bg-gradient-to-br from-blue-600 to-indigo-700 p-3 rounded-2xl text-white shadow-lg flex flex-col items-center justify-center gap-1 active:scale-95 transition-all"
                 >
-                    <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
-                        <FileText className="w-5 h-5" />
+                    <div className="p-1.5 bg-white/20 rounded-lg backdrop-blur-sm">
+                        <FileText className="w-4 h-4" />
                     </div>
                     <div className="text-center">
-                        <span className="text-[11px] font-black block uppercase tracking-tighter">Scanner NF-e</span>
-                        <span className="text-[8px] opacity-70 block uppercase tracking-widest font-bold">Nota e Pesos</span>
+                        <span className="text-[10px] font-black block uppercase tracking-tighter">Scanner NF-e</span>
                     </div>
                 </button>
 
                 <button
                     onClick={() => { setScannerMode('label'); setShowScanner(true); }}
-                    className="group bg-gradient-to-br from-purple-600 to-fuchsia-700 p-4 rounded-3xl text-white shadow-lg flex flex-col items-center justify-center gap-2 active:scale-95 transition-all"
+                    className="group bg-gradient-to-br from-purple-600 to-fuchsia-700 p-3 rounded-2xl text-white shadow-lg flex flex-col items-center justify-center gap-1 active:scale-95 transition-all"
                 >
-                    <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
-                        <Tag className="w-5 h-5" />
+                    <div className="p-1.5 bg-white/20 rounded-lg backdrop-blur-sm">
+                        <Tag className="w-4 h-4" />
                     </div>
                     <div className="text-center">
-                        <span className="text-[11px] font-black block uppercase tracking-tighter">Scanner Rótulo</span>
-                        <span className="text-[8px] opacity-70 block uppercase tracking-widest font-bold">Lote e Validade</span>
+                        <span className="text-[10px] font-black block uppercase tracking-tighter">Scanner Rótulo</span>
                     </div>
                 </button>
             </div>
@@ -179,92 +177,74 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
             {/* 3. Main Form Sections */}
             <div className="space-y-4">
                 {/* Logistics Information */}
-                <div className="bg-white dark:bg-zinc-900 p-6 rounded-[2rem] border border-zinc-100 dark:border-zinc-800 shadow-sm space-y-5">
-                    <h3 className="text-xs font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
+                <div className="bg-white dark:bg-zinc-900 p-5 rounded-[2rem] border border-zinc-100 dark:border-zinc-800 shadow-sm space-y-4">
+                    <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
                         <ShoppingCart className="w-4 h-4" /> Dados Logísticos
                     </h3>
 
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                         <div className="relative">
                             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400">
-                                <Tag className="w-4 h-4" />
+                                <Tag className="w-3.5 h-3.5" />
                             </span>
                             <input
                                 type="text"
                                 placeholder="PROVEDOR / FORNECEDOR"
                                 value={form.supplier}
                                 onChange={e => updateForm('supplier', e.target.value)}
-                                className="w-full pl-11 pr-4 py-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border-none focus:ring-2 focus:ring-blue-500/50 text-sm font-medium uppercase placeholder:text-zinc-400 transition-all"
+                                className="w-full pl-10 pr-4 py-3 rounded-xl bg-zinc-50 dark:bg-zinc-800 border-none focus:ring-2 focus:ring-blue-500/50 text-xs font-medium uppercase placeholder:text-zinc-400 transition-all"
                             />
                         </div>
 
                         <div className="relative">
                             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400">
-                                <Package className="w-4 h-4" />
+                                <Package className="w-3.5 h-3.5" />
                             </span>
                             <input
                                 type="text"
                                 placeholder="NOME DO PRODUTO"
                                 value={form.product}
                                 onChange={e => updateForm('product', e.target.value)}
-                                className="w-full pl-11 pr-4 py-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border-none focus:ring-2 focus:ring-blue-500/50 text-sm font-medium uppercase placeholder:text-zinc-400 transition-all"
+                                className="w-full pl-10 pr-4 py-3 rounded-xl bg-zinc-50 dark:bg-zinc-800 border-none focus:ring-2 focus:ring-blue-500/50 text-xs font-medium uppercase placeholder:text-zinc-400 transition-all"
                             />
                         </div>
 
-                        {/* CNPJ & Numero da Nota */}
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-3">
                             <div className="relative">
-                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400">
-                                    <FileText className="w-4 h-4" />
-                                </span>
                                 <input
                                     type="text"
                                     placeholder="CNPJ"
                                     value={form.cnpj}
                                     onChange={e => updateForm('cnpj', e.target.value)}
-                                    className="w-full pl-11 pr-4 py-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border-none focus:ring-2 focus:ring-blue-500/50 text-xs font-medium placeholder:text-zinc-400 transition-all"
+                                    className="w-full px-4 py-3 rounded-xl bg-zinc-50 dark:bg-zinc-800 border-none focus:ring-2 focus:ring-blue-500/50 text-[10px] font-medium placeholder:text-zinc-400 transition-all"
                                 />
                             </div>
                             <div className="relative">
-                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400">
-                                    <BarChart3 className="w-4 h-4" />
-                                </span>
                                 <input
                                     type="text"
                                     placeholder="№ NOTA"
                                     value={form.noteNumber}
                                     onChange={e => updateForm('noteNumber', e.target.value)}
-                                    className="w-full pl-11 pr-4 py-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border-none focus:ring-2 focus:ring-blue-500/50 text-xs font-medium placeholder:text-zinc-400 transition-all"
+                                    className="w-full px-4 py-3 rounded-xl bg-zinc-50 dark:bg-zinc-800 border-none focus:ring-2 focus:ring-blue-500/50 text-[10px] font-medium placeholder:text-zinc-400 transition-all"
                                 />
                             </div>
                         </div>
 
-                        {/* Lote & Validade */}
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="relative">
-                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400">
-                                    <Tag className="w-4 h-4" />
-                                </span>
-                                <input
-                                    type="text"
-                                    placeholder="LOTE"
-                                    value={form.batch}
-                                    onChange={e => updateForm('batch', e.target.value)}
-                                    className="w-full pl-11 pr-4 py-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border-none focus:ring-2 focus:ring-purple-500/50 text-xs font-medium placeholder:text-zinc-400 transition-all"
-                                />
-                            </div>
-                            <div className="relative">
-                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400">
-                                    <Calendar className="w-4 h-4" />
-                                </span>
-                                <input
-                                    type="text"
-                                    placeholder="VALIDADE"
-                                    value={form.exp}
-                                    onChange={e => updateForm('exp', e.target.value)}
-                                    className="w-full pl-11 pr-4 py-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border-none focus:ring-2 focus:ring-purple-500/50 text-xs font-medium placeholder:text-zinc-400 transition-all"
-                                />
-                            </div>
+                        <div className="grid grid-cols-2 gap-3">
+                            <input
+                                type="text"
+                                placeholder="LOTE"
+                                value={form.batch}
+                                onChange={e => updateForm('batch', e.target.value)}
+                                className="w-full px-4 py-3 rounded-xl bg-zinc-50 dark:bg-zinc-800 border-none focus:ring-2 focus:ring-purple-500/50 text-[10px] font-medium placeholder:text-zinc-400 transition-all"
+                            />
+                            <input
+                                type="text"
+                                placeholder="VALIDADE"
+                                value={form.exp}
+                                onChange={e => updateForm('exp', e.target.value)}
+                                className="w-full px-4 py-3 rounded-xl bg-zinc-50 dark:bg-zinc-800 border-none focus:ring-2 focus:ring-purple-500/50 text-[10px] font-medium placeholder:text-zinc-400 transition-all"
+                            />
                         </div>
                     </div>
                 </div>
@@ -283,60 +263,60 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
                         </div>
                     </button>
 
-                    <div className={`px-6 pb-6 space-y-4 ${isPackExpanded ? 'block animate-slide-up' : 'hidden'}`}>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest ml-1">Quantidade</label>
+                    <div className={`px-5 pb-5 space-y-3 ${isPackExpanded ? 'block animate-slide-up' : 'hidden'}`}>
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-1">
+                                <label className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest ml-1">Qtd</label>
                                 <input
                                     type="number"
                                     value={form.qty}
                                     onChange={e => updateForm('qty', e.target.value)}
                                     placeholder="0"
-                                    className="w-full p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border-none focus:ring-2 focus:ring-blue-500/50 text-base font-black text-center"
+                                    className="w-full p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800 border-none focus:ring-2 focus:ring-blue-500/50 text-sm font-black text-center"
                                 />
                             </div>
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest ml-1">Tara (g)</label>
+                            <div className="space-y-1">
+                                <label className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest ml-1">Tara (g)</label>
                                 <input
                                     type="number"
                                     value={form.tara}
                                     onChange={e => updateForm('tara', e.target.value)}
                                     placeholder="0"
-                                    className="w-full p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border-none focus:ring-2 focus:ring-blue-500/50 text-base font-black text-center"
+                                    className="w-full p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800 border-none focus:ring-2 focus:ring-blue-500/50 text-sm font-black text-center"
                                 />
                             </div>
                         </div>
-                        <p className="text-[10px] text-zinc-400 bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded-lg text-center font-medium">
-                            Cálculo automático: <span className="text-zinc-900 dark:text-white font-bold">{totalTara.toFixed(3)} KG</span> de tara total.
+                        <p className="text-[9px] text-zinc-400 bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded-lg text-center font-medium">
+                            Tara total: <span className="text-zinc-900 dark:text-white font-bold">{totalTara.toFixed(3)} KG</span>
                         </p>
                     </div>
                 </div>
 
                 {/* Weight Inputs */}
-                <div className="bg-white dark:bg-zinc-900 p-6 rounded-[2rem] border border-zinc-100 dark:border-zinc-800 shadow-sm space-y-5">
-                    <h3 className="text-xs font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
+                <div className="bg-white dark:bg-zinc-900 p-5 rounded-[2rem] border border-zinc-100 dark:border-zinc-800 shadow-sm space-y-4">
+                    <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
                         <Scale className="w-4 h-4" /> Conferência de Pesos
                     </h3>
 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="relative">
-                            <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-2 block ml-1">Peso Bruto</label>
+                            <label className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5 block ml-1">Peso Bruto</label>
                             <input
                                 type="text"
                                 value={form.gross}
                                 onChange={e => updateForm('gross', e.target.value)}
                                 placeholder="0.000"
-                                className="w-full p-5 rounded-2xl bg-zinc-900 text-white dark:bg-white dark:text-black border-none focus:ring-4 focus:ring-blue-500/30 text-2xl font-black text-center shadow-lg"
+                                className="w-full p-4 rounded-xl bg-zinc-900 text-white dark:bg-white dark:text-black border-none focus:ring-4 focus:ring-blue-500/30 text-xl font-black text-center shadow-lg"
                             />
                         </div>
                         <div className="relative">
-                            <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-2 block ml-1">Peso Nota</label>
+                            <label className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5 block ml-1">Peso Nota</label>
                             <input
                                 type="text"
                                 value={form.note}
                                 onChange={e => updateForm('note', e.target.value)}
                                 placeholder="0.000"
-                                className="w-full p-5 rounded-2xl bg-blue-50 dark:bg-blue-900/10 border-2 border-blue-200 dark:border-blue-900/30 text-blue-600 focus:ring-4 focus:ring-blue-500/30 text-2xl font-black text-center"
+                                className="w-full p-4 rounded-xl bg-blue-50 dark:bg-blue-900/10 border-2 border-blue-200 dark:border-blue-900/30 text-blue-600 focus:ring-4 focus:ring-blue-500/30 text-xl font-black text-center"
                             />
                         </div>
                     </div>
@@ -344,18 +324,18 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
             </div>
 
             {/* 4. Action Buttons */}
-            <div className="grid grid-cols-2 gap-3 pb-20">
+            <div className="grid grid-cols-2 gap-3 pb-4">
                 <button
                     onClick={() => setForm({ supplier: '', product: '', gross: '', note: '', qty: '', tara: '0', batch: '', exp: '', storage: 'dry', cnpj: '', noteNumber: '', evidence: null })}
-                    className="py-4 rounded-2xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 font-bold flex items-center justify-center gap-2 active:scale-95 transition-all"
+                    className="py-3.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 font-bold flex items-center justify-center gap-2 active:scale-95 transition-all text-sm"
                 >
-                    <Trash2 className="w-5 h-5" /> Limpar
+                    <Trash2 className="w-4 h-4" /> Limpar
                 </button>
                 <button
                     onClick={handleSave}
-                    className="py-4 rounded-2xl bg-zinc-900 dark:bg-white text-white dark:text-black font-bold flex items-center justify-center gap-2 shadow-xl active:scale-95 transition-all"
+                    className="py-3.5 rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-black font-bold flex items-center justify-center gap-2 shadow-xl active:scale-95 transition-all text-sm"
                 >
-                    <Save className="w-5 h-5" /> Salvar Tudo
+                    <Save className="w-4 h-4" /> Salvar
                 </button>
             </div>
 
