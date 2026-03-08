@@ -34,20 +34,19 @@ if ('serviceWorker' in navigator) {
         .then(registration => {
           console.log('SW registered: ', registration.scope);
 
+          // Check for updates on every page load
+          registration.update();
+
           registration.onupdatefound = () => {
             const installingWorker = registration.installing;
-            if (installingWorker == null) {
-              return;
-            }
+            if (installingWorker == null) return;
+
             installingWorker.onstatechange = () => {
               if (installingWorker.state === 'installed') {
                 if (navigator.serviceWorker.controller) {
-                  // New update available
-                  console.log('New content is available; please refresh.');
-                  window.dispatchEvent(new Event('sw-update'));
-                } else {
-                  // Content is cached for the first time
-                  console.log('Content is cached for offline use.');
+                  // New update available - Dispatch custom event
+                  console.log('New content detected. Firing sw-update.');
+                  window.dispatchEvent(new CustomEvent('sw-update', { detail: registration }));
                 }
               }
             };
@@ -57,5 +56,12 @@ if ('serviceWorker' in navigator) {
           console.log('SW registration failed: ', registrationError);
         });
     }
+
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (refreshing) return;
+      refreshing = true;
+      window.location.reload();
+    });
   });
 }

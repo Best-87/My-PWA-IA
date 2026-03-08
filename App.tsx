@@ -124,7 +124,13 @@ const AppContent = () => {
         window.addEventListener('offline', handleOffline);
 
         // Listen for SW updates
-        const handleSWUpdate = () => setShowUpdate(true);
+        const handleSWUpdate = (e: any) => {
+            console.log("Update detected in App.tsx");
+            if (e.detail) {
+                (window as any).swRegistration = e.detail;
+            }
+            setShowUpdate(true);
+        };
         window.addEventListener('sw-update', handleSWUpdate);
 
         // Dynamic Font Injection for V2
@@ -247,6 +253,15 @@ const AppContent = () => {
             setRecords(updatedRecords);
             showToast(t('msg_history_cleared'), 'info');
             setRecordToDelete(null);
+        }
+    };
+
+    const handleApplyUpdate = () => {
+        const registration = (window as any).swRegistration;
+        if (registration && registration.waiting) {
+            registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+        } else {
+            window.location.reload();
         }
     };
 
@@ -644,9 +659,17 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
             )}
 
             {showUpdate && (
-                <div className="fixed bottom-24 left-4 right-4 z-[100] bg-zinc-900 text-white p-4 rounded-2xl flex items-center justify-between">
-                    <span className="text-xs font-bold uppercase">{t('update_available')}</span>
-                    <button onClick={() => window.location.reload()} className="px-4 py-2 bg-blue-500 rounded-xl text-xs font-bold uppercase">{t('btn_update')}</button>
+                <div className={`fixed ${useV2 ? 'bottom-8' : 'bottom-24'} left-4 right-4 z-[100] bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 p-5 rounded-[2rem] flex items-center justify-between shadow-2xl animate-fade-in-up border border-white/10`}>
+                    <div className="flex flex-col">
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60 mb-0.5">Nova Versão</span>
+                        <span className="text-sm font-black tracking-tight">{t('update_available')}</span>
+                    </div>
+                    <button
+                        onClick={handleApplyUpdate}
+                        className="px-6 py-3 bg-blue-600 dark:bg-blue-500 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white active:scale-95 transition-all shadow-lg"
+                    >
+                        {t('btn_update')}
+                    </button>
                 </div>
             )}
 
