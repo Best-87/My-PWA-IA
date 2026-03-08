@@ -24,7 +24,7 @@ export const DashboardV2: React.FC<DashboardV2Props> = ({ records, profile, onTa
             todayCount: todayRecords.length,
             ok,
             errors,
-            recent: records.slice(-3).reverse()
+            recent: [...records].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)).slice(0, 3)
         };
     }, [records]);
 
@@ -117,21 +117,25 @@ export const DashboardV2: React.FC<DashboardV2Props> = ({ records, profile, onTa
 
                 <div className="space-y-3 pb-20">
                     {stats.recent.map((rec) => (
-                        <div key={rec.id} className="bg-white dark:bg-zinc-900 p-4 rounded-3xl border border-zinc-100 dark:border-zinc-800 shadow-sm flex items-center justify-between group">
+                        <button
+                            key={rec.id}
+                            onClick={() => onTabChange('history')}
+                            className="w-full bg-white dark:bg-zinc-900 p-4 rounded-3xl border border-zinc-100 dark:border-zinc-800 shadow-sm flex items-center justify-between group active:scale-95 transition-all cursor-pointer text-left"
+                        >
                             <div className="flex items-center gap-4">
-                                <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${Math.abs(rec.netWeight - rec.noteWeight) <= 0.2 ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>
-                                    {Math.abs(rec.netWeight - rec.noteWeight) <= 0.2 ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
+                                <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${Math.abs((rec.netWeight || 0) - (rec.noteWeight || 0)) <= 0.2 ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>
+                                    {Math.abs((rec.netWeight || 0) - (rec.noteWeight || 0)) <= 0.2 ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
                                 </div>
-                                <div>
-                                    <span className="text-xs font-black text-zinc-900 dark:text-white block uppercase tracking-tight">{rec.product}</span>
-                                    <span className="text-[10px] text-zinc-400 font-medium block">{rec.supplier}</span>
+                                <div className="flex-1">
+                                    <span className="text-xs font-black text-zinc-900 dark:text-white block uppercase tracking-tight truncate max-w-[120px] sm:max-w-none">{rec.product}</span>
+                                    <span className="text-[10px] text-zinc-400 font-medium block truncate max-w-[120px] sm:max-w-none">{rec.supplier}</span>
                                 </div>
                             </div>
-                            <div className="text-right">
-                                <span className="text-xs font-black text-zinc-900 dark:text-white block">{rec.netWeight.toFixed(3)} KG</span>
+                            <div className="text-right whitespace-nowrap">
+                                <span className="text-xs font-black text-zinc-900 dark:text-white block">{(rec.netWeight || 0).toFixed(3)} KG</span>
                                 <span className="text-[9px] text-zinc-400 font-medium block uppercase tracking-widest">{new Date(rec.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                             </div>
-                        </div>
+                        </button>
                     ))}
 
                     {stats.recent.length === 0 && (
