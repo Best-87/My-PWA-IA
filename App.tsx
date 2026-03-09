@@ -95,27 +95,14 @@ const AppContent = () => {
     const [showDeleteAllModal, setShowDeleteAllModal] = useState(false);
     const [showUpdate, setShowUpdate] = useState(false);
 
-    // Initial Load
+    // Initial Theme & Online Load
     useEffect(() => {
-        const loadInitialData = async () => {
-            const cloudRecords = await getRecords();
-            setRecords(cloudRecords);
-        };
-        loadInitialData();
-
         const savedTheme = getTheme();
         if (savedTheme === 'dark') {
             document.documentElement.classList.add('dark');
         } else {
             document.documentElement.classList.remove('dark');
         }
-
-        // Listen for updates via focus
-        const handleFocus = async () => {
-            const updatedRecords = await getRecords();
-            setRecords(updatedRecords);
-        };
-        window.addEventListener('focus', handleFocus);
 
         // Listen for online/offline status changes
         const handleOnline = () => setIsOnline(true);
@@ -145,7 +132,6 @@ const AppContent = () => {
         }
 
         return () => {
-            window.removeEventListener('focus', handleFocus);
             window.removeEventListener('online', handleOnline);
             window.removeEventListener('offline', handleOffline);
             window.removeEventListener('sw-update', handleSWUpdate);
@@ -186,7 +172,9 @@ const AppContent = () => {
         };
     }, []);
 
-    // Initialize Session & Auth
+    const [isDataSyncing, setIsDataSyncing] = useState(false);
+
+    // Initialize Session & Auth (Single Source of Truth)
     useEffect(() => {
         const { data: { subscription } } = onAuthStateChange(async (_event, session) => {
             console.log("Auth Event:", _event, session?.user?.email);
@@ -195,17 +183,21 @@ const AppContent = () => {
             if (_event === 'SIGNED_IN' || _event === 'INITIAL_SESSION' || _event === 'USER_UPDATED') {
                 if (session?.user) {
                     setProfile(prev => ({ ...prev, email: session.user.email }));
-                    // Force record refresh from Supabase
-                    const cloudRecords = await fetchRecordsFromSupabase();
-                    // ALWAYS set records, even if empty, to reflect the actual cloud state
-                    setRecords(cloudRecords || []);
-                    if (cloudRecords && cloudRecords.length > 0) {
-                        syncRecords(cloudRecords);
+                    setIsDataSyncing(true);
+                    try {
+                        const cloudRecords = await fetchRecordsFromSupabase();
+                        setRecords(cloudRecords || []);
+                        if (cloudRecords && cloudRecords.length > 0) {
+                            syncRecords(cloudRecords);
+                        }
+                    } finally {
+                        setIsDataSyncing(false);
                     }
                 }
             } else if (_event === 'SIGNED_OUT') {
                 setRecords([]);
-                setProfile(getUserProfile()); // Reset to default profile
+                setProfile(getUserProfile());
+                setIsDataSyncing(false);
             }
         });
 
@@ -528,7 +520,7 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                             profile={profile}
                             session={session}
                             email={email}
-                            isAuthLoading={isAuthLoading}
+                            isAuthLoading={isAuthLoading || isDataSyncing}
                             onSaveProfile={handleSaveProfile}
                             onSignOut={handleSignOut}
                             onPhotoUpload={handleProfilePhotoUpload}
