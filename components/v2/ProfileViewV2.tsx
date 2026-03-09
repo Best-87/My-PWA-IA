@@ -163,20 +163,15 @@ export const ProfileViewV2: React.FC<ProfileViewProps> = ({
                 <div className="flex items-center justify-between mb-8">
                     <div className="flex items-center gap-4">
                         <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${session ? 'bg-emerald-500/20 text-emerald-400' : 'bg-blue-500/20 text-blue-400'}`}>
-                            <Cloud className="w-6 h-6" />
+                            <Cloud className={`w-6 h-6 ${isAuthLoading ? 'animate-bounce' : ''}`} />
                         </div>
                         <div>
-                            <h4 className="text-sm font-black uppercase tracking-widest">{session ? 'Sinc. On-line' : 'Backup Nuvem'}</h4>
+                            <h4 className="text-sm font-black uppercase tracking-widest">{session ? 'Conta Pro Conectada' : 'Nuvem Desconectada'}</h4>
                             <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-1">
-                                {session ? email : 'Mantenha seus registros salvos'}
+                                {isAuthLoading ? 'Sincronizando dados...' : (session ? (email || profile.email) : 'Salve registros na sua conta')}
                             </p>
                         </div>
                     </div>
-                    {session && (
-                        <span className="px-2 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-[8px] font-black uppercase tracking-tighter border border-emerald-500/20">
-                            Ativo
-                        </span>
-                    )}
                 </div>
 
                 {!session ? (
@@ -221,16 +216,18 @@ export const ProfileViewV2: React.FC<ProfileViewProps> = ({
                 ) : (
                     <div className="grid grid-cols-2 gap-3">
                         <button
+                            type="button"
                             onClick={onSaveProfile}
                             className="py-4 bg-white/10 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-white/20 active:scale-95 transition-all"
                         >
-                            <Save className="w-4 h-4" /> Guardar
+                            <Save className="w-4 h-4" /> Salvar
                         </button>
                         <button
-                            onClick={onSignOut}
-                            className="py-4 bg-red-500/20 text-red-400 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-red-500/30 active:scale-95 transition-all"
+                            type="button"
+                            onClick={(e) => { e.preventDefault(); onSignOut(); }}
+                            className="py-4 bg-red-500/20 text-red-500 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-red-500/30 active:scale-95 transition-all border border-red-500/20"
                         >
-                            <LogOut className="w-4 h-4" /> Sair
+                            <LogOut className="w-4 h-4" /> Sair da Conta
                         </button>
                     </div>
                 )}

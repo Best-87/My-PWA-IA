@@ -188,22 +188,28 @@ const AppContent = () => {
 
     // Initialize Session & Auth
     useEffect(() => {
-        onAuthStateChange(async (_event, session) => {
+        const { data: { subscription } } = onAuthStateChange(async (_event, session) => {
             console.log("Auth Event:", _event, session?.user?.email);
             setSession(session);
 
-            if (session?.user) {
-                setProfile(prev => ({ ...prev, email: session.user.email }));
-                // Force record refresh from Supabase
-                const cloudRecords = await fetchRecordsFromSupabase();
-                if (cloudRecords && cloudRecords.length > 0) {
-                    setRecords(cloudRecords);
-                    syncRecords(cloudRecords);
+            if (_event === 'SIGNED_IN' || _event === 'INITIAL_SESSION' || _event === 'USER_UPDATED') {
+                if (session?.user) {
+                    setProfile(prev => ({ ...prev, email: session.user.email }));
+                    // Force record refresh from Supabase
+                    const cloudRecords = await fetchRecordsFromSupabase();
+                    // ALWAYS set records, even if empty, to reflect the actual cloud state
+                    setRecords(cloudRecords || []);
+                    if (cloudRecords && cloudRecords.length > 0) {
+                        syncRecords(cloudRecords);
+                    }
                 }
             } else if (_event === 'SIGNED_OUT') {
                 setRecords([]);
+                setProfile(getUserProfile()); // Reset to default profile
             }
         });
+
+        return () => subscription.unsubscribe();
     }, []);
 
     const handleFinishLoading = useCallback(() => {
@@ -412,9 +418,25 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
     };
 
     const handleSignOut = async () => {
-        await signOut();
-        setSession(null);
-        showToast("Sesión cerrada", "info");
+        try {
+            // Immediate UI update
+            setSession(null);
+            setRecords([]);
+
+            // Background signOut call
+            await signOut();
+
+            showToast("Sessão encerrada", "info");
+
+            // Optional: force a page reload to clear all states and caches if issues persist
+            // setTimeout(() => window.location.reload(), 500);
+        } catch (err) {
+            console.error("SignOut error:", err);
+            // Even if it fails, we clear state locally
+            setSession(null);
+            setRecords([]);
+            showToast("Desconectado do sistema", "info");
+        }
     };
 
     const handleRestore = (e: React.ChangeEvent<HTMLInputElement>) => {
