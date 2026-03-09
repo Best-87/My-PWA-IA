@@ -50,12 +50,12 @@ export const NFScanner: React.FC<OCRProcessorProps> = ({ mode, onDataExtracted, 
 
             const promptText = mode === 'nf'
                 ? `EXTRACT_INVOICE_DATA (DANFE): Return JSON { "cnpj": "string", "invoiceNumber": "string", "grossWeight": number, "totalWeight": number, "supplier": "string" }`
-                : `EXTRACT_LABEL_DATA: Return JSON { "product": "string", "batch": "string", "expirationDate": "DD/MM/YYYY" | null, "supplier": "string" | null }`;
+                : `EXTRACT_LABEL_DATA: Return JSON { "product": "string", "batch": "string", "expirationDate": "DD/MM/YYYY" | null, "supplier": "string" | null, "unitTara": number | null }`;
 
             const prompt = {
                 parts: [
                     { inlineData: { mimeType: 'image/jpeg', data: base64Data } },
-                    { text: promptText + " Output ONLY raw JSON." }
+                    { text: promptText + " Output ONLY raw JSON. UnitTara should be in grams (g)." }
                 ]
             };
 
@@ -81,17 +81,26 @@ export const NFScanner: React.FC<OCRProcessorProps> = ({ mode, onDataExtracted, 
                 product: data.product || data.produto || data.item || '',
                 batch: data.batch || data.lote || '',
                 expirationDate: data.expirationDate || data.data_validade || data.validade || data.exp || null,
-                evidence: preview || imageSrc // Include the image
+                unitTara: data.unitTara || data.tara || data.peso_tara || null,
+                evidence: preview || imageSrc
             };
 
-            setOcrText(JSON.stringify(mappedData, null, 2));
+            const summary = mode === 'nf'
+                ? `${mappedData.supplier || 'Nota'} - ${mappedData.grossWeight || '?'}kg`
+                : `${mappedData.product || 'Rótulo'} - ${mappedData.batch || 'S/L'}`;
+
+            setOcrText(`Extraído: ${summary}`);
             onDataExtracted(mappedData);
             setProgress(100);
+
+            setTimeout(() => {
+                onClose();
+            }, 1200);
         } catch (error) {
             console.error("OCR Error:", error);
-            setOcrText("Error en el escaneo. Intente nuevamente.");
-        } finally {
+            setOcrText("Erro no scanner");
             setIsProcessing(false);
+            setProgress(0);
         }
     };
 
@@ -168,7 +177,7 @@ export const NFScanner: React.FC<OCRProcessorProps> = ({ mode, onDataExtracted, 
                     </div>
                 ) : (
                     <div className="p-6">
-                        <div className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-black mb-6">
+                        <div className="relative aspect-video rounded-2xl overflow-hidden bg-black mb-6">
                             <img src={preview} className="w-full h-full object-cover opacity-60" alt="Preview" />
                             {isProcessing ? (
                                 <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
@@ -176,35 +185,29 @@ export const NFScanner: React.FC<OCRProcessorProps> = ({ mode, onDataExtracted, 
                                     <div className="w-3/4 h-1.5 bg-white/20 rounded-full overflow-hidden">
                                         <div className="h-full bg-blue-500 transition-all" style={{ width: `${progress}%` }}></div>
                                     </div>
-                                    <span className="text-[10px] font-bold uppercase tracking-widest mt-2">Processando {progress}%</span>
+                                    <span className="text-[10px] font-bold uppercase tracking-widest mt-2">{progress}%</span>
                                 </div>
                             ) : (
-                                <div className="absolute bottom-4 left-4 right-4 bg-emerald-500 text-white p-3 rounded-xl flex items-center justify-center gap-2 font-bold animate-slide-up">
-                                    <Check className="w-5 h-5" /> Scanner Concluído
+                                <div className="absolute inset-0 flex flex-col items-center justify-center bg-emerald-500/90 text-white p-3 rounded-2xl gap-2 font-bold animate-fade-in">
+                                    <Check className="w-10 h-10" />
+                                    <span className="uppercase tracking-[0.2em] text-[10px]">Extração Concluída</span>
                                 </div>
                             )}
                         </div>
 
-                        <div className="space-y-3 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Texto Detectado (Preview)</span>
-                            <p className="text-[11px] text-zinc-500 font-mono leading-relaxed bg-zinc-50 dark:bg-zinc-800/50 p-3 rounded-xl border border-zinc-100 dark:border-zinc-800">
-                                {ocrText || "Analisando padrões..."}
+                        <div className="text-center space-y-4">
+                            <p className="text-xs text-zinc-500 font-black uppercase tracking-widest animate-pulse">
+                                {ocrText || "Processando padrões..."}
                             </p>
-                        </div>
 
-                        <div className="mt-8 flex gap-3">
-                            <button
-                                onClick={() => { setPreview(null); setOcrText(''); }}
-                                className="flex-1 py-4 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 rounded-2xl font-bold text-sm"
-                            >
-                                Tentar Novamente
-                            </button>
-                            <button
-                                onClick={onClose}
-                                className="flex-1 py-4 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-2xl font-bold text-sm shadow-xl shadow-zinc-900/10"
-                            >
-                                Aplicar Dados
-                            </button>
+                            {ocrText === "Erro no scanner" && (
+                                <button
+                                    onClick={() => { setPreview(null); setOcrText(''); }}
+                                    className="px-6 py-2 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-xl font-bold text-[10px] uppercase tracking-widest active:scale-95 transition-all"
+                                >
+                                    Tente Novamente
+                                </button>
+                            )}
                         </div>
                     </div>
                 )}

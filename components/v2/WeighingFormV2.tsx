@@ -344,6 +344,7 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
                     mode={scannerMode}
                     onDataExtracted={(data) => {
                         if (scannerMode === 'nf') {
+                            // NF Priority: supplier, weights, doc numbers
                             if (data.grossWeight) updateForm('gross', data.grossWeight.toString());
                             if (data.totalWeight) updateForm('note', data.totalWeight.toString());
                             if (data.cnpj) updateForm('cnpj', data.cnpj);
@@ -352,10 +353,17 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
                             if (data.evidence) updateForm('evidence', data.evidence);
                             showToast("Nota Fiscal processada!", "success");
                         } else {
-                            if (data.product) updateForm('product', data.product);
+                            // Label Logic: fill product/tara if missing, supplier only if empty
+                            if (data.product && !form.product) updateForm('product', data.product);
                             if (data.batch) updateForm('batch', data.batch);
                             if (data.expirationDate) updateForm('exp', data.expirationDate);
-                            if (data.supplier) updateForm('supplier', data.supplier);
+                            if (data.unitTara && !form.tara || form.tara === '0') updateForm('tara', data.unitTara.toString());
+
+                            // Supplier from label only if not already filled by NF
+                            if (data.supplier && !form.supplier) {
+                                updateForm('supplier', data.supplier);
+                            }
+
                             if (data.evidence) updateForm('evidence', data.evidence);
                             showToast("Rótulo processado!", "success");
                         }
