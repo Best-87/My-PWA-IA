@@ -182,9 +182,21 @@ const AppContent = () => {
 
             if (_event === 'SIGNED_IN' || _event === 'INITIAL_SESSION' || _event === 'USER_UPDATED') {
                 if (session?.user) {
-                    setProfile(prev => ({ ...prev, email: session.user.email }));
                     setIsDataSyncing(true);
                     try {
+                        const { fetchRecordsFromSupabase, fetchProfileFromSupabase } = await import('./services/supabaseService');
+
+                        // 1. Fetch Profile
+                        const cloudProfile = await fetchProfileFromSupabase();
+                        if (cloudProfile) {
+                            setProfile(cloudProfile);
+                            // Also save locally to keep persistence
+                            localStorage.setItem('conferente_profile', JSON.stringify(cloudProfile));
+                        } else {
+                            setProfile(prev => ({ ...prev, email: session.user.email }));
+                        }
+
+                        // 2. Fetch Records
                         const cloudRecords = await fetchRecordsFromSupabase();
                         setRecords(cloudRecords || []);
                         if (cloudRecords && cloudRecords.length > 0) {

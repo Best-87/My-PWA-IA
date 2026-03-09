@@ -155,6 +155,38 @@ export const syncProfileToSupabase = async (profile: UserProfile) => {
     }
 };
 
+export const fetchProfileFromSupabase = async (): Promise<UserProfile | null> => {
+    if (!supabase) return null;
+
+    try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const userId = session?.user?.id;
+        if (!userId) return null;
+
+        const { data, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', userId)
+            .single();
+
+        if (error) {
+            console.error('Supabase Profile Fetch Error:', error.message);
+            return null;
+        }
+
+        return {
+            name: data.name,
+            role: data.role,
+            store: data.store,
+            photo: data.photo,
+            email: data.email
+        } as UserProfile;
+    } catch (err) {
+        console.error('Supabase caught error fetching profile:', err);
+        return null;
+    }
+};
+
 export const syncKnowledgeBaseToSupabase = async (kb: KnowledgeBase) => {
     if (!supabase) return;
 
