@@ -97,6 +97,14 @@ const AppContent = () => {
 
     // Initial Theme & Online Load
     useEffect(() => {
+        const loadInitialData = async () => {
+            const localRecords = await getRecords();
+            if (localRecords.length > 0) {
+                setRecords(localRecords);
+            }
+        };
+        loadInitialData();
+
         const savedTheme = getTheme();
         if (savedTheme === 'dark') {
             document.documentElement.classList.add('dark');

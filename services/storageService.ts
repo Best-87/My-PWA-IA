@@ -113,14 +113,30 @@ export const clearAllRecords = async () => {
 };
 
 export const syncRecords = (cloudRecords: WeighingRecord[]) => {
-    // We NO LONGER store raw records in localStorage to avoid QuotaExceededError
-    // But we might want to learn from them if they are new
+    // Save a SLIM version to localStorage (no heavy base64 images) to avoid QuotaExceededError
+    try {
+        const slimRecords = cloudRecords.map(rec => ({
+            ...rec,
+            evidence: null // Strip heavy images for local cache
+        }));
+        localStorage.setItem(KEY_RECORDS, JSON.stringify(slimRecords));
+    } catch (e) {
+        console.warn("Local storage limit hit, slim records not cached", e);
+    }
+
     cloudRecords.forEach(rec => learnFromRecord(rec));
 };
 
 export const getRecords = async (): Promise<WeighingRecord[]> => {
-    const { fetchRecordsFromSupabase } = await import('./supabaseService');
-    return await fetchRecordsFromSupabase();
+    try {
+        const local = localStorage.getItem(KEY_RECORDS);
+        if (local) {
+            return JSON.parse(local);
+        }
+    } catch (e) {
+        console.error("Error reading local records", e);
+    }
+    return [];
 };
 
 // New helper for AI Context
