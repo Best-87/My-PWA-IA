@@ -36,13 +36,16 @@ export const DashboardV2: React.FC<DashboardV2Props> = ({ records, profile, onTa
                     <h1 className="text-2xl font-black text-zinc-900 dark:text-white tracking-tight">Olá, {profile.name.split(' ')[0]} 👋</h1>
                     <p className="text-sm text-zinc-500 font-medium">Pronto para conferir as cargas de hoje?</p>
                 </div>
-                <div className="w-12 h-12 rounded-2xl bg-white dark:bg-zinc-900 shadow-sm border border-zinc-100 dark:border-zinc-800 flex items-center justify-center overflow-hidden">
+                <button
+                    onClick={() => onTabChange('profile')}
+                    className="w-12 h-12 rounded-2xl bg-white dark:bg-zinc-900 shadow-lg shadow-zinc-200/50 dark:shadow-none border border-zinc-100 dark:border-zinc-800 flex items-center justify-center overflow-hidden hover:scale-105 active:scale-95 transition-all"
+                >
                     {profile.photo ? (
-                        <img src={profile.photo} className="w-full h-full object-cover" />
+                        <img src={profile.photo} className="w-full h-full object-cover" alt="Profile" />
                     ) : (
                         <User className="text-zinc-400" />
                     )}
-                </div>
+                </button>
             </div>
 
             {/* Main Action Card */}

@@ -4,7 +4,7 @@ import { DashboardV2 } from './DashboardV2';
 import { WeighingFormV2 } from './WeighingFormV2';
 import { AnalyticsView } from './AnalyticsView';
 import { UserProfile, WeighingRecord } from '../../types';
-import { ArrowLeft, Settings } from 'lucide-react';
+import { ArrowLeft, User } from 'lucide-react';
 
 export const V2Shell: React.FC<any> = (props) => {
     const [activeTab, setActiveTab] = useState<'dashboard' | 'weigh' | 'history' | 'analytics' | 'profile'>('dashboard');
@@ -34,8 +34,25 @@ export const V2Shell: React.FC<any> = (props) => {
                 </div>
 
                 {activeTab !== 'profile' && (
-                    <button onClick={() => setActiveTab('profile')} className="p-2.5 bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-zinc-100 dark:border-zinc-800 active:scale-90 transition-all">
-                        <Settings className="w-5 h-5 text-zinc-400" />
+                    <button
+                        onClick={() => setActiveTab('profile')}
+                        className="flex items-center gap-3 p-1 pr-3 bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-zinc-100 dark:border-zinc-800 active:scale-95 transition-all"
+                    >
+                        <div className="w-9 h-9 rounded-xl bg-zinc-100 dark:bg-zinc-800 overflow-hidden flex items-center justify-center border border-zinc-200 dark:border-zinc-700">
+                            {props.profile.photo ? (
+                                <img src={props.profile.photo} className="w-full h-full object-cover" alt="Profile" />
+                            ) : (
+                                <User className="w-5 h-5 text-zinc-400" />
+                            )}
+                        </div>
+                        {activeTab === 'dashboard' && (
+                            <div className="flex flex-col items-start leading-none">
+                                <span className="text-[8px] font-black text-zinc-400 uppercase tracking-widest mb-0.5">Perfil</span>
+                                <span className="text-xs font-black text-zinc-900 dark:text-white truncate max-w-[80px] uppercase">
+                                    {props.profile.name.split(' ')[0]}
+                                </span>
+                            </div>
+                        )}
                     </button>
                 )}
             </header>
