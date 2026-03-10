@@ -31,8 +31,8 @@ export const ModernRecordCard: React.FC<ModernRecordCardProps> = ({
         <div
             onClick={onExpand}
             className={`bg-white dark:bg-zinc-900 rounded-[2rem] border transition-all duration-300 cursor-pointer overflow-hidden ${isExpanded
-                    ? 'border-zinc-900 dark:border-white ring-4 ring-zinc-500/5 shadow-2xl scale-[1.02] z-10'
-                    : 'border-zinc-100 dark:border-zinc-800 hover:border-zinc-200 dark:hover:border-zinc-700 active:scale-98 shadow-sm'
+                ? 'border-zinc-900 dark:border-white ring-4 ring-zinc-500/5 shadow-2xl scale-[1.02] z-10'
+                : 'border-zinc-100 dark:border-zinc-800 hover:border-zinc-200 dark:hover:border-zinc-700 active:scale-98 shadow-sm'
                 }`}
         >
             {/* 1. Main Row (Compact) */}
@@ -40,8 +40,8 @@ export const ModernRecordCard: React.FC<ModernRecordCardProps> = ({
                 <div className="flex items-center gap-4">
                     {/* Status Icon */}
                     <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm ${isOk
-                            ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-500'
-                            : 'bg-red-50 dark:bg-red-900/20 text-red-500'
+                        ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-500'
+                        : 'bg-red-50 dark:bg-red-900/20 text-red-500'
                         }`}>
                         {isOk ? <CheckCircle2 className="w-6 h-6" /> : <AlertCircle className="w-6 h-6" />}
                     </div>
@@ -81,20 +81,20 @@ export const ModernRecordCard: React.FC<ModernRecordCardProps> = ({
                 <div className="p-6 pt-2 space-y-6 animate-fade-in">
                     {/* Weights Dashboard */}
                     <div className="grid grid-cols-2 gap-3">
-                        <div className="bg-zinc-900 dark:bg-white p-5 rounded-3xl text-center shadow-lg">
-                            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 dark:text-zinc-500 block mb-1">PESO NETO</span>
-                            <span className="text-2xl font-black text-white dark:text-zinc-900">{(record.netWeight || 0).toFixed(2)} KG</span>
-                        </div>
                         <div className="bg-zinc-50 dark:bg-zinc-800/80 p-5 rounded-3xl text-center border border-zinc-100 dark:border-zinc-700">
                             <span className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 block mb-1">PESO NOTA</span>
                             <span className="text-2xl font-black text-zinc-900 dark:text-white">{(record.noteWeight || 0).toFixed(2)} KG</span>
+                        </div>
+                        <div className="bg-zinc-900 dark:bg-white p-5 rounded-3xl text-center shadow-lg">
+                            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 dark:text-zinc-500 block mb-1">PESO BRUTO</span>
+                            <span className="text-2xl font-black text-white dark:text-zinc-900">{(record.grossWeight || 0).toFixed(2)} KG</span>
                         </div>
                     </div>
 
                     {/* Comparative Analysis */}
                     <div className={`p-4 rounded-[2rem] flex items-center justify-between ${isOk
-                            ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
-                            : 'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20'
+                        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+                        : 'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20'
                         }`}>
                         <div className="flex items-center gap-3">
                             <Info className="w-5 h-5 opacity-70" />

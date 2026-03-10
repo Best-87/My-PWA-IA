@@ -16,6 +16,7 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
     const [isPackExpanded, setIsPackExpanded] = useState(false);
     const [showScanner, setShowScanner] = useState(false);
     const [scannerMode, setScannerMode] = useState<'nf' | 'label'>('nf');
+    const [isSaving, setIsSaving] = useState(false);
 
     // Basic states to keep it compatible and functional for testing
     const [form, setForm] = useState({
@@ -52,6 +53,9 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
             showToast("Preencha Fornecedor, Produto e Peso Bruto", "error");
             return;
         }
+
+        if (isSaving) return;
+        setIsSaving(true);
 
         try {
             const qty = parseFloat(form.qty) || 0;
@@ -97,8 +101,18 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
         } catch (error) {
             console.error("Save Error:", error);
             showToast("Erro ao salvar", "error");
+        } finally {
+            setIsSaving(false);
         }
     };
+
+    // Auto-collapse logic for Tara
+    React.useEffect(() => {
+        if (form.qty && parseInt(form.qty) > 0 && isPackExpanded) {
+            const timer = setTimeout(() => setIsPackExpanded(false), 1500);
+            return () => clearTimeout(timer);
+        }
+    }, [form.qty]);
 
     return (
         <div className="space-y-4 animate-fade-in-up">
@@ -133,16 +147,16 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
 
                 <div className="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-zinc-200/50 dark:border-zinc-800/50">
                     <div className="text-center">
-                        <span className="text-[8px] font-black text-zinc-400 uppercase tracking-wider block">Bruto</span>
-                        <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300">{parsedGross.toFixed(3)}</span>
+                        <span className="text-[8px] font-black text-zinc-400 uppercase tracking-wider block">Nota</span>
+                        <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300">{parsedNote.toFixed(3)}</span>
                     </div>
                     <div className="text-center border-x border-zinc-200/50 dark:border-zinc-800/50">
                         <span className="text-[8px] font-black text-zinc-400 uppercase tracking-wider block">Líquido</span>
                         <span className="text-xs font-black text-zinc-900 dark:text-white">{netWeight.toFixed(3)}</span>
                     </div>
                     <div className="text-center">
-                        <span className="text-[8px] font-black text-zinc-400 uppercase tracking-wider block">Nota</span>
-                        <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300">{parsedNote.toFixed(3)}</span>
+                        <span className="text-[8px] font-black text-zinc-400 uppercase tracking-wider block">Bruto</span>
+                        <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300">{parsedGross.toFixed(3)}</span>
                     </div>
                 </div>
             </div>
@@ -300,16 +314,6 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="relative">
-                            <label className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5 block ml-1">Peso Bruto</label>
-                            <input
-                                type="text"
-                                value={form.gross}
-                                onChange={e => updateForm('gross', e.target.value)}
-                                placeholder="0.000"
-                                className="w-full p-4 rounded-xl bg-zinc-900 text-white dark:bg-white dark:text-black border-none focus:ring-4 focus:ring-blue-500/30 text-xl font-black text-center shadow-lg"
-                            />
-                        </div>
-                        <div className="relative">
                             <label className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5 block ml-1">Peso Nota</label>
                             <input
                                 type="text"
@@ -317,6 +321,16 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
                                 onChange={e => updateForm('note', e.target.value)}
                                 placeholder="0.000"
                                 className="w-full p-4 rounded-xl bg-blue-50 dark:bg-blue-900/10 border-2 border-blue-200 dark:border-blue-900/30 text-blue-600 focus:ring-4 focus:ring-blue-500/30 text-xl font-black text-center"
+                            />
+                        </div>
+                        <div className="relative">
+                            <label className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5 block ml-1">Peso Bruto</label>
+                            <input
+                                type="text"
+                                value={form.gross}
+                                onChange={e => updateForm('gross', e.target.value)}
+                                placeholder="0.000"
+                                className="w-full p-4 rounded-xl bg-zinc-900 text-white dark:bg-white dark:text-black border-none focus:ring-4 focus:ring-blue-500/30 text-xl font-black text-center shadow-lg"
                             />
                         </div>
                     </div>
@@ -333,9 +347,16 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
                 </button>
                 <button
                     onClick={handleSave}
-                    className="py-3.5 rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-black font-bold flex items-center justify-center gap-2 shadow-xl active:scale-95 transition-all text-sm"
+                    disabled={isSaving}
+                    className={`py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 shadow-xl active:scale-95 transition-all text-sm ${isSaving ? 'bg-zinc-400 cursor-not-allowed' : 'bg-zinc-900 dark:bg-white text-white dark:text-black'
+                        }`}
                 >
-                    <Save className="w-4 h-4" /> Salvar
+                    {isSaving ? (
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                        <Save className="w-4 h-4" />
+                    )}
+                    {isSaving ? "Salvando..." : "Salvar"}
                 </button>
             </div>
 
