@@ -45,14 +45,12 @@ export const V2Shell: React.FC<any> = (props) => {
                                 <User className="w-5 h-5 text-zinc-400" />
                             )}
                         </div>
-                        {activeTab === 'dashboard' && (
-                            <div className="flex flex-col items-start leading-none">
-                                <span className="text-[8px] font-black text-zinc-400 uppercase tracking-widest mb-0.5">Perfil</span>
-                                <span className="text-xs font-black text-zinc-900 dark:text-white truncate max-w-[80px] uppercase">
-                                    {props.profile.name.split(' ')[0]}
-                                </span>
-                            </div>
-                        )}
+                        <div className="flex flex-col items-start leading-none">
+                            <span className="text-[8px] font-black text-blue-600 uppercase tracking-widest mb-0.5">Olá,</span>
+                            <span className="text-xs font-black text-zinc-900 dark:text-white truncate max-w-[80px] uppercase">
+                                {props.profile.name.split(' ')[0]}
+                            </span>
+                        </div>
                     </button>
                 )}
             </header>

@@ -32,7 +32,6 @@ export const DashboardV2: React.FC<DashboardV2Props> = ({ records, profile, onTa
         <div className="space-y-8 animate-fade-in-up">
             {/* Welcome Header */}
             <div className="flex flex-col gap-1">
-                <h1 className="text-3xl font-black text-zinc-900 dark:text-white tracking-tight">Olá, {profile.name.split(' ')[0]} 👋</h1>
                 <p className="text-sm text-zinc-500 font-medium">Pronto para conferir as cargas de hoje?</p>
             </div>
 
