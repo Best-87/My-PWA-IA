@@ -512,11 +512,12 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                     records={records}
                     profile={profile}
                     onRecordSaved={async () => {
-                        const updatedRecords = await getRecords();
-                        setRecords(updatedRecords);
+                        const updated = await getRecords();
+                        setRecords(updated);
                     }}
+                    onDeleteRecord={(id: string) => handleDelete(id)}
                     historyContent={
-                        <div className="space-y-6">
+                        <div className="space-y-3">
                             {records.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center py-20 opacity-50">
                                     <p className="text-zinc-500 dark:text-zinc-400">Histórico Vazio</p>
