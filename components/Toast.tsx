@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
+import { CheckCircle2, AlertCircle, Info, AlertTriangle, X } from 'lucide-react';
 
 export type ToastType = 'success' | 'error' | 'info' | 'warning';
 
@@ -42,32 +43,36 @@ const ToastItem: React.FC<{ toast: ToastMessage; onRemove: (id: string) => void 
 
     const styles = {
         success: {
-            icon: 'check_circle',
-            bg: 'bg-emerald-50/90 dark:bg-emerald-900/90',
-            border: 'border-emerald-200 dark:border-emerald-800',
-            text: 'text-emerald-800 dark:text-emerald-100',
-            iconColor: 'text-emerald-500 dark:text-emerald-400'
+            icon: <CheckCircle2 className="w-4 h-4" />,
+            bg: 'bg-emerald-50/95 dark:bg-emerald-950/90',
+            border: 'border-emerald-200/50 dark:border-emerald-800/50',
+            text: 'text-emerald-900 dark:text-emerald-50',
+            accent: 'bg-emerald-500',
+            iconColor: 'text-emerald-500'
         },
         error: {
-            icon: 'error',
-            bg: 'bg-red-50/90 dark:bg-red-900/90',
-            border: 'border-red-200 dark:border-red-800',
-            text: 'text-red-800 dark:text-red-100',
-            iconColor: 'text-red-500 dark:text-red-400'
+            icon: <AlertCircle className="w-4 h-4" />,
+            bg: 'bg-red-50/95 dark:bg-red-950/90',
+            border: 'border-red-200/50 dark:border-red-800/50',
+            text: 'text-red-900 dark:text-red-50',
+            accent: 'bg-red-500',
+            iconColor: 'text-red-500'
         },
         warning: {
-            icon: 'warning',
-            bg: 'bg-amber-50/90 dark:bg-amber-900/90',
-            border: 'border-amber-200 dark:border-amber-800',
-            text: 'text-amber-800 dark:text-amber-100',
-            iconColor: 'text-amber-500 dark:text-amber-400'
+            icon: <AlertTriangle className="w-4 h-4" />,
+            bg: 'bg-amber-50/95 dark:bg-amber-950/90',
+            border: 'border-amber-200/50 dark:border-amber-800/50',
+            text: 'text-amber-900 dark:text-amber-50',
+            accent: 'bg-amber-500',
+            iconColor: 'text-amber-500'
         },
         info: {
-            icon: 'info',
-            bg: 'bg-white/90 dark:bg-zinc-800/90',
-            border: 'border-zinc-200 dark:border-zinc-700',
-            text: 'text-zinc-800 dark:text-zinc-100',
-            iconColor: 'text-blue-500 dark:text-blue-400'
+            icon: <Info className="w-4 h-4" />,
+            bg: 'bg-white/95 dark:bg-zinc-900/90',
+            border: 'border-zinc-200/50 dark:border-zinc-800/50',
+            text: 'text-zinc-900 dark:text-zinc-50',
+            accent: 'bg-blue-500',
+            iconColor: 'text-blue-500'
         }
     };
 
@@ -76,42 +81,28 @@ const ToastItem: React.FC<{ toast: ToastMessage; onRemove: (id: string) => void 
     return (
         <div
             className={`
-                pointer-events-auto flex flex-col p-3 rounded-none border-2 shadow-sm max-w-sm w-full transition-all duration-300 transform
+                pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-[1.5rem] border shadow-2xl backdrop-blur-xl max-w-[90vw] transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]
                 ${currentStyle.bg} ${currentStyle.border}
-                ${isExiting ? 'opacity-0 -translate-y-2 scale-95' : 'opacity-100 translate-y-0 scale-100 animate-slide-down'}
+                ${isExiting ? 'opacity-0 -translate-y-4 scale-90' : 'opacity-100 translate-y-0 scale-100 animate-slide-down'}
             `}
             role="alert"
         >
-            {/* Header style imitating iOS/Android Notifications */}
-            <div className="flex justify-between items-center mb-1.5 opacity-60 px-1">
-                <div className="flex items-center gap-1.5">
-                    <div className={`w-3.5 h-3.5 rounded-md flex items-center justify-center ${currentStyle.iconColor} bg-current/10`}>
-                        <span className="material-icons-round text-[10px] text-current">scale</span>
-                    </div>
-                    <span className={`text-[10px] uppercase font-black tracking-widest ${currentStyle.text}`}>Conferente</span>
-                </div>
-                <span className={`text-[9px] font-medium ${currentStyle.text}`}>Ahora</span>
+            <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${currentStyle.bg} border ${currentStyle.border} shadow-sm ${currentStyle.iconColor}`}>
+                {currentStyle.icon}
             </div>
 
-            {/* Content Body */}
-            <div className="flex items-start gap-3 pl-1 relative">
-                <span className={`material-icons-round text-xl shrink-0 mt-0.5 ${currentStyle.iconColor}`}>
-                    {currentStyle.icon}
-                </span>
-
-                <div className="flex-1 pt-0.5">
-                    <p className={`text-sm font-bold leading-snug ${currentStyle.text}`}>
-                        {toast.msg}
-                    </p>
-                </div>
-
-                <button
-                    onClick={handleClose}
-                    className={`shrink-0 -mr-1 -mt-1 p-1 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors ${currentStyle.text} opacity-60 hover:opacity-100`}
-                >
-                    <span className="material-icons-round text-base">close</span>
-                </button>
+            <div className="flex-1 min-w-0 pr-2">
+                <p className={`text-xs font-black tracking-tight leading-tight uppercase ${currentStyle.text}`}>
+                    {toast.msg}
+                </p>
             </div>
+
+            <button
+                onClick={handleClose}
+                className={`shrink-0 p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors ${currentStyle.text} opacity-30 hover:opacity-100 active:scale-90`}
+            >
+                <X className="w-3.5 h-3.5" />
+            </button>
         </div>
     );
 };
