@@ -24,7 +24,7 @@ export const DashboardV2: React.FC<DashboardV2Props> = ({ records, profile, onTa
             todayCount: todayRecords.length,
             ok,
             errors,
-            recent: [...records].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)).slice(0, 3)
+            recent: [...records].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)).slice(0, 6)
         };
     }, [records]);
 
@@ -35,21 +35,22 @@ export const DashboardV2: React.FC<DashboardV2Props> = ({ records, profile, onTa
                 <p className="text-sm text-zinc-500 font-medium">Pronto para conferir as cargas de hoje?</p>
             </div>
 
-            {/* Main Action Card */}
+            {/* Main Action Card - Slimmed down */}
             <button
                 onClick={() => onTabChange('weigh')}
-                className="w-full p-6 bg-zinc-900 dark:bg-white rounded-[2.5rem] text-white dark:text-black shadow-2xl shadow-zinc-900/20 flex flex-col items-start gap-4 relative overflow-hidden group active:scale-95 transition-all"
+                className="w-full p-5 bg-zinc-900 dark:bg-white rounded-[2rem] text-white dark:text-black shadow-xl shadow-zinc-900/10 flex items-center justify-between group active:scale-95 transition-all"
             >
-                <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 dark:bg-black/5 blur-3xl rounded-full -mr-20 -mt-20 group-hover:scale-150 transition-transform duration-700"></div>
-                <div className="p-3 bg-white/20 dark:bg-zinc-100 rounded-2xl backdrop-blur-md">
-                    <Zap className="w-6 h-6 fill-current" />
+                <div className="flex items-center gap-4">
+                    <div className="p-2.5 bg-white/10 dark:bg-black/5 rounded-xl backdrop-blur-md">
+                        <Zap className="w-5 h-5 fill-current" />
+                    </div>
+                    <div className="text-left">
+                        <span className="text-sm font-black block">Nova Conferência</span>
+                        <span className="text-[10px] opacity-60 font-medium block">Pesar cargas e IA</span>
+                    </div>
                 </div>
-                <div>
-                    <span className="text-lg font-black block">Nova Conferência</span>
-                    <span className="text-xs opacity-60 font-medium block">Pesar cargas, scanner de notas e IA</span>
-                </div>
-                <div className="mt-2 flex items-center gap-1.5 px-3 py-1.5 bg-white/10 dark:bg-black/5 rounded-full backdrop-blur-sm border border-white/10 text-[10px] font-black uppercase tracking-widest">
-                    Iniciar Agora <ArrowRight className="w-3 h-3 ml-1" />
+                <div className="flex items-center gap-1.5 px-3 py-1 bg-white/10 dark:bg-black/5 rounded-full backdrop-blur-sm border border-white/10 text-[9px] font-black uppercase tracking-widest">
+                    Iniciar <ArrowRight className="w-3 h-3 ml-1" />
                 </div>
             </button>
 

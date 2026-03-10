@@ -96,7 +96,17 @@ export const saveRecord = async (record: WeighingRecord) => {
     // Learn from pattern (Lightweight)
     learnFromRecord(enrichedRecord);
 
-    // Sync DIRECTLY to Supabase (Skip local storage for large records/images)
+    // Save to Local Cache immediately (Slim version)
+    try {
+        const local = await getRecords();
+        const slim = { ...enrichedRecord, evidence: null };
+        const updated = [slim, ...local].slice(0, 100);
+        localStorage.setItem(KEY_RECORDS, JSON.stringify(updated));
+    } catch (e) {
+        console.warn("Local cache update failed", e);
+    }
+
+    // Sync DIRECTLY to Supabase (Heavy version with images)
     return await syncRecordToSupabase(enrichedRecord);
 };
 
