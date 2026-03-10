@@ -3,55 +3,49 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 /**
  * Supabase Edge Function: telegram-notification
  * 
- * triggered by: Database Webhook (INSERT on pesajes table)
- * goal: Send record details to a Telegram chat
+ * triggered by: Database Webhook (INSERT on weighing_records table)
+ * goal: Send record details to Telegram with WhatsApp-style formatting
  */
 
 Deno.serve(async (req) => {
-  // 1. Get secrets from environment
   const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN");
   const TELEGRAM_CHAT_ID = Deno.env.get("TELEGRAM_CHAT_ID");
 
   if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
-    return new Response(
-      JSON.stringify({ error: "Missing Telegram configuration (Token or Chat ID)" }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: "Configuração incompleta" }), { status: 500 });
   }
 
   try {
-    // 2. Parse the webhook payload
-    // Supabase Webhooks send the full record in the 'record' property
     const payload = await req.json();
-    const record = payload.record;
+    const record = payload.record; // This is the 'weighing_records' row
 
-    if (!record) {
-      return new Response(
-        JSON.stringify({ error: "No record found in payload" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
-      );
-    }
+    if (!record) return new Response("No record", { status: 400 });
 
-    // 3. Construct the message
-    // Adjusting to user-requested fields: id, producto, peso, motorista, placa, fecha, hora
+    const diff = (record.net_weight || 0) - (record.note_weight || 0);
+    const isOk = Math.abs(diff) <= 0.2;
+    const statusText = isOk ? "Validado ✅" : "Revisão Necessária ⚠️";
+    const diffSign = diff >= 0 ? "+" : "";
+
+    // Exact format from WhatsApp Report (Portuguese)
     const message = `
-📦 *Nuevo Pesaje Registrado*
+*Relatório de Pesagem - Conferente Pro*
 ---------------------------
-🆔 *ID:* ${record.id}
-🍎 *Producto:* ${record.producto || 'N/A'}
-⚖️ *Peso:* ${record.peso || '0'} kg
-👤 *Motorista:* ${record.motorista || 'N/A'}
-🚛 *Placa:* ${record.placa || 'N/A'}
-📅 *Fecha:* ${record.fecha || 'N/A'}
-⏰ *Hora:* ${record.hora || 'N/A'}
+🏭 *Fornecedor:* ${record.supplier || 'N/A'}
+📦 *Produto:* ${record.product || 'N/A'}
+${record.batch ? `🔢 *Lote:* ${record.batch}` : ''}
+${record.expiration_date ? `📅 *Validade:* ${record.expiration_date}` : ''}
 ---------------------------
-🚀 _Enviado automáticamente por Supabase_
+⚖️ *Peso Bruto:* ${(record.gross_weight || 0).toFixed(3)} kg
+📦 *Tara:* ${(record.tara_total || 0).toFixed(3)} kg (x${record.boxes?.qty || 0})
+✅ *Peso Líquido:* *${(record.net_weight || 0).toFixed(3)} kg*
+---------------------------
+📊 *Diferença:* *${diffSign}${diff.toFixed(3)} kg*
+🤖 *Status:* ${statusText}
+
+${record.ai_analysis ? `📝 *Obs IA:* ${record.ai_analysis}` : ''}
     `.trim();
 
-    // 4. Send to Telegram API
-    const telegramUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
-    
-    const response = await fetch(telegramUrl, {
+    const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -62,24 +56,11 @@ Deno.serve(async (req) => {
     });
 
     const result = await response.json();
-
-    if (!response.ok) {
-      console.error("Telegram API Error:", result);
-      return new Response(
-        JSON.stringify({ error: "Failed to send Telegram message", details: result }),
-        { status: 502, headers: { "Content-Type": "application/json" } }
-      );
-    }
-
-    return new Response(
-      JSON.stringify({ success: true, message_id: result.result?.message_id }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify(result), { 
+      status: 200, 
+      headers: { "Content-Type": "application/json" } 
+    });
   } catch (error) {
-    console.error("Function Error:", error.message);
-    return new Response(
-      JSON.stringify({ error: "Internal Server Error", details: error.message }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
-    );
+    return new Response(error.message, { status: 500 });
   }
 });
