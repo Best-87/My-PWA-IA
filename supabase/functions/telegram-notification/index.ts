@@ -53,46 +53,46 @@ Deno.serve(async (req) => {
 
     // Build message lines
     const lines: string[] = [
-      `*📋 Relatório de Pesagem - Conferente Pro*`,
+      `<b>📋 Relatório de Pesagem - Conferente Pro</b>`,
       `---------------------------`,
-      `📅 *Data:* ${dateStr} às ${timeStr}`,
+      `📅 <b>Data:</b> ${dateStr} às ${timeStr}`,
     ];
 
-    if (record.store)      lines.push(`🏪 *Loja/Unidade:* ${record.store}`);
-    if (record.conferente) lines.push(`👤 *Conferente:* ${record.conferente}`);
+    if (record.store)      lines.push(`🏪 <b>Loja/Unidade:</b> ${record.store}`);
+    if (record.conferente) lines.push(`👤 <b>Conferente:</b> ${record.conferente}`);
 
     lines.push(`---------------------------`);
-    lines.push(`🏭 *Fornecedor:* ${record.supplier || 'N/A'}`);
-    lines.push(`📦 *Produto:* ${record.product || 'N/A'}`);
+    lines.push(`🏭 <b>Fornecedor:</b> ${record.supplier || 'N/A'}`);
+    lines.push(`📦 <b>Produto:</b> ${record.product || 'N/A'}`);
 
-    if (record.cnpj)            lines.push(`🆔 *CNPJ:* ${record.cnpj}`);
-    if (record.note_number)     lines.push(`🧾 *Nº Nota:* ${record.note_number}`);
-    if (record.batch)           lines.push(`🔢 *Lote:* ${record.batch}`);
-    if (record.expiration_date) lines.push(`📅 *Validade:* ${record.expiration_date}`);
+    if (record.cnpj)            lines.push(`🆔 <b>CNPJ:</b> ${record.cnpj}`);
+    if (record.note_number)     lines.push(`🧾 <b>Nº Nota:</b> ${record.note_number}`);
+    if (record.batch)           lines.push(`🔢 <b>Lote:</b> ${record.batch}`);
+    if (record.expiration_date) lines.push(`📅 <b>Validade:</b> ${record.expiration_date}`);
 
     lines.push(
       `---------------------------`,
-      `⚖️ *Peso Bruto:* ${(record.gross_weight || 0).toFixed(3)} kg`,
-      `📄 *Peso Nota:* ${(record.note_weight || 0).toFixed(3)} kg`,
-      `📦 *Tara:* ${(record.tara_total || 0).toFixed(3)} kg (x${record.boxes?.qty || 0})`,
-      `✅ *Peso Líquido:* *${(record.net_weight || 0).toFixed(3)} kg*`,
+      `⚖️ <b>Peso Bruto:</b> ${(record.gross_weight || 0).toFixed(3)} kg`,
+      `📄 <b>Peso Nota:</b> ${(record.note_weight || 0).toFixed(3)} kg`,
+      `📦 <b>Tara:</b> ${(record.tara_total || 0).toFixed(3)} kg (x${record.boxes?.qty || 0})`,
+      `✅ <b>Peso Líquido:</b> <b>${(record.net_weight || 0).toFixed(3)} kg</b>`,
       `---------------------------`,
-      `📊 *Diferença:* *${diffSign}${diff.toFixed(3)} kg*`,
-      `🤖 *Status:* ${statusText}`,
+      `📊 <b>Diferença:</b> <b>${diffSign}${diff.toFixed(3)} kg</b>`,
+      `🤖 <b>Status:</b> ${statusText}`,
     );
 
     if (record.ai_analysis) {
-      lines.push(``, `📝 *Obs IA:* ${record.ai_analysis}`);
+      lines.push(``, `📝 <b>Obs IA:</b> ${record.ai_analysis}`);
     }
 
     const message = lines.join('\n');
 
-    // Check if photo exists
     const hasPhoto = record.evidence &&
       typeof record.evidence === 'string' &&
       record.evidence.startsWith('data:image');
 
     let sentMessageId: number | null = null;
+    let telegramResponse: any = null;
 
     if (hasPhoto) {
       const base64Data = record.evidence.split(',')[1];
@@ -105,19 +105,23 @@ Deno.serve(async (req) => {
       form.append('chat_id', TELEGRAM_CHAT_ID);
       form.append('photo', blob, 'evidencia.jpg');
       form.append('caption', message.slice(0, 1024));
-      form.append('parse_mode', 'Markdown');
+      form.append('parse_mode', 'HTML');
 
       const res = await fetch(`${telegramBase}/sendPhoto`, { method: "POST", body: form });
-      const result = await res.json();
-      sentMessageId = result?.result?.message_id ?? null;
+      telegramResponse = await res.json();
+      sentMessageId = telegramResponse?.result?.message_id ?? null;
     } else {
       const res = await fetch(`${telegramBase}/sendMessage`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: message, parse_mode: "Markdown" }),
+        body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: message, parse_mode: "HTML" }),
       });
-      const result = await res.json();
-      sentMessageId = result?.result?.message_id ?? null;
+      telegramResponse = await res.json();
+      sentMessageId = telegramResponse?.result?.message_id ?? null;
+    }
+
+    if (!telegramResponse?.ok) {
+       console.error("Telegram API Error:", telegramResponse);
     }
 
     // Save telegram_message_id back to DB so we can delete it later
