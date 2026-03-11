@@ -267,11 +267,13 @@ const AppContent = () => {
 
     const confirmDelete = async () => {
         if (recordToDelete) {
-            await deleteRecord(recordToDelete);
-            const updatedRecords = await getRecords();
-            setRecords(updatedRecords);
-            showToast(t('msg_history_cleared'), 'info');
+            // 1. Update React state immediately for instant UI feedback
+            setRecords(prev => prev.filter(r => r.id !== recordToDelete));
             setRecordToDelete(null);
+            showToast('Registro apagado.', 'info');
+
+            // 2. Persist deletion in background
+            await deleteRecord(recordToDelete);
         }
     };
 

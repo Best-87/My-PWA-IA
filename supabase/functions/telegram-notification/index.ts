@@ -3,7 +3,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 /**
  * Supabase Edge Function: telegram-notification
  * triggered by: Database Webhook (INSERT on weighing_records)
- * 
+ *
  * Sends a full Telegram message with CNPJ, nota fiscal, and photo when available.
  */
 
@@ -26,23 +26,28 @@ Deno.serve(async (req) => {
     const statusText = isOk ? "Validado ✅" : "Revisão Necessária ⚠️";
     const diffSign = diff >= 0 ? "+" : "";
 
-    // Format timestamp
-    const ts = record.timestamp ? new Date(record.timestamp) : new Date();
-    const dateStr = ts.toLocaleDateString('pt-BR');
-    const timeStr = ts.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    // timestamp is stored as bigint (milliseconds), timezone Brazil (UTC-3)
+    const tsMs = record.timestamp ? Number(record.timestamp) : Date.now();
+    const ts = new Date(tsMs);
+    const dateStr = ts.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+    const timeStr = ts.toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' });
 
-    // Full-detail message (WhatsApp format)
-    const message = [
+    // Build message lines, skipping nulls
+    const lines: string[] = [
       `*📋 Relatório de Pesagem - Conferente Pro*`,
       `---------------------------`,
       `📅 *Data:* ${dateStr} às ${timeStr}`,
       `---------------------------`,
       `🏭 *Fornecedor:* ${record.supplier || 'N/A'}`,
       `📦 *Produto:* ${record.product || 'N/A'}`,
-      record.cnpj         ? `🆔 *CNPJ:* ${record.cnpj}` : null,
-      record.note_number  ? `🧾 *Nº Nota:* ${record.note_number}` : null,
-      record.batch        ? `🔢 *Lote:* ${record.batch}` : null,
-      record.expiration_date ? `📅 *Validade:* ${record.expiration_date}` : null,
+    ];
+
+    if (record.cnpj)        lines.push(`🆔 *CNPJ:* ${record.cnpj}`);
+    if (record.note_number) lines.push(`🧾 *Nº Nota:* ${record.note_number}`);
+    if (record.batch)       lines.push(`🔢 *Lote:* ${record.batch}`);
+    if (record.expiration_date) lines.push(`📅 *Validade:* ${record.expiration_date}`);
+
+    lines.push(
       `---------------------------`,
       `⚖️ *Peso Bruto:* ${(record.gross_weight || 0).toFixed(3)} kg`,
       `📄 *Peso Nota:* ${(record.note_weight || 0).toFixed(3)} kg`,
@@ -51,20 +56,22 @@ Deno.serve(async (req) => {
       `---------------------------`,
       `📊 *Diferença:* *${diffSign}${diff.toFixed(3)} kg*`,
       `🤖 *Status:* ${statusText}`,
-      record.ai_analysis ? `` : null,
-      record.ai_analysis ? `📝 *Obs IA:* ${record.ai_analysis}` : null,
-    ]
-      .filter(line => line !== null)
-      .join('\n');
+    );
 
+    if (record.ai_analysis) {
+      lines.push(``, `📝 *Obs IA:* ${record.ai_analysis}`);
+    }
+
+    const message = lines.join('\n');
     const telegramBase = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
 
     // Check if a photo (evidence) exists as a base64 string
-    const hasPhoto = record.evidence && typeof record.evidence === 'string' && record.evidence.startsWith('data:image');
+    const hasPhoto = record.evidence &&
+      typeof record.evidence === 'string' &&
+      record.evidence.startsWith('data:image');
 
     if (hasPhoto) {
-      // --- Send photo with caption ---
-      // Convert base64 to Blob
+      // Convert base64 to Blob and send via sendPhoto
       const base64Data = record.evidence.split(',')[1];
       const binaryStr = atob(base64Data);
       const bytes = new Uint8Array(binaryStr.length);
@@ -76,13 +83,12 @@ Deno.serve(async (req) => {
       const form = new FormData();
       form.append('chat_id', TELEGRAM_CHAT_ID);
       form.append('photo', blob, 'evidencia.jpg');
-      // Telegram caption limit is 1024 chars
-      form.append('caption', message.slice(0, 1024));
+      form.append('caption', message.slice(0, 1024)); // Telegram caption limit
       form.append('parse_mode', 'Markdown');
 
       await fetch(`${telegramBase}/sendPhoto`, { method: "POST", body: form });
     } else {
-      // --- Send text-only message ---
+      // Text-only message
       await fetch(`${telegramBase}/sendMessage`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

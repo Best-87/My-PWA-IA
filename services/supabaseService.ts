@@ -115,7 +115,9 @@ export const syncRecordToSupabase = async (record: WeighingRecord) => {
                 expiration_date: record.expirationDate,
                 production_date: record.productionDate,
                 recommended_temperature: record.recommendedTemperature,
-                store: record.store
+                store: record.store,
+                cnpj: record.cnpj,
+                note_number: record.noteNumber
             });
 
         if (error) {
