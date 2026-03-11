@@ -182,6 +182,7 @@ const AppContent = () => {
     }, []);
 
     const [isDataSyncing, setIsDataSyncing] = useState(false);
+    const isDataSyncingRef = useRef(false);
 
     // Initialize Session & Auth (Single Source of Truth)
     useEffect(() => {
@@ -189,36 +190,40 @@ const AppContent = () => {
             console.log("Auth Event:", _event, session?.user?.email);
             setSession(session);
 
-            if (_event === 'SIGNED_IN' || _event === 'INITIAL_SESSION' || _event === 'USER_UPDATED') {
-                if (session?.user) {
-                    setIsDataSyncing(true);
-                    try {
-                        const { fetchRecordsFromSupabase, fetchProfileFromSupabase } = await import('./services/supabaseService');
+            if ((_event === 'SIGNED_IN' || _event === 'INITIAL_SESSION') && session?.user) {
+                if (isDataSyncingRef.current) return;
+                isDataSyncingRef.current = true;
+                setIsDataSyncing(true);
+                
+                try {
+                    const { fetchRecordsFromSupabase, fetchProfileFromSupabase } = await import('./services/supabaseService');
 
-                        // 1. Fetch Profile
-                        const cloudProfile = await fetchProfileFromSupabase();
-                        if (cloudProfile) {
-                            setProfile(cloudProfile);
-                            // Also save locally to keep persistence
-                            localStorage.setItem('conferente_profile', JSON.stringify(cloudProfile));
-                        } else {
-                            setProfile(prev => ({ ...prev, email: session.user.email }));
-                        }
-
-                        // 2. Fetch Records
-                        const cloudRecords = await fetchRecordsFromSupabase();
-                        setRecords(cloudRecords || []);
-                        if (cloudRecords && cloudRecords.length > 0) {
-                            syncRecords(cloudRecords);
-                        }
-                    } finally {
-                        setIsDataSyncing(false);
+                    // 1. Fetch Profile
+                    const cloudProfile = await fetchProfileFromSupabase();
+                    if (cloudProfile) {
+                        setProfile(cloudProfile);
+                        localStorage.setItem('conferente_profile', JSON.stringify(cloudProfile));
+                    } else {
+                        setProfile(prev => ({ ...prev, email: session.user.email }));
                     }
+
+                    // 2. Fetch Records (Only if local records are empty or as a refresh)
+                    const cloudRecords = await fetchRecordsFromSupabase();
+                    if (cloudRecords) {
+                        setRecords(cloudRecords);
+                        syncRecords(cloudRecords);
+                    }
+                } catch (err) {
+                    console.error("Sync Error:", err);
+                } finally {
+                    setIsDataSyncing(false);
+                    isDataSyncingRef.current = false;
                 }
             } else if (_event === 'SIGNED_OUT') {
                 setRecords([]);
                 setProfile(getUserProfile());
                 setIsDataSyncing(false);
+                isDataSyncingRef.current = false;
             }
         });
 

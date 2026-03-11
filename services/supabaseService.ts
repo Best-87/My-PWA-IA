@@ -95,6 +95,16 @@ export const syncRecordToSupabase = async (record: WeighingRecord) => {
             return { error: 'User not authenticated' };
         }
 
+        // 1. Handle Image Storage (Move from Base64 string to URL)
+        let evidenceUrl = record.evidence;
+        if (record.evidence && record.evidence.startsWith('data:image')) {
+            const fileName = `${userId}/${record.id}.jpg`;
+            const uploaded = await uploadImageToSupabase(record.evidence, fileName);
+            if (uploaded) {
+                evidenceUrl = uploaded;
+            }
+        }
+
         const { error } = await supabase
             .from('weighing_records')
             .upsert({
@@ -110,7 +120,7 @@ export const syncRecordToSupabase = async (record: WeighingRecord) => {
                 boxes: record.boxes,
                 status: record.status,
                 ai_analysis: record.aiAnalysis,
-                evidence: record.evidence,
+                evidence: evidenceUrl, // Now a URL or stays as-is if already a URL
                 batch: record.batch,
                 expiration_date: record.expirationDate,
                 production_date: record.productionDate,
@@ -300,7 +310,8 @@ export const fetchRecordsFromSupabase = async () => {
             .from('weighing_records')
             .select('*')
             .eq('user_id', userId)
-            .order('timestamp', { ascending: false });
+            .order('timestamp', { ascending: false })
+            .limit(100);
 
         if (error) {
             console.error('Supabase fetch error:', error);
