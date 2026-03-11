@@ -108,9 +108,15 @@ export const saveRecord = async (record: WeighingRecord) => {
     }
 
     // Sync DIRECTLY to Supabase (Heavy version with images)
-    // We now await the result so the user knows if the actual sync succeeded or failed.
-    // This blocks the UI, but guarantees data is truly uploaded and prevents silent failures.
-    return await syncRecordToSupabase(enrichedRecord);
+    // Run in background so it doesn't block the UI
+    syncRecordToSupabase(enrichedRecord).then(res => {
+        if (res.error) console.error("Background sync failed:", res.error);
+    }).catch(err => {
+        console.error("Background sync exception:", err);
+    });
+
+    // Return success immediately to unlock the UI
+    return { success: true };
 };
 
 export const deleteRecord = async (id: string) => {

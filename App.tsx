@@ -229,6 +229,19 @@ const AppContent = () => {
         setIsLoading(false);
     }, []);
 
+    const handleClearCache = async () => {
+        if (confirm("Isto apagará a memória local do seu dispositivo e desconectará a conta (Seus dados na nuvem continuam salvos). Tem certeza?")) {
+            localStorage.clear();
+            if ('serviceWorker' in navigator) {
+                const regs = await navigator.serviceWorker.getRegistrations();
+                for (let reg of regs) {
+                    await reg.unregister();
+                }
+            }
+            window.location.reload();
+        }
+    };
+
     // Theme Toggle
     const toggleTheme = () => {
         const newTheme = theme === 'light' ? 'dark' : 'light';
@@ -573,6 +586,7 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                             isAuthModeLogin={isAuthModeLogin}
                             onToggleAuthMode={() => setIsAuthModeLogin(!isAuthModeLogin)}
                             onEmailChange={setEmail}
+                            onClearCache={handleClearCache}
                         />
                     }
                     confirmModal={<>

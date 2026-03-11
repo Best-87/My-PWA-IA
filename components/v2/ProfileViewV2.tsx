@@ -3,7 +3,7 @@ import { UserProfile, Language } from '../../types';
 import { useTranslation } from '../../services/i18n';
 import {
     User, Mail, Shield, Building, Palette, Languages,
-    LogOut, Save, Cloud, Download, Upload,
+    LogOut, Save, Cloud, Download, Upload, AlertTriangle,
     Camera, Bell, Info, Moon, Sun
 } from 'lucide-react';
 
@@ -29,6 +29,7 @@ interface ProfileViewProps {
     onEmailChange?: (val: string) => void;
     onBackup: () => void;
     onRestore: () => void;
+    onClearCache?: () => void;
     version: string;
 }
 
@@ -54,6 +55,7 @@ export const ProfileViewV2: React.FC<ProfileViewProps> = ({
     onEmailChange,
     onBackup,
     onRestore,
+    onClearCache,
     version
 }) => {
     const { t } = useTranslation();
@@ -255,6 +257,13 @@ export const ProfileViewV2: React.FC<ProfileViewProps> = ({
                         <span className="text-[10px] font-black uppercase tracking-widest">Importar</span>
                     </button>
                 </div>
+                
+                <button
+                    onClick={onClearCache}
+                    className="w-full py-4 bg-orange-50 dark:bg-orange-900/10 text-orange-600 dark:text-orange-500 rounded-2xl font-black text-[10px] uppercase tracking-widest border border-orange-100 dark:border-orange-900/30 flex items-center justify-center gap-2 active:scale-95 transition-all"
+                >
+                    <AlertTriangle className="w-4 h-4" /> Limpar Cache do App
+                </button>
             </div>
 
             {/* Footer */}
