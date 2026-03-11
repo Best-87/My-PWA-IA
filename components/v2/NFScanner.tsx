@@ -82,7 +82,7 @@ export const NFScanner: React.FC<OCRProcessorProps> = ({ mode, onDataExtracted, 
                 batch: data.batch || data.lote || '',
                 expirationDate: data.expirationDate || data.data_validade || data.validade || data.exp || null,
                 unitTara: data.unitTara || data.tara || data.peso_tara || null,
-                evidence: preview || imageSrc
+                evidence: resized // Crucial: use the compressed image, NOT the 20MB original
             };
 
             const summary = mode === 'nf'

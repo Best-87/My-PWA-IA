@@ -155,7 +155,39 @@ export const syncRecords = (cloudRecords: WeighingRecord[]) => {
         console.warn("Local storage limit hit, slim records not cached", e);
     }
 
-    cloudRecords.forEach(rec => learnFromRecord(rec));
+    if (cloudRecords.length > 0) {
+        let kb = getKnowledgeBase();
+        let kbUpdated = false;
+        
+        cloudRecords.forEach(record => {
+            if (!record.supplier || !record.product) return; // Prevent crashes on incomplete records
+            
+            if (!kb.suppliers.includes(record.supplier)) kb.suppliers.push(record.supplier);
+            if (!kb.products.includes(record.product)) kb.products.push(record.product);
+
+            const key = `${record.supplier}::${record.product}`;
+            const existingPattern = kb.patterns[key];
+            
+            kb.patterns[key] = {
+                typicalTaraBox: record.boxes?.unitTara > 0 ? record.boxes.unitTara : (existingPattern?.typicalTaraBox || 0),
+                lastUsedProduct: record.product
+            };
+
+            const supplierKey = `SUP::${record.supplier}`;
+            kb.patterns[supplierKey] = {
+                typicalTaraBox: 0,
+                lastUsedProduct: record.product
+            };
+            
+            kbUpdated = true;
+        });
+        
+        if (kbUpdated) {
+            localStorage.setItem(KEY_KNOWLEDGE, JSON.stringify(kb));
+            // Sync KB ONCE after processing all records to avoid spamming the Supabase API
+            syncKnowledgeBaseToSupabase(kb).catch(e => console.error("KB Sync exception:", e));
+        }
+    }
 };
 
 export const getRecords = async (): Promise<WeighingRecord[]> => {
