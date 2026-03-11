@@ -575,6 +575,38 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                             onEmailChange={setEmail}
                         />
                     }
+                    confirmModal={<>
+                        {recordToDelete && (
+                            <div className="fixed inset-0 z-[500] bg-black/60 flex items-center justify-center p-4" onClick={() => setRecordToDelete(null)}>
+                                <div className="bg-white dark:bg-zinc-900 rounded-[2rem] p-8 text-center shadow-2xl w-full max-w-sm" onClick={e => e.stopPropagation()}>
+                                    <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <Trash2 className="w-8 h-8" />
+                                    </div>
+                                    <h3 className="text-xl font-black mb-2 text-zinc-900 dark:text-white">Excluir Registro?</h3>
+                                    <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-8">Esta ação não pode ser desfeita.</p>
+                                    <div className="flex gap-3">
+                                        <button onClick={() => setRecordToDelete(null)} className="flex-1 py-4 bg-zinc-100 dark:bg-zinc-800 rounded-2xl font-black text-xs uppercase tracking-widest text-zinc-600 dark:text-zinc-400">Cancelar</button>
+                                        <button onClick={confirmDelete} className="flex-1 py-4 bg-red-500 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-red-500/20">Apagar</button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        {showDeleteAllModal && (
+                            <div className="fixed inset-0 z-[500] bg-black/60 flex items-center justify-center p-4" onClick={() => setShowDeleteAllModal(false)}>
+                                <div className="bg-white dark:bg-zinc-900 rounded-[2rem] p-8 text-center shadow-2xl w-full max-w-sm" onClick={e => e.stopPropagation()}>
+                                    <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <AlertCircle className="w-8 h-8" />
+                                    </div>
+                                    <h3 className="text-xl font-black mb-2 text-zinc-900 dark:text-white">Limpar Tudo?</h3>
+                                    <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-8">Todo o histórico será apagado permanentemente.</p>
+                                    <div className="flex gap-3">
+                                        <button onClick={() => setShowDeleteAllModal(false)} className="flex-1 py-4 bg-zinc-100 dark:bg-zinc-800 rounded-2xl font-black text-xs uppercase tracking-widest text-zinc-600 dark:text-zinc-400">Cancelar</button>
+                                        <button onClick={executeClearAll} className="flex-1 py-4 bg-red-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-red-600/20">Sim, Apagar</button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </>}
                 />
             ) : (
                 <div className={`min-h-screen bg-[#F0F4F9] dark:bg-black pb-20 font-sans selection:bg-blue-500/30 ${isLoading ? 'opacity-0' : 'opacity-100 transition-opacity duration-700'}`}>

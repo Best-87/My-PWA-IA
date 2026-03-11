@@ -62,6 +62,9 @@ export const V2Shell: React.FC<any> = (props) => {
                 {activeTab === 'analytics' && <AnalyticsView records={props.records} />}
                 {activeTab === 'profile' && <div className="animate-fade-in-up">{props.profileContent}</div>}
             </main>
+
+            {/* Modals rendered INSIDE V2Shell so they receive pointer events correctly */}
+            {props.confirmModal}
         </div>
     );
 };
