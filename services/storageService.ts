@@ -108,7 +108,15 @@ export const saveRecord = async (record: WeighingRecord) => {
     }
 
     // Sync DIRECTLY to Supabase (Heavy version with images)
-    return await syncRecordToSupabase(enrichedRecord);
+    // Run in background so it doesn't block the UI
+    syncRecordToSupabase(enrichedRecord).then(res => {
+        if (res.error) console.error("Background sync failed:", res.error);
+    }).catch(err => {
+        console.error("Background sync exception:", err);
+    });
+
+    // Return success immediately to unlock the UI
+    return { success: true };
 };
 
 export const deleteRecord = async (id: string) => {
