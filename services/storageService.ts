@@ -86,12 +86,13 @@ export const getUserProfile = (): UserProfile => {
 // --- Record Functions ---
 
 export const saveRecord = async (record: WeighingRecord) => {
-    // Automatically attach the store from the current profile to the record
+    // Automatically attach the store and conferente from the current profile
     const profile = getUserProfile();
     const enrichedRecord = {
         ...record,
-        store: profile.store
-    };
+        store: profile.store,
+        conferente: profile.name
+    } as any;
 
     // Learn from pattern (Lightweight)
     learnFromRecord(enrichedRecord);
