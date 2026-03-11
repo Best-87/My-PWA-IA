@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Trash2, AlertCircle } from 'lucide-react';
 import { InstallManager } from './components/InstallManager';
 import { WeighingForm, WeighingFormHandle } from './components/WeighingForm';
 import { BottomNav } from './components/BottomNav';
@@ -518,6 +519,16 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                     onDeleteRecord={(id: string) => handleDelete(id)}
                     historyContent={
                         <div className="space-y-3">
+                            <div className="flex items-center justify-between px-1 mb-2">
+                                <h3 className="text-xs font-black uppercase tracking-widest text-zinc-400">Gerenciar Histórico</h3>
+                                <button
+                                    onClick={handleClearAll}
+                                    className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors flex items-center gap-1.5 active:scale-95"
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                    <span className="text-[10px] font-black uppercase tracking-widest">Apagar Tudo</span>
+                                </button>
+                            </div>
                             {records.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center py-20 opacity-50">
                                     <p className="text-zinc-500 dark:text-zinc-400">Histórico Vazio</p>
@@ -683,11 +694,31 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
 
             {recordToDelete && (
                 <div className="fixed inset-0 z-[200] bg-black/60 flex items-center justify-center p-4" onClick={() => setRecordToDelete(null)}>
-                    <div className="bg-white dark:bg-zinc-900 rounded-[2rem] p-6 text-center" onClick={e => e.stopPropagation()}>
-                        <h3 className="text-xl font-black mb-4">{t('msg_confirm_delete')}</h3>
+                    <div className="bg-white dark:bg-zinc-900 rounded-[2rem] p-8 text-center shadow-2xl animate-fade-in-up" onClick={e => e.stopPropagation()}>
+                        <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Trash2 className="w-8 h-8" />
+                        </div>
+                        <h3 className="text-xl font-black mb-2 text-zinc-900 dark:text-white">{t('msg_confirm_delete')}</h3>
+                        <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-8">Esta ação não pode ser desfeita.</p>
                         <div className="flex gap-3">
-                            <button onClick={() => setRecordToDelete(null)} className="flex-1 py-3 bg-zinc-100 rounded-xl font-bold">{t('btn_not_now')}</button>
-                            <button onClick={confirmDelete} className="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold">{t('btn_erase')}</button>
+                            <button onClick={() => setRecordToDelete(null)} className="flex-1 py-4 bg-zinc-100 dark:bg-zinc-800 rounded-2xl font-black text-xs uppercase tracking-widest text-zinc-600 dark:text-zinc-400">{t('btn_not_now')}</button>
+                            <button onClick={confirmDelete} className="flex-1 py-4 bg-red-500 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-red-500/20">{t('btn_erase')}</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showDeleteAllModal && (
+                <div className="fixed inset-0 z-[200] bg-black/60 flex items-center justify-center p-4" onClick={() => setShowDeleteAllModal(false)}>
+                    <div className="bg-white dark:bg-zinc-900 rounded-[2rem] p-8 text-center shadow-2xl animate-fade-in-up" onClick={e => e.stopPropagation()}>
+                        <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <AlertCircle className="w-8 h-8" />
+                        </div>
+                        <h3 className="text-xl font-black mb-2 text-zinc-900 dark:text-white">LIMPAR TUDO?</h3>
+                        <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-8">Você está prestes a apagar TODO o seu histórico de pesagens permanentemente.</p>
+                        <div className="flex gap-3">
+                            <button onClick={() => setShowDeleteAllModal(false)} className="flex-1 py-4 bg-zinc-100 dark:bg-zinc-800 rounded-2xl font-black text-xs uppercase tracking-widest text-zinc-600 dark:text-zinc-400">Cancelar</button>
+                            <button onClick={executeClearAll} className="flex-1 py-4 bg-red-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-red-600/20">Sim, Apagar Tudo</button>
                         </div>
                     </div>
                 </div>

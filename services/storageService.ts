@@ -111,13 +111,25 @@ export const saveRecord = async (record: WeighingRecord) => {
 };
 
 export const deleteRecord = async (id: string) => {
-    // Also delete from Supabase
+    // 1. Remove from Local Cache first for immediate UI update
+    try {
+        const local = await getRecords();
+        const updated = local.filter(r => r.id !== id);
+        localStorage.setItem(KEY_RECORDS, JSON.stringify(updated));
+    } catch (e) {
+        console.warn("Local cache delete failed", e);
+    }
+
+    // 2. Sync deletion to Supabase
     const { deleteRecordFromSupabase } = await import('./supabaseService');
     await deleteRecordFromSupabase(id);
 };
 
 export const clearAllRecords = async () => {
-    // Clear from Supabase
+    // 1. Clear Local Cache
+    localStorage.removeItem(KEY_RECORDS);
+
+    // 2. Clear from Supabase
     const { clearAllRecordsFromSupabase } = await import('./supabaseService');
     await clearAllRecordsFromSupabase();
 };
