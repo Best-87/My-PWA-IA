@@ -18,8 +18,7 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
     const [scannerMode, setScannerMode] = useState<'nf' | 'label'>('nf');
     const [isSaving, setIsSaving] = useState(false);
 
-    // Basic states to keep it compatible and functional for testing
-    const [form, setForm] = useState({
+    const emptyForm = {
         supplier: '',
         product: '',
         gross: '',
@@ -32,7 +31,23 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
         cnpj: '',
         noteNumber: '',
         evidence: null as string | null
+    };
+
+    // Initialize state from local cache to prevent data loss on refresh/tab switch
+    const [form, setForm] = useState(() => {
+        try {
+            const saved = localStorage.getItem('weighing_form_cache_v2');
+            if (saved) return JSON.parse(saved);
+        } catch (e) {
+            console.error('Error reading form cache', e);
+        }
+        return emptyForm;
     });
+
+    // Auto-save form to cache whenever it changes
+    React.useEffect(() => {
+        localStorage.setItem('weighing_form_cache_v2', JSON.stringify(form));
+    }, [form]);
 
     const parsedGross = parseFloat(form.gross.replace(',', '.')) || 0;
     const parsedNote = parseFloat(form.note.replace(',', '.')) || 0;
@@ -44,7 +59,7 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
     const isOk = Math.abs(diff) <= 0.2;
 
     const updateForm = (field: string, val: any) => {
-        setForm(prev => ({ ...prev, [field]: val }));
+        setForm((prev: typeof emptyForm) => ({ ...prev, [field]: val }));
         if (onDataChange) onDataChange(true);
     };
 
@@ -89,13 +104,9 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
 
             showToast("Conferência salva com sucesso!", "success");
 
-            // Reset form
-            setForm({
-                supplier: '', product: '', gross: '', note: '',
-                qty: '', tara: '0', batch: '', exp: '',
-                storage: 'dry', cnpj: '', noteNumber: '',
-                evidence: null
-            });
+            // Reset form and cache
+            setForm(emptyForm);
+            localStorage.removeItem('weighing_form_cache_v2');
 
             if (onRecordSaved) onRecordSaved();
         } catch (error) {
@@ -340,7 +351,10 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
             {/* 4. Action Buttons */}
             <div className="grid grid-cols-2 gap-3 pb-4">
                 <button
-                    onClick={() => setForm({ supplier: '', product: '', gross: '', note: '', qty: '', tara: '0', batch: '', exp: '', storage: 'dry', cnpj: '', noteNumber: '', evidence: null })}
+                    onClick={() => {
+                        setForm(emptyForm);
+                        localStorage.removeItem('weighing_form_cache_v2');
+                    }}
                     className="py-3.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 font-bold flex items-center justify-center gap-2 active:scale-95 transition-all text-sm"
                 >
                     <Trash2 className="w-4 h-4" /> Limpar
