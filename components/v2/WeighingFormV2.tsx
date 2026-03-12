@@ -8,7 +8,7 @@ import {
 import { WeighingFormProps } from '../WeighingForm';
 import { NFScanner } from './NFScanner';
 import { useToast } from '../Toast';
-import { saveRecord } from '../../services/storageService';
+import { saveRecord, predictData } from '../../services/storageService';
 import { trackEvent } from '../../services/analyticsService';
 
 export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onDataChange, onRecordSaved }) => {
@@ -24,7 +24,7 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
         gross: '',
         note: '',
         qty: '',
-        tara: '0',
+        tara: '',
         batch: '',
         exp: '',
         storage: 'dry',
@@ -44,9 +44,17 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
         return emptyForm;
     });
 
-    // Auto-save form to cache whenever it changes
+    // Auto-save form to cache whenever it changes (Safe version)
     React.useEffect(() => {
-        localStorage.setItem('weighing_form_cache_v2', JSON.stringify(form));
+        try {
+            // SLIM CACHE: Don't store the huge base64 evidence in persistent form cache
+            // to avoid localStorage QuotaExceededError. 
+            const slimForm = { ...form, evidence: null }; 
+            localStorage.setItem('weighing_form_cache_v2', JSON.stringify(slimForm));
+        } catch (e) {
+            console.warn('Form cache full, clearing old entries', e);
+            localStorage.removeItem('weighing_form_cache_v2');
+        }
     }, [form]);
 
     const parsedGross = parseFloat(form.gross.replace(',', '.')) || 0;
@@ -57,6 +65,28 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
     const netWeight = parsedGross > 0 ? parsedGross - totalTara : 0;
     const diff = netWeight - parsedNote;
     const isOk = Math.abs(diff) <= 0.2;
+
+    // --- Knowledge Logic: Auto-suggest based on Supplier/Product ---
+    React.useEffect(() => {
+        if (!form.supplier) return;
+
+        const suggestions = predictData(form.supplier, form.product);
+
+        // 1. If only supplier, suggest Product and CNPJ
+        if (!form.product && suggestions.suggestedProduct) {
+            updateForm('product', suggestions.suggestedProduct);
+        }
+        if (!form.cnpj && suggestions.suggestedCnpj) {
+            updateForm('cnpj', suggestions.suggestedCnpj);
+        }
+
+        // 2. If product is present, suggest Unit Tara
+        if (form.product && suggestions.suggestedUnitTara) {
+            if (!form.tara) {
+                updateForm('tara', suggestions.suggestedUnitTara.toString());
+            }
+        }
+    }, [form.supplier, form.product]);
 
     const updateForm = (field: string, val: any) => {
         setForm((prev: typeof emptyForm) => ({ ...prev, [field]: val }));
@@ -280,9 +310,25 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
                         onClick={() => setIsPackExpanded(!isPackExpanded)}
                         className="w-full p-6 flex items-center justify-between group"
                     >
-                        <h3 className="text-xs font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
-                            <BoxIcon className="w-4 h-4" /> Embalagem & Tara
-                        </h3>
+                        <div className="flex items-center gap-4">
+                            <h3 className="text-xs font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
+                                <BoxIcon className="w-4 h-4" /> Embalagem & Tara
+                            </h3>
+                            {!isPackExpanded && (form.qty || form.tara) && (
+                                <div className="flex items-center gap-2 animate-fade-in">
+                                    {form.qty && (
+                                        <span className="px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-[10px] font-black uppercase">
+                                            {form.qty} uds
+                                        </span>
+                                    )}
+                                    {form.tara && (
+                                        <span className="px-2 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-500 text-[10px] font-black uppercase">
+                                            {form.tara}g
+                                        </span>
+                                    )}
+                                </div>
+                            )}
+                        </div>
                         <div className={`p-1.5 rounded-lg bg-zinc-50 dark:bg-zinc-800 group-hover:bg-zinc-100 transition-colors ${isPackExpanded ? 'rotate-180' : ''}`}>
                             <ChevronDown className="w-4 h-4 text-zinc-400" />
                         </div>
@@ -306,7 +352,7 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
                                     type="number"
                                     value={form.tara}
                                     onChange={e => updateForm('tara', e.target.value)}
-                                    placeholder="0"
+                                    placeholder=""
                                     className="w-full p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800 border-none focus:ring-2 focus:ring-blue-500/50 text-sm font-black text-center"
                                 />
                             </div>

@@ -17,6 +17,21 @@
             window.deferredPrompt = e;
             console.log('PWA Install Event captured early');
         });
+
+        // Block pull-to-refresh on mobile
+        let lastTouchY = 0;
+        window.addEventListener('touchstart', (e) => {
+            lastTouchY = e.touches[0].clientY;
+        }, { passive: false });
+
+        window.addEventListener('touchmove', (e) => {
+            const touchY = e.touches[0].clientY;
+            const isPullingDown = touchY > lastTouchY && window.scrollY === 0;
+            if (isPullingDown) {
+                // Check if user is on top, then prevent
+                if (window.scrollY === 0) e.preventDefault();
+            }
+        }, { passive: false });
     </script>
 
     <!-- Modern PWA Meta Tag -->

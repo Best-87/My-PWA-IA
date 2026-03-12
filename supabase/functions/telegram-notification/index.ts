@@ -87,28 +87,42 @@ Deno.serve(async (req) => {
 
     const message = lines.join('\n');
 
-    const hasPhoto = record.evidence &&
-      typeof record.evidence === 'string' &&
-      record.evidence.startsWith('data:image');
+    const hasPhoto = record.evidence && typeof record.evidence === 'string';
+    const isBase64 = hasPhoto && record.evidence.startsWith('data:image');
 
     let sentMessageId: number | null = null;
     let telegramResponse: any = null;
 
     if (hasPhoto) {
-      const base64Data = record.evidence.split(',')[1];
-      const binaryStr = atob(base64Data);
-      const bytes = new Uint8Array(binaryStr.length);
-      for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
-      const blob = new Blob([bytes], { type: 'image/jpeg' });
+      if (isBase64) {
+        const base64Data = record.evidence.split(',')[1];
+        const binaryStr = atob(base64Data);
+        const bytes = new Uint8Array(binaryStr.length);
+        for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
+        const blob = new Blob([bytes], { type: 'image/jpeg' });
 
-      const form = new FormData();
-      form.append('chat_id', TELEGRAM_CHAT_ID);
-      form.append('photo', blob, 'evidencia.jpg');
-      form.append('caption', message.slice(0, 1024));
-      form.append('parse_mode', 'HTML');
+        const form = new FormData();
+        form.append('chat_id', TELEGRAM_CHAT_ID);
+        form.append('photo', blob, 'evidencia.jpg');
+        form.append('caption', message.slice(0, 1024));
+        form.append('parse_mode', 'HTML');
 
-      const res = await fetch(`${telegramBase}/sendPhoto`, { method: "POST", body: form });
-      telegramResponse = await res.json();
+        const res = await fetch(`${telegramBase}/sendPhoto`, { method: "POST", body: form });
+        telegramResponse = await res.json();
+      } else {
+        // Assume it's a URL
+        const res = await fetch(`${telegramBase}/sendPhoto`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            chat_id: TELEGRAM_CHAT_ID,
+            photo: record.evidence,
+            caption: message.slice(0, 1024),
+            parse_mode: 'HTML'
+          }),
+        });
+        telegramResponse = await res.json();
+      }
       sentMessageId = telegramResponse?.result?.message_id ?? null;
     } else {
       const res = await fetch(`${telegramBase}/sendMessage`, {

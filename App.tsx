@@ -180,50 +180,100 @@ const AppContent = () => {
             }
         };
     }, []);
-
-    const [isDataSyncing, setIsDataSyncing] = useState(false);
+    const [isDataSyncing, setIsDataSyncing] = useState(false);
     const isDataSyncingRef = useRef(false);
+    const lastSyncUserId = useRef<string | null>(null);
 
     // Initialize Session & Auth (Single Source of Truth)
     useEffect(() => {
-        const { data: { subscription } } = onAuthStateChange(async (_event, session) => {
+        const { data: { subscription } } = onAuthStateChange((_event, session) => {
             console.log("Auth Event:", _event, session?.user?.email);
             setSession(session);
 
-            if ((_event === 'SIGNED_IN' || _event === 'INITIAL_SESSION') && session?.user) {
-                if (isDataSyncingRef.current) return;
-                isDataSyncingRef.current = true;
-                setIsDataSyncing(true);
+            const currentUser = session?.user;
+
+            if (currentUser && (_event === 'SIGNED_IN' || _event === 'INITIAL_SESSION')) {
                 
-                try {
-                    const { fetchRecordsFromSupabase, fetchProfileFromSupabase } = await import('./services/supabaseService');
-
-                    // 1. Fetch Profile
-                    const cloudProfile = await fetchProfileFromSupabase();
-                    if (cloudProfile) {
-                        setProfile(cloudProfile);
-                        localStorage.setItem('conferente_profile', JSON.stringify(cloudProfile));
-                    } else {
-                        setProfile(prev => ({ ...prev, email: session.user.email }));
-                    }
-
-                    // 2. Fetch Records (Only if local records are empty or as a refresh)
-                    const cloudRecords = await fetchRecordsFromSupabase();
-                    if (cloudRecords) {
-                        setRecords(cloudRecords);
-                        syncRecords(cloudRecords);
-                    }
-                } catch (err) {
-                    console.error("Sync Error:", err);
-                } finally {
-                    setIsDataSyncing(false);
-                    isDataSyncingRef.current = false;
+                // --- Guard: never double-run sync ---
+                if (isDataSyncingRef.current) {
+                    console.log("Sync guard: already running, skipping.");
+                    return;
                 }
+
+                const syncKey = `last_sync_${currentUser.id}`;
+                const lastSync = localStorage.getItem(syncKey);
+                // 5 minute cooldown — prevents re-sync on quick app restarts
+                const cooldownMs = 300000;
+                const cooldownActive = lastSync && (Date.now() - Number(lastSync)) < cooldownMs;
+
+                // ONLY show "Sincronizando..." spinner on explicit manual login
+                const isManualLogin = _event === 'SIGNED_IN';
+
+                // On restart (INITIAL_SESSION), skip if cooldown is still active
+                if (!isManualLogin && cooldownActive) {
+                    console.log("INITIAL_SESSION: cooldown active, skipping sync.");
+                    return;
+                }
+
+                // Lock the ref immediately to prevent duplicate runs
+                isDataSyncingRef.current = true;
+                lastSyncUserId.current = currentUser.id;
+
+                // Show spinner ONLY for manual login
+                if (isManualLogin) {
+                    setIsDataSyncing(true);
+                }
+
+                // Self-destruct timeout — guarantees ref is released no matter what
+                const hardTimeout = setTimeout(() => {
+                    console.warn("Sync hard timeout hit — releasing lock");
+                    isDataSyncingRef.current = false;
+                    setIsDataSyncing(false);
+                }, 12000);
+
+                // Capture userId for closure safety
+                const userId = currentUser.id;
+
+                // Fire-and-forget async sync — no await here, never blocks the auth callback
+                Promise.resolve().then(async () => {
+                    try {
+                        const { fetchRecordsFromSupabase, fetchProfileFromSupabase } = await import('./services/supabaseService');
+                        const { syncRecords } = await import('./services/storageService');
+
+                        const cloudProfile = await fetchProfileFromSupabase();
+                        if (cloudProfile) {
+                            setProfile(cloudProfile);
+                            localStorage.setItem('conferente_profile', JSON.stringify(cloudProfile));
+                        } else if (currentUser.email) {
+                            setProfile(prev => ({ ...prev, email: currentUser.email! }));
+                        }
+
+                        const cloudRecords = await fetchRecordsFromSupabase();
+                        if (cloudRecords && cloudRecords.length > 0) {
+                            setRecords(cloudRecords);
+                            syncRecords(cloudRecords);
+                        }
+
+                        localStorage.setItem(`last_sync_${userId}`, Date.now().toString());
+                        console.log("Sync complete for user:", userId);
+                    } catch (err) {
+                        console.error("Sync error:", err);
+                    } finally {
+                        // Always release — this is the ONLY place that resets the lock (plus hard timeout)
+                        clearTimeout(hardTimeout);
+                        isDataSyncingRef.current = false;
+                        setIsDataSyncing(false);
+                    }
+                });
+
             } else if (_event === 'SIGNED_OUT') {
                 setRecords([]);
                 setProfile(getUserProfile());
                 setIsDataSyncing(false);
                 isDataSyncingRef.current = false;
+                lastSyncUserId.current = null;
+                // Clear cached sync timestamps on logout
+                Object.keys(localStorage).filter(k => k.startsWith('last_sync_')).forEach(k => localStorage.removeItem(k));
             }
         });
 
@@ -235,15 +285,39 @@ const AppContent = () => {
     }, []);
 
     const handleClearCache = async () => {
-        if (confirm("Isto apagará a memória local do seu dispositivo e desconectará a conta (Seus dados na nuvem continuam salvos). Tem certeza?")) {
-            localStorage.clear();
-            if ('serviceWorker' in navigator) {
-                const regs = await navigator.serviceWorker.getRegistrations();
-                for (let reg of regs) {
-                    await reg.unregister();
+        if (confirm("Isto apagará os dados locais (registros e perfil) e desconectará a conta. Suas configurações de tema e versão serão mantidas. Tem certeza?")) {
+            // Surgical clear instead of localStorage.clear()
+            const keysToRemove = [
+                'conferente_records', 
+                'conferente_profile', 
+                'conferente_knowledge',
+                'sessoesPesagem',
+                'produtosPesagem',
+                'weighing_form_cache_v2',
+                'supabase.auth.token' // standard supabase key
+            ];
+            
+            keysToRemove.forEach(k => localStorage.removeItem(k));
+            
+            // Clear all supabase related keys
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && (key.startsWith('sb-') || key.includes('supabase'))) {
+                    localStorage.removeItem(key);
                 }
             }
-            window.location.reload();
+
+            if ('serviceWorker' in navigator) {
+                try {
+                    const regs = await navigator.serviceWorker.getRegistrations();
+                    for (let reg of regs) {
+                        await reg.unregister();
+                    }
+                } catch (e) { console.error("SW unregister failed", e); }
+            }
+            
+            showToast("Cache limpo. Reiniciando...", "info");
+            setTimeout(() => window.location.reload(), 1000);
         }
     };
 

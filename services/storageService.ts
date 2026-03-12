@@ -160,23 +160,30 @@ export const syncRecords = (cloudRecords: WeighingRecord[]) => {
         let kbUpdated = false;
         
         cloudRecords.forEach(record => {
-            if (!record.supplier || !record.product) return; // Prevent crashes on incomplete records
+            if (!record.supplier || !record.product) return; 
             
             if (!kb.suppliers.includes(record.supplier)) kb.suppliers.push(record.supplier);
             if (!kb.products.includes(record.product)) kb.products.push(record.product);
 
+            // 1. Map Supplier + Product Specific Pattern
             const key = `${record.supplier}::${record.product}`;
             const existingPattern = kb.patterns[key];
             
             kb.patterns[key] = {
                 typicalTaraBox: record.boxes?.unitTara > 0 ? record.boxes.unitTara : (existingPattern?.typicalTaraBox || 0),
-                lastUsedProduct: record.product
+                typicalUnitTara: record.boxes?.unitTara > 0 ? record.boxes.unitTara : (existingPattern?.typicalUnitTara || 0),
+                lastUsedProduct: record.product,
+                typicalCnpj: record.cnpj || existingPattern?.typicalCnpj
             };
 
+            // 2. Map Supplier General Pattern (CNPJ / Last Product)
             const supplierKey = `SUP::${record.supplier}`;
+            const existingSupPattern = kb.patterns[supplierKey];
             kb.patterns[supplierKey] = {
                 typicalTaraBox: 0,
-                lastUsedProduct: record.product
+                typicalUnitTara: record.boxes?.unitTara > 0 ? record.boxes.unitTara : (existingSupPattern?.typicalUnitTara || 0),
+                lastUsedProduct: record.product,
+                typicalCnpj: record.cnpj || existingSupPattern?.typicalCnpj
             };
             
             kbUpdated = true;
@@ -184,7 +191,6 @@ export const syncRecords = (cloudRecords: WeighingRecord[]) => {
         
         if (kbUpdated) {
             localStorage.setItem(KEY_KNOWLEDGE, JSON.stringify(kb));
-            // Sync KB ONCE after processing all records to avoid spamming the Supabase API
             syncKnowledgeBaseToSupabase(kb).catch(e => console.error("KB Sync exception:", e));
         }
     }
@@ -202,7 +208,6 @@ export const getRecords = async (): Promise<WeighingRecord[]> => {
     return [];
 };
 
-// New helper for AI Context
 export const getLastRecordBySupplier = async (supplier: string): Promise<WeighingRecord | undefined> => {
     const records = await getRecords();
     return records.find(r => r.supplier.toLowerCase() === supplier.toLowerCase());
@@ -210,34 +215,34 @@ export const getLastRecordBySupplier = async (supplier: string): Promise<Weighin
 
 const learnFromRecord = (record: WeighingRecord) => {
     const kb = getKnowledgeBase();
+    if (!record.supplier) return;
 
-    // Add unique supplier/product
     if (!kb.suppliers.includes(record.supplier)) kb.suppliers.push(record.supplier);
-    if (!kb.products.includes(record.product)) kb.products.push(record.product);
+    if (record.product && !kb.products.includes(record.product)) kb.products.push(record.product);
 
-    // Learn patterns STRICTLY by Supplier + Product combination
-    // This ensures "Tomatoes" from Supplier A (wood box) are different from Supplier B (plastic box)
-    const key = `${record.supplier}::${record.product}`;
+    // Learn SPECIFIC supplier + product combination
+    if (record.product) {
+        const key = `${record.supplier}::${record.product}`;
+        const existing = kb.patterns[key];
+        kb.patterns[key] = {
+            typicalTaraBox: record.boxes.unitTara > 0 ? record.boxes.unitTara : (existing?.typicalTaraBox || 0),
+            typicalUnitTara: record.boxes.unitTara > 0 ? record.boxes.unitTara : (existing?.typicalUnitTara || 0),
+            lastUsedProduct: record.product,
+            typicalCnpj: record.cnpj || existing?.typicalCnpj
+        };
+    }
 
-    // Get existing pattern to preserve data if needed
-    const existingPattern = kb.patterns[key];
-
-    kb.patterns[key] = {
-        typicalTaraBox: record.boxes.unitTara > 0 ? record.boxes.unitTara : (existingPattern?.typicalTaraBox || 0),
-        lastUsedProduct: record.product
-    };
-
-    // Update supplier preference (Last product brought by this supplier)
-    const supplierKey = `SUP::${record.supplier}`;
-
-    kb.patterns[supplierKey] = {
-        typicalTaraBox: 0, // Not used for general supplier key
-        lastUsedProduct: record.product
+    // Learn GENERAL supplier traits (CNPJ, Last product brought)
+    const supKey = `SUP::${record.supplier}`;
+    const existingSup = kb.patterns[supKey];
+    kb.patterns[supKey] = {
+        typicalTaraBox: 0,
+        typicalUnitTara: record.boxes.unitTara > 0 ? record.boxes.unitTara : (existingSup?.typicalUnitTara || 0),
+        lastUsedProduct: record.product || existingSup?.lastUsedProduct || '',
+        typicalCnpj: record.cnpj || existingSup?.typicalCnpj
     };
 
     localStorage.setItem(KEY_KNOWLEDGE, JSON.stringify(kb));
-
-    // Sync KB to Supabase
     syncKnowledgeBaseToSupabase(kb);
 };
 
@@ -252,25 +257,35 @@ export const getKnowledgeBase = (): KnowledgeBase => {
 
 export const predictData = (supplier: string, product?: string) => {
     const kb = getKnowledgeBase();
+    if (!supplier) return {};
+
+    // 1. General Supplier Match (Predict Product & CNPJ)
+    const supKey = `SUP::${supplier}`;
+    const supPattern = kb.patterns[supKey];
 
     if (supplier && !product) {
-        // Predict product based on supplier history
-        const supKey = `SUP::${supplier}`;
-        const lastProduct = kb.patterns[supKey]?.lastUsedProduct;
-        return { suggestedProduct: lastProduct };
+        return { 
+            suggestedProduct: supPattern?.lastUsedProduct,
+            suggestedCnpj: supPattern?.typicalCnpj,
+            suggestedUnitTara: supPattern?.typicalUnitTara
+        };
     }
 
+    // 2. Specific Combination Match (Predict Tara)
     if (supplier && product) {
-        // Predict taras based on Supplier AND Product specific combination
         const key = `${supplier}::${product}`;
         const pattern = kb.patterns[key];
         if (pattern) {
             return {
-                suggestedTaraBox: pattern.typicalTaraBox
+                suggestedTaraBox: pattern.typicalTaraBox,
+                suggestedUnitTara: pattern.typicalUnitTara,
+                suggestedCnpj: pattern.typicalCnpj || supPattern?.typicalCnpj
             };
         }
     }
-    return {};
+    return {
+        suggestedCnpj: supPattern?.typicalCnpj
+    };
 };
 
 // --- BACKUP & RESTORE ---

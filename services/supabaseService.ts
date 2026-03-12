@@ -25,6 +25,8 @@ export const uploadImageToSupabase = async (base64Image: string, fileName: strin
     if (!supabase) return null;
 
     try {
+        if (!base64Image || !base64Image.startsWith('data:image')) return null;
+
         // Convert base64 to Blob
         const response = await fetch(base64Image);
         const blob = await response.blob();
@@ -37,7 +39,10 @@ export const uploadImageToSupabase = async (base64Image: string, fileName: strin
             });
 
         if (error) {
-            console.error('Supabase Upload Error:', error.message);
+            console.error(`Supabase Storage Error: ${error.message}`);
+            if (error.message.includes('not found')) {
+                console.warn(`CRITICAL: Bucket "${BUCKET_NAME}" is missing. Please create it in Supabase.`);
+            }
             return null;
         }
 
@@ -82,12 +87,38 @@ export const onAuthStateChange = (callback: (event: any, session: any) => void) 
     return supabase.auth.onAuthStateChange(callback);
 };
 
+// --- Helper for timeouts ---
+const withTimeout = <T>(promise: Promise<T>, timeoutMs: number = 10000): Promise<T> => {
+    return Promise.race([
+        promise,
+        new Promise<T>((_, reject) =>
+            setTimeout(() => reject(new Error('Request Timeout')), timeoutMs)
+        )
+    ]);
+};
+
+// --- Edge Function Invocations ---
+export const invokeTelegramNotification = async (dbRecord: any) => {
+    if (!supabase) return null;
+    try {
+        console.log('Invoking Telegram notification for:', dbRecord.id);
+        const { data, error } = await supabase.functions.invoke('telegram-notification', {
+            body: { record: dbRecord }
+        });
+        if (error) console.error('Telegram Invoke Error:', error);
+        return { data, error };
+    } catch (e) {
+        console.error('Telegram invocation exception:', e);
+        return { error: e };
+    }
+};
+
 // --- Sync Functions ---
 export const syncRecordToSupabase = async (record: WeighingRecord) => {
     if (!supabase) return { error: 'Not configured' };
 
     try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session } } = await withTimeout(supabase.auth.getSession()) as { data: { session: any } };
         const userId = session?.user?.id;
 
         if (!userId) {
@@ -99,37 +130,49 @@ export const syncRecordToSupabase = async (record: WeighingRecord) => {
         let evidenceUrl = record.evidence;
         if (record.evidence && record.evidence.startsWith('data:image')) {
             const fileName = `${userId}/${record.id}.jpg`;
-            const uploaded = await uploadImageToSupabase(record.evidence, fileName);
+            const uploaded = await withTimeout(uploadImageToSupabase(record.evidence, fileName), 15000).catch(() => null);
+            
             if (uploaded) {
                 evidenceUrl = uploaded;
+            } else {
+                console.warn('Storage failed - proceeding without image to avoid DB crash');
+                evidenceUrl = undefined;
             }
         }
 
-        const { error } = await supabase
+        // 2. Prepare Database Record (Map camelCase to snake_case)
+        const dbRecord = {
+            id: record.id,
+            user_id: userId,
+            timestamp: record.timestamp,
+            supplier: record.supplier,
+            product: record.product,
+            gross_weight: record.grossWeight,
+            note_weight: record.noteWeight,
+            net_weight: record.netWeight,
+            tara_total: record.taraTotal,
+            boxes: record.boxes,
+            status: record.status,
+            ai_analysis: record.aiAnalysis,
+            evidence: evidenceUrl,
+            batch: record.batch,
+            expiration_date: record.expirationDate,
+            production_date: record.productionDate,
+            recommended_temperature: record.recommendedTemperature,
+            store: record.store,
+            cnpj: record.cnpj,
+            note_number: record.noteNumber,
+            conferente: (record as any).conferente
+        };
+
+        // 3. SEND TO TELEGRAM FIRST (User Priority)
+        // We do this in parallel or slightly before DB to ensure visibility
+        invokeTelegramNotification(dbRecord).catch(err => console.error("Immediate Telegram failed:", err));
+
+        // 4. Upsert to DB
+        const { error } = await withTimeout(supabase
             .from('weighing_records')
-            .upsert({
-                id: record.id,
-                user_id: userId, // Bind to authenticated user
-                timestamp: record.timestamp,
-                supplier: record.supplier,
-                product: record.product,
-                gross_weight: record.grossWeight,
-                note_weight: record.noteWeight,
-                net_weight: record.netWeight,
-                tara_total: record.taraTotal,
-                boxes: record.boxes,
-                status: record.status,
-                ai_analysis: record.aiAnalysis,
-                evidence: evidenceUrl, // Now a URL or stays as-is if already a URL
-                batch: record.batch,
-                expiration_date: record.expirationDate,
-                production_date: record.productionDate,
-                recommended_temperature: record.recommendedTemperature,
-                store: record.store,
-                cnpj: record.cnpj,
-                note_number: record.noteNumber,
-                conferente: (record as any).conferente
-            });
+            .upsert(dbRecord), 10000) as { error: any };
 
         if (error) {
             console.error('Supabase Sync Error:', error.message);
@@ -138,7 +181,7 @@ export const syncRecordToSupabase = async (record: WeighingRecord) => {
         return { success: true };
     } catch (err: any) {
         console.error('Supabase caught error:', err);
-        return { error: err.message };
+        return { error: err.message || 'Unknown error' };
     }
 };
 
@@ -146,11 +189,11 @@ export const syncProfileToSupabase = async (profile: UserProfile) => {
     if (!supabase) return;
 
     try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session } } = await withTimeout(supabase.auth.getSession()) as { data: { session: any } };
         const userId = session?.user?.id;
         if (!userId) return;
 
-        const { error } = await supabase
+        const { error } = await withTimeout(supabase
             .from('profiles')
             .upsert({
                 id: userId,
@@ -160,7 +203,7 @@ export const syncProfileToSupabase = async (profile: UserProfile) => {
                 store: profile.store,
                 photo: profile.photo,
                 updated_at: new Date().toISOString()
-            });
+            }), 5000) as { error: any };
 
         if (error) console.error('Supabase Profile Sync Error:', error.message);
     } catch (err) {
@@ -172,15 +215,15 @@ export const fetchProfileFromSupabase = async (): Promise<UserProfile | null> =>
     if (!supabase) return null;
 
     try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session } } = await withTimeout(supabase.auth.getSession()) as { data: { session: any } };
         const userId = session?.user?.id;
         if (!userId) return null;
 
-        const { data, error } = await supabase
+        const { data, error } = await withTimeout(supabase
             .from('profiles')
             .select('*')
             .eq('id', userId)
-            .single();
+            .single(), 5000) as { data: any, error: any };
 
         if (error) {
             console.error('Supabase Profile Fetch Error:', error.message);
@@ -296,8 +339,8 @@ export const fetchRecordsFromSupabase = async () => {
     }
 
     try {
-        const { data: { session } } = await supabase.auth.getSession();
-        const userId = session?.user?.id;
+        const sessionData = await withTimeout(supabase.auth.getSession(), 5000) as { data: { session: any } };
+        const userId = sessionData.data.session?.user?.id;
 
         console.log('Fetching records for user:', userId);
 
@@ -306,12 +349,12 @@ export const fetchRecordsFromSupabase = async () => {
             return [];
         }
 
-        const { data, error } = await supabase
+        const { data, error } = await withTimeout(supabase
             .from('weighing_records')
             .select('*')
             .eq('user_id', userId)
             .order('timestamp', { ascending: false })
-            .limit(100);
+            .limit(100), 10000) as { data: any, error: any };
 
         if (error) {
             console.error('Supabase fetch error:', error);

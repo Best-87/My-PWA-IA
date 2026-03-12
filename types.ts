@@ -38,10 +38,12 @@ export interface WeighingRecord {
 export interface KnowledgeBase {
     suppliers: string[];
     products: string[];
-    // Map supplier+product to typical tara/boxes
+    // Map supplier or supplier+product to details
     patterns: Record<string, {
         typicalTaraBox: number;
+        typicalUnitTara: number;
         lastUsedProduct: string;
+        typicalCnpj?: string;
     }>;
 }
 
