@@ -13,7 +13,7 @@ export const generateGeminiContent = async (prompt: any, systemInstruction?: str
 
     if (isLocal && localKey) {
         try {
-            const model = 'gemini-1.5-flash'; // Good for OCR and fast
+            const model = 'gemini-2.5-flash'; // Good for OCR and fast
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${localKey}`;
 
             // Format prompt for direct API call (REST API expects snake_case: inline_data, mime_type)
