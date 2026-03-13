@@ -4,6 +4,8 @@ import { GoogleGenAI } from "@google/genai";
 export const config = {
   runtime: 'edge',
 };
+// Add max duration to prevent 504 timeouts on Vercel
+export const maxDuration = 60;
 
 // Definición estricta de la estructura esperada del cuerpo
 interface GeminiRequest {
@@ -44,7 +46,7 @@ export default async function handler(req: Request) {
     const ai = new GoogleGenAI({ apiKey });
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: 'gemini-1.5-flash',
       contents: prompt,
       config: {
         systemInstruction: systemInstruction || `Eres un experto de élite en logística, pesaje industrial y aseguramiento de calidad (QA) para Conferente Pro.

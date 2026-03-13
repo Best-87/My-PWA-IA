@@ -61,8 +61,16 @@ export const generateGeminiContent = async (prompt: any, systemInstruction?: str
         });
 
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Error en el servidor proxy');
+            let errorText = `Erro de conexão (${response.status})`;
+            try {
+                const errorData = await response.json();
+                errorText = errorData.error || errorText;
+            } catch {
+                if (response.status === 504) {
+                    errorText = 'Tempo limite atingido ao processar a imagem. Tente novamente ou use uma foto com menor resolução.';
+                }
+            }
+            throw new Error(errorText);
         }
 
         const data = await response.json();

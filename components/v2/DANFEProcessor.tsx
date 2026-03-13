@@ -25,7 +25,7 @@ interface ProcessResult {
     telegram_message_id?: number;
 }
 
-const resizeImage = (base64Str: string, maxWidth = 1200): Promise<string> =>
+const resizeImage = (base64Str: string, maxWidth = 1000): Promise<string> =>
     new Promise((resolve) => {
         const img = new Image();
         img.onload = () => {
