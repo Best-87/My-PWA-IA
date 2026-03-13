@@ -8,6 +8,7 @@ import {
 import { WeighingFormProps } from '../WeighingForm';
 import { NFScanner } from './NFScanner';
 import { DANFEProcessor } from './DANFEProcessor';
+import { DanfeProductReader } from './DanfeProductReader';
 import { useToast } from '../Toast';
 import { saveRecord, predictData } from '../../services/storageService';
 import { trackEvent } from '../../services/analyticsService';
@@ -18,6 +19,7 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
     const [showScanner, setShowScanner] = useState(false);
     const [scannerMode, setScannerMode] = useState<'nf' | 'label'>('nf');
     const [showDANFE, setShowDANFE] = useState(false);
+    const [showDanfeReader, setShowDanfeReader] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
 
     const emptyForm = {
@@ -231,16 +233,29 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
                 </button>
             </div>
 
-            {/* DANFE / NF-e XML button */}
-            <button
-                onClick={() => setShowDANFE(true)}
-                className="w-full bg-gradient-to-br from-emerald-600 to-teal-700 p-3 rounded-2xl text-white shadow-lg flex items-center justify-center gap-3 active:scale-95 transition-all"
-            >
-                <div className="p-1.5 bg-white/20 rounded-lg backdrop-blur-sm">
-                    <QrCode className="w-4 h-4" />
-                </div>
-                <span className="text-[10px] font-black uppercase tracking-tighter">Leitor DANFE — Chave NF-e → Telegram</span>
-            </button>
+            <div className="grid grid-cols-2 gap-2 mt-2">
+                {/* DANFE / NF-e XML button (Barcode) */}
+                <button
+                    onClick={() => setShowDANFE(true)}
+                    className="bg-gradient-to-br from-emerald-600 to-teal-700 p-3 rounded-2xl text-white shadow-lg flex flex-col items-center justify-center gap-1 active:scale-95 transition-all"
+                >
+                    <div className="p-1.5 bg-white/20 rounded-lg backdrop-blur-sm">
+                        <QrCode className="w-4 h-4" />
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-tighter text-center">Código NF-e</span>
+                </button>
+
+                {/* DANFE Products Table button */}
+                <button
+                    onClick={() => setShowDanfeReader(true)}
+                    className="bg-gradient-to-br from-blue-600 to-cyan-700 p-3 rounded-2xl text-white shadow-lg flex flex-col items-center justify-center gap-1 active:scale-95 transition-all"
+                >
+                    <div className="p-1.5 bg-white/20 rounded-lg backdrop-blur-sm">
+                        <FileText className="w-4 h-4" />
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-tighter text-center">Extrair Produtos<br/>(Divergência)</span>
+                </button>
+            </div>
 
             {/* 3. Main Form Sections */}
             <div className="space-y-4">
@@ -468,6 +483,13 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
 
             {showDANFE && (
                 <DANFEProcessor onClose={() => setShowDANFE(false)} />
+            )}
+
+            {showDanfeReader && (
+                <DanfeProductReader
+                    onClose={() => setShowDanfeReader(false)}
+                    currentPesagem={parsedGross} // Use gross weight to compare
+                />
             )}
         </div>
     );
