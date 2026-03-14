@@ -52,11 +52,20 @@ function decodeChave(chave: string) {
 }
 
 Deno.serve(async (req) => {
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  };
+
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
+  }
+
   const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN");
   const TELEGRAM_CHAT_ID = Deno.env.get("TELEGRAM_CHAT_ID");
 
   if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
-    return new Response(JSON.stringify({ error: "Telegram não configurado" }), { status: 500 });
+    return new Response(JSON.stringify({ error: "Telegram não configurado" }), { status: 500, headers: corsHeaders });
   }
 
   try {
@@ -114,7 +123,7 @@ Deno.serve(async (req) => {
 
     if (!telegramResult.ok) {
       console.error("Telegram error:", telegramResult);
-      return new Response(JSON.stringify({ error: "Falha ao enviar para Telegram", detail: telegramResult }), { status: 500 });
+      return new Response(JSON.stringify({ error: "Falha ao enviar para Telegram", detail: telegramResult }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     return new Response(JSON.stringify({
@@ -125,11 +134,11 @@ Deno.serve(async (req) => {
       telegram_message_id: telegramResult.result?.message_id
     }), {
       status: 200,
-      headers: { "Content-Type": "application/json" }
+      headers: { ...corsHeaders, "Content-Type": "application/json" }
     });
 
   } catch (err: any) {
     console.error("nfe-extractor error:", err);
-    return new Response(err.message, { status: 500 });
+    return new Response(err.message, { status: 500, headers: corsHeaders });
   }
 });
