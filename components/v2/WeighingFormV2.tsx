@@ -7,8 +7,7 @@ import {
 } from 'lucide-react';
 import { WeighingFormProps } from '../WeighingForm';
 import { NFScanner } from './NFScanner';
-import { DANFEProcessor } from './DANFEProcessor';
-import { DanfeProductReader } from './DanfeProductReader';
+import { UnifiedNFProcessor } from './UnifiedNFProcessor';
 import { useToast } from '../Toast';
 import { saveRecord, predictData } from '../../services/storageService';
 import { trackEvent } from '../../services/analyticsService';
@@ -18,8 +17,7 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
     const [isPackExpanded, setIsPackExpanded] = useState(false);
     const [showScanner, setShowScanner] = useState(false);
     const [scannerMode, setScannerMode] = useState<'nf' | 'label'>('nf');
-    const [showDANFE, setShowDANFE] = useState(false);
-    const [showDanfeReader, setShowDanfeReader] = useState(false);
+    const [showUnifiedNF, setShowUnifiedNF] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
 
     const emptyForm = {
@@ -206,54 +204,30 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
                 </div>
             </div>
 
-            {/* 2. OCR Scanners Triggers */}
-            <div className="grid grid-cols-2 gap-2">
+            {/* 2. Scanners Triggers */}
+            <div className="grid grid-cols-2 gap-3">
                 <button
-                    onClick={() => { setScannerMode('nf'); setShowScanner(true); }}
-                    className="group bg-gradient-to-br from-blue-600 to-indigo-700 p-3 rounded-2xl text-white shadow-lg flex flex-col items-center justify-center gap-1 active:scale-95 transition-all"
+                    onClick={() => setShowUnifiedNF(true)}
+                    className="group bg-gradient-to-br from-blue-600 to-indigo-700 p-4 rounded-[2rem] text-white shadow-xl flex flex-col items-center justify-center gap-2 active:scale-95 transition-all border border-white/10"
                 >
-                    <div className="p-1.5 bg-white/20 rounded-lg backdrop-blur-sm">
-                        <FileText className="w-4 h-4" />
+                    <div className="p-2 bg-white/20 rounded-xl backdrop-blur-md">
+                        <FileText className="w-5 h-5" />
                     </div>
                     <div className="text-center">
-                        <span className="text-[10px] font-black block uppercase tracking-tighter">Scanner NF-e</span>
+                        <span className="text-[10px] font-black block uppercase tracking-tighter">Scanner<br/>Nota Fiscal</span>
                     </div>
                 </button>
 
                 <button
                     onClick={() => { setScannerMode('label'); setShowScanner(true); }}
-                    className="group bg-gradient-to-br from-purple-600 to-fuchsia-700 p-3 rounded-2xl text-white shadow-lg flex flex-col items-center justify-center gap-1 active:scale-95 transition-all"
+                    className="group bg-gradient-to-br from-purple-600 to-fuchsia-700 p-4 rounded-[2rem] text-white shadow-xl flex flex-col items-center justify-center gap-2 active:scale-95 transition-all border border-white/10"
                 >
-                    <div className="p-1.5 bg-white/20 rounded-lg backdrop-blur-sm">
-                        <Tag className="w-4 h-4" />
+                    <div className="p-2 bg-white/20 rounded-xl backdrop-blur-md">
+                        <Tag className="w-5 h-5" />
                     </div>
                     <div className="text-center">
-                        <span className="text-[10px] font-black block uppercase tracking-tighter">Scanner Rótulo</span>
+                        <span className="text-[10px] font-black block uppercase tracking-tighter">Scanner<br/>Etiqueta</span>
                     </div>
-                </button>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2 mt-2">
-                {/* DANFE / NF-e XML button (Barcode) */}
-                <button
-                    onClick={() => setShowDANFE(true)}
-                    className="bg-gradient-to-br from-emerald-600 to-teal-700 p-3 rounded-2xl text-white shadow-lg flex flex-col items-center justify-center gap-1 active:scale-95 transition-all"
-                >
-                    <div className="p-1.5 bg-white/20 rounded-lg backdrop-blur-sm">
-                        <QrCode className="w-4 h-4" />
-                    </div>
-                    <span className="text-[10px] font-black uppercase tracking-tighter text-center">Código NF-e</span>
-                </button>
-
-                {/* DANFE Products Table button */}
-                <button
-                    onClick={() => setShowDanfeReader(true)}
-                    className="bg-gradient-to-br from-blue-600 to-cyan-700 p-3 rounded-2xl text-white shadow-lg flex flex-col items-center justify-center gap-1 active:scale-95 transition-all"
-                >
-                    <div className="p-1.5 bg-white/20 rounded-lg backdrop-blur-sm">
-                        <FileText className="w-4 h-4" />
-                    </div>
-                    <span className="text-[10px] font-black uppercase tracking-tighter text-center">Extrair Produtos<br/>(Divergência)</span>
                 </button>
             </div>
 
@@ -481,14 +455,20 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
                 />
             )}
 
-            {showDANFE && (
-                <DANFEProcessor onClose={() => setShowDANFE(false)} />
-            )}
-
-            {showDanfeReader && (
-                <DanfeProductReader
-                    onClose={() => setShowDanfeReader(false)}
-                    currentPesagem={parsedGross} // Use gross weight to compare
+            {showUnifiedNF && (
+                <UnifiedNFProcessor
+                    onClose={() => setShowUnifiedNF(false)}
+                    currentPesagem={parsedGross}
+                    onDataCombined={(data) => {
+                        if (data.grossWeight) updateForm('gross', data.grossWeight.toString());
+                        if (data.totalWeight) updateForm('note', data.totalWeight.toString());
+                        if (data.cnpj) updateForm('cnpj', data.cnpj);
+                        if (data.noteNumber) updateForm('noteNumber', data.noteNumber);
+                        if (data.supplier) updateForm('supplier', data.supplier);
+                        if (data.product) updateForm('product', data.product);
+                        if (data.evidence) updateForm('evidence', data.evidence);
+                        showToast("Dados da Nota Fiscal unificados com sucesso!", "success");
+                    }}
                 />
             )}
         </div>
