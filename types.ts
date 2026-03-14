@@ -33,6 +33,7 @@ export interface WeighingRecord {
     store?: string; // Tienda donde se realizó el registro
     cnpj?: string; // CNPJ do emitente da nota
     noteNumber?: string; // Número da nota fiscal
+    accessKey?: string; // Chave de acesso da NF-e (44 dígitos)
 }
 
 export interface KnowledgeBase {

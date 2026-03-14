@@ -98,8 +98,14 @@ Output ONLY raw JSON.`
                 `🏢 <b>Fornecedor:</b> ${rawResult.cabecalho?.fornecedor || 'N/A'}`,
                 `📄 <b>Nota Nº:</b> ${rawResult.cabecalho?.numero_nota || 'N/A'}`,
                 `🔑 <b>Chave:</b> <code>${rawResult.chave_acesso || 'Não detectada'}</code>`,
-                `---------------------------`,
             ];
+
+            if (rawResult.chave_acesso && rawResult.chave_acesso.length === 44) {
+                const sefazLink = `https://www.nfe.fazenda.gov.br/portal/consultaRecaptcha.aspx?tipoConsulta=resumo&nfe=${rawResult.chave_acesso}`;
+                lines.push(`🔗 <a href="${sefazLink}">Ver na SEFAZ</a>`);
+            }
+
+            lines.push(`---------------------------`);
 
             if (rawResult.produtos && rawResult.produtos.length > 0) {
                 lines.push(`📦 <b>Produtos na Nota:</b>`);
@@ -131,6 +137,7 @@ Output ONLY raw JSON.`
                 supplier: rawResult.cabecalho?.fornecedor || '',
                 cnpj: rawResult.cabecalho?.cnpj_emitente || '',
                 noteNumber: rawResult.cabecalho?.numero_nota || '',
+                accessKey: rawResult.chave_acesso || '',
                 grossWeight: rawResult.cabecalho?.peso_bruto || null,
                 totalWeight: rawResult.cabecalho?.peso_liquido || null,
                 evidence: resized,

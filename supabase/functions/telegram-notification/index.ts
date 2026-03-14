@@ -11,7 +11,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
-Deno.serve(async (req) => {
+Deno.serve(async (req: any) => {
   const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN");
   const TELEGRAM_CHAT_ID = Deno.env.get("TELEGRAM_CHAT_ID");
 
@@ -67,6 +67,12 @@ Deno.serve(async (req) => {
 
     if (record.cnpj)            lines.push(`🆔 <b>CNPJ:</b> ${record.cnpj}`);
     if (record.note_number)     lines.push(`🧾 <b>Nº Nota:</b> ${record.note_number}`);
+    
+    if (record.access_key && record.access_key.length === 44) {
+      const sefazLink = `https://www.nfe.fazenda.gov.br/portal/consultaRecaptcha.aspx?tipoConsulta=resumo&nfe=${record.access_key}`;
+      lines.push(`🔗 <a href="${sefazLink}">Consultar SEFAZ</a>`);
+    }
+
     if (record.batch)           lines.push(`🔢 <b>Lote:</b> ${record.batch}`);
     if (record.expiration_date) lines.push(`📅 <b>Validade:</b> ${record.expiration_date}`);
 
@@ -151,7 +157,7 @@ Deno.serve(async (req) => {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Function error:", error);
     return new Response(error.message, { status: 500 });
   }

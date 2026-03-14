@@ -162,12 +162,14 @@ export const syncRecordToSupabase = async (record: WeighingRecord) => {
             store: record.store,
             cnpj: record.cnpj,
             note_number: record.noteNumber,
+            access_key: record.accessKey,
             conferente: (record as any).conferente
         };
 
         // 3. SEND TO TELEGRAM FIRST (User Priority)
-        // We do this in parallel or slightly before DB to ensure visibility
-        invokeTelegramNotification(dbRecord).catch(err => console.error("Immediate Telegram failed:", err));
+        // Pass a copy with original base64 evidence if available for better reliability
+        const telegramPayload = { ...dbRecord, evidence: record.evidence };
+        invokeTelegramNotification(telegramPayload).catch(err => console.error("Immediate Telegram failed:", err));
 
         // 4. Upsert to DB
         const { error } = await withTimeout(supabase
@@ -380,6 +382,7 @@ export const fetchRecordsFromSupabase = async () => {
             expirationDate: item.expiration_date,
             productionDate: item.production_date,
             recommendedTemperature: item.recommended_temperature,
+            accessKey: item.access_key,
             store: item.store
         })) as WeighingRecord[];
     } catch (err) {

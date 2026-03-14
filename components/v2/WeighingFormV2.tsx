@@ -32,6 +32,7 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
         storage: 'dry',
         cnpj: '',
         noteNumber: '',
+        accessKey: '',
         evidence: null as string | null
     };
 
@@ -465,6 +466,7 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
                         if (data.cnpj) updateForm('cnpj', data.cnpj);
                         if (data.noteNumber) updateForm('noteNumber', data.noteNumber);
                         if (data.supplier) updateForm('supplier', data.supplier);
+                        if (data.accessKey) updateForm('accessKey', data.accessKey);
                         if (data.product) updateForm('product', data.product);
                         if (data.evidence) updateForm('evidence', data.evidence);
                         showToast("Dados da Nota Fiscal unificados com sucesso!", "success");

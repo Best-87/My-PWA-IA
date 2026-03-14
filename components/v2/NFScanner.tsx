@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Camera, FileSearch, Loader2, Check, X, ScanText, Tag } from 'lucide-react';
 import { generateGeminiContent } from '../../services/geminiService';
+import { supabase } from '../../services/supabaseService';
 
 interface OCRProcessorProps {
     mode: 'nf' | 'label';
@@ -91,6 +92,26 @@ export const NFScanner: React.FC<OCRProcessorProps> = ({ mode, onDataExtracted, 
 
             setOcrText(`Extraído: ${summary}`);
             onDataExtracted(mappedData);
+
+            // Notify Telegram for labels (immediate feedback with photo)
+            if (mode === 'label' && supabase) {
+                const labelLines = [
+                    `<b>🏷️ Etiqueta de Produto Detectada</b>`,
+                    `---------------------------`,
+                    `📦 <b>Produto:</b> ${mappedData.product || 'N/A'}`,
+                    `🔢 <b>Lote:</b> ${mappedData.batch || 'N/A'}`,
+                    `📅 <b>Validade:</b> ${mappedData.expirationDate || 'N/A'}`,
+                ];
+                if (mappedData.unitTara) labelLines.push(`⚖️ <b>Tara Informada:</b> ${mappedData.unitTara}g`);
+                if (mappedData.supplier) labelLines.push(`🏢 <b>Fornecedor:</b> ${mappedData.supplier}`);
+                supabase.functions.invoke('danfe-telegram', {
+                    body: { 
+                        message: labelLines.join('\n'),
+                        imageBase64: resized 
+                    }
+                }).catch((err: any) => console.error("Label Telegram notify error:", err));
+            }
+
             setProgress(100);
 
             setTimeout(() => {
