@@ -8,11 +8,20 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN");
 const TELEGRAM_CHAT_ID = "-1003750898188"; // El chat específico requerido
 
+const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
 Deno.serve(async (req) => {
-    if (req.method !== 'POST') return new Response('Method not allowed', { status: 405 });
+    if (req.method === 'OPTIONS') {
+        return new Response('ok', { headers: corsHeaders });
+    }
+
+    if (req.method !== 'POST') return new Response('Method not allowed', { status: 405, headers: corsHeaders });
 
     if (!TELEGRAM_BOT_TOKEN) {
-        return new Response(JSON.stringify({ error: "Telegram não configurado" }), { status: 500 });
+        return new Response(JSON.stringify({ error: "Telegram não configurado" }), { status: 500, headers: corsHeaders });
     }
 
     try {
@@ -84,21 +93,24 @@ Deno.serve(async (req) => {
 
         if (!telegramResult.ok) {
             console.error("Telegram error:", telegramResult);
-            return new Response(JSON.stringify({ error: "Falha ao enviar para Telegram", detail: telegramResult }), { status: 500 });
+            return new Response(JSON.stringify({ error: "Falha ao enviar para Telegram", detail: telegramResult }), { 
+                status: 500,
+                headers: { ...corsHeaders, "Content-Type": "application/json" }
+            });
         }
 
         return new Response(JSON.stringify({ success: true }), {
             status: 200,
             headers: {
                 "Content-Type": "application/json",
-                // Habilitamos CORS en la Edge Function para poder ser llamada desde el front local o remoto
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "POST, OPTIONS",
-                "Access-Control-Allow-Headers": "Content-Type, Authorization"
+                ...corsHeaders
             }
         });
     } catch (err: any) {
         console.error("danfe-telegram error:", err);
-        return new Response(JSON.stringify({ error: err.message }), { status: 500 });
+        return new Response(JSON.stringify({ error: err.message }), { 
+            status: 500,
+            headers: corsHeaders
+        });
     }
 });
