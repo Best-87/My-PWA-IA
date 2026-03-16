@@ -25,8 +25,7 @@ Deno.serve(async (req) => {
     }
 
     try {
-        const bodyText = await req.text();
-        const data = JSON.parse(bodyText);
+        const data = await req.json();
         const { message, imageBase64 } = data;
 
         if (!message) {
@@ -37,48 +36,30 @@ Deno.serve(async (req) => {
 
         let telegramResult;
 
-        // Si hay foto, la mandamos por multipart
         if (imageBase64) {
-            const boundary = "----WebKitFormBoundaryDANFE" + Math.random().toString(36).substring(2);
-            let buf = "";
-
-            buf += `--${boundary}\r\n`;
-            buf += `Content-Disposition: form-data; name="chat_id"\r\n\r\n${TELEGRAM_CHAT_ID}\r\n`;
-            buf += `--${boundary}\r\n`;
-            buf += `Content-Disposition: form-data; name="caption"\r\n\r\n${message}\r\n`;
-            buf += `--${boundary}\r\n`;
-            buf += `Content-Disposition: form-data; name="parse_mode"\r\n\r\nHTML\r\n`;
-
+            // Decodificamos la imagen base64
             const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
             const binary = atob(base64Data);
-            const array = new Uint8Array(binary.length);
+            const bytes = new Uint8Array(binary.length);
             for (let i = 0; i < binary.length; i++) {
-                array[i] = binary.charCodeAt(i);
+                bytes[i] = binary.charCodeAt(i);
             }
+            const blob = new Blob([bytes], { type: 'image/jpeg' });
 
-            buf += `--${boundary}\r\n`;
-            buf += `Content-Disposition: form-data; name="photo"; filename="danfe.jpg"\r\n`;
-            buf += `Content-Type: image/jpeg\r\n\r\n`;
-
-            const encoder = new TextEncoder();
-            const top = encoder.encode(buf);
-            const bottom = encoder.encode(`\r\n--${boundary}--\r\n`);
-
-            const combined = new Uint8Array(top.length + array.length + bottom.length);
-            combined.set(top, 0);
-            combined.set(array, top.length);
-            combined.set(bottom, top.length + array.length);
+            // Usamos FormData nativo de Deno (más robusto)
+            const formData = new FormData();
+            formData.append('chat_id', TELEGRAM_CHAT_ID);
+            formData.append('caption', message.slice(0, 1024)); // Telegram caption limit
+            formData.append('parse_mode', 'HTML');
+            formData.append('photo', blob, 'capture.jpg');
 
             const res = await fetch(`${telegramBase}/sendPhoto`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": `multipart/form-data; boundary=${boundary}`
-                },
-                body: combined,
+                body: formData,
             });
             telegramResult = await res.json();
         } else {
-            // Text only
+            // Mensaje de solo texto
             const res = await fetch(`${telegramBase}/sendMessage`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -92,25 +73,23 @@ Deno.serve(async (req) => {
         }
 
         if (!telegramResult.ok) {
-            console.error("Telegram error:", telegramResult);
-            return new Response(JSON.stringify({ error: "Falha ao enviar para Telegram", detail: telegramResult }), { 
+            console.error("Telegram API response error:", telegramResult);
+            return new Response(JSON.stringify({ error: "Erro na API do Telegram", detail: telegramResult }), { 
                 status: 500,
                 headers: { ...corsHeaders, "Content-Type": "application/json" }
             });
         }
 
-        return new Response(JSON.stringify({ success: true }), {
+        return new Response(JSON.stringify({ success: true, message_id: telegramResult.result?.message_id }), {
             status: 200,
-            headers: {
-                "Content-Type": "application/json",
-                ...corsHeaders
-            }
+            headers: { ...corsHeaders, "Content-Type": "application/json" }
         });
+
     } catch (err: any) {
-        console.error("danfe-telegram error:", err);
+        console.error("danfe-telegram caught error:", err);
         return new Response(JSON.stringify({ error: err.message }), { 
             status: 500,
-            headers: corsHeaders
+            headers: { ...corsHeaders, "Content-Type": "application/json" }
         });
     }
 });

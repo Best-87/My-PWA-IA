@@ -72,6 +72,26 @@ export const signIn = async (email: string, password: string) => {
     return await supabase.auth.signInWithPassword({ email, password });
 };
 
+export const signInWithTelegram = async (telegramData: any) => {
+    if (!supabase) return { error: { message: 'Supabase not configured' } };
+    
+    // 1. Validar la firma con la Edge Function y obtener credenciales seguras
+    const { data: authMeta, error: fnError } = await supabase.functions.invoke('telegram-auth', {
+        body: telegramData
+    });
+
+    if (fnError || !authMeta?.success) {
+        console.error("Telegram Edge Function Error:", fnError || authMeta);
+        return { error: fnError || { message: authMeta?.error || 'Fallo de autenticación en Telegram' } };
+    }
+
+    // 2. Iniciar sesión transparente con las credenciales auto-generadas
+    return await supabase.auth.signInWithPassword({ 
+        email: authMeta.email, 
+        password: authMeta.password 
+    });
+};
+
 export const signOut = async () => {
     if (!supabase) return;
     return await supabase.auth.signOut();
@@ -204,6 +224,7 @@ export const syncProfileToSupabase = async (profile: UserProfile) => {
                 role: profile.role,
                 store: profile.store,
                 photo: profile.photo,
+                telegram_id: profile.telegramId,
                 updated_at: new Date().toISOString()
             }), 5000) as { error: any };
 
@@ -237,7 +258,8 @@ export const fetchProfileFromSupabase = async (): Promise<UserProfile | null> =>
             role: data.role,
             store: data.store,
             photo: data.photo,
-            email: data.email
+            email: data.email,
+            telegramId: data.telegram_id
         } as UserProfile;
     } catch (err) {
         console.error('Supabase caught error fetching profile:', err);

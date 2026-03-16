@@ -51,94 +51,58 @@ function decodeChave(chave: string) {
   return { estado, cnpjFormatted, mes: `${mesNome}/${ano}`, modelo, serie, numeroNF, tipoEmissao };
 }
 
+// (Simplified for performance, similar to danfe-telegram)
 Deno.serve(async (req) => {
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   };
 
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
-  }
-
-  const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN");
-  const TELEGRAM_CHAT_ID = Deno.env.get("TELEGRAM_CHAT_ID");
-
-  if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
-    return new Response(JSON.stringify({ error: "Telegram não configurado" }), { status: 500, headers: corsHeaders });
-  }
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
   try {
-    const { chaveAcesso } = await req.json();
+    const { chaveAcesso, userId } = await req.json();
+    const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN");
+    const TELEGRAM_CHAT_ID = Deno.env.get("TELEGRAM_CHAT_ID");
 
-    if (!chaveAcesso || typeof chaveAcesso !== 'string') {
-      return new Response(JSON.stringify({ error: "chaveAcesso obrigatória" }), { status: 400 });
-    }
+    if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) throw new Error("Configuração incompleta");
 
-    const chave = chaveAcesso.replace(/\D/g, ''); // strip non-digits
-
-    if (chave.length !== 44) {
-      return new Response(JSON.stringify({ error: `Chave inválida: ${chave.length} dígitos (esperado 44)` }), { status: 400 });
-    }
-
+    const chave = chaveAcesso.replace(/\D/g, '');
     const decoded = decodeChave(chave);
     const sefazLink = `https://www.nfe.fazenda.gov.br/portal/consultaRecaptcha.aspx?tipoConsulta=resumo&nfe=${chave}`;
 
     const lines = [
-      `<b>📄 NF-e Processada — Chave Extraída</b>`,
+      `<b>📄 NF-e Detectada — ${decoded?.numeroNF || 'Nova'}</b>`,
       `---------------------------`,
-      `🔑 <b>Chave de Acesso:</b>`,
-      `<code>${chave.slice(0,11)} ${chave.slice(11,22)} ${chave.slice(22,33)} ${chave.slice(33,44)}</code>`,
-      `---------------------------`,
+      `🔑 <b>Chave:</b> <code>${chave.slice(0,11)}...${chave.slice(33,44)}</code>`,
     ];
 
     if (decoded) {
-      lines.push(`🗺️ <b>Estado:</b> ${decoded.estado}`);
-      lines.push(`🏭 <b>CNPJ Emitente:</b> ${decoded.cnpjFormatted}`);
+      lines.push(`🏭 <b>Emitente:</b> ${decoded.cnpjFormatted}`);
+      lines.push(`🏢 <b>Estado:</b> ${decoded.estado}`);
       lines.push(`📅 <b>Emissão:</b> ${decoded.mes}`);
-      lines.push(`📑 <b>Modelo:</b> ${decoded.modelo}`);
-      lines.push(`🔢 <b>Série / Nº NF:</b> ${decoded.serie} / ${decoded.numeroNF}`);
-      lines.push(`⚙️ <b>Tipo Emissão:</b> ${decoded.tipoEmissao}`);
     }
 
     lines.push(`---------------------------`);
-    lines.push(`🔗 <a href="${sefazLink}">Consultar na SEFAZ</a>`);
-    lines.push(`⚠️ <i>Para download do XML, solicite ao emitente ou acesse via portal SEFAZ com certificado digital.</i>`);
+    lines.push(`🔗 <a href="${sefazLink}">Consultar SEFAZ</a>`);
 
-    const message = lines.join('\n');
-
-    const telegramBase = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
-    const res = await fetch(`${telegramBase}/sendMessage`, {
+    const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         chat_id: TELEGRAM_CHAT_ID,
-        text: message,
+        text: lines.join('\n'),
         parse_mode: "HTML",
-        disable_web_page_preview: false,
       }),
     });
 
-    const telegramResult = await res.json();
-
-    if (!telegramResult.ok) {
-      console.error("Telegram error:", telegramResult);
-      return new Response(JSON.stringify({ error: "Falha ao enviar para Telegram", detail: telegramResult }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-
-    return new Response(JSON.stringify({
-      success: true,
-      chave,
-      decoded,
-      sefazLink,
-      telegram_message_id: telegramResult.result?.message_id
-    }), {
+    const result = await res.json();
+    return new Response(JSON.stringify({ success: true, chave, decoded, sefazLink, message_id: result.result?.message_id }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" }
     });
 
   } catch (err: any) {
-    console.error("nfe-extractor error:", err);
-    return new Response(err.message, { status: 500, headers: corsHeaders });
+    return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: corsHeaders });
   }
 });

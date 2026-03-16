@@ -4,8 +4,9 @@ import { useTranslation } from '../../services/i18n';
 import {
     User, Mail, Shield, Building, Palette, Languages,
     LogOut, Save, Cloud, Download, Upload, AlertTriangle,
-    Camera, Bell, Info, Moon, Sun
+    Camera, Bell, Info, Moon, Sun, Send
 } from 'lucide-react';
+import { TelegramLogin } from './TelegramLogin';
 
 interface ProfileViewProps {
     profile: UserProfile;
@@ -30,6 +31,7 @@ interface ProfileViewProps {
     onBackup: () => void;
     onRestore: () => void;
     onClearCache?: () => void;
+    onTelegramAuth?: (data: any) => void;
     version: string;
 }
 
@@ -53,6 +55,7 @@ export const ProfileViewV2: React.FC<ProfileViewProps> = ({
     isAuthModeLogin,
     onToggleAuthMode,
     onEmailChange,
+    onTelegramAuth,
     onBackup,
     onRestore,
     onClearCache,
@@ -169,9 +172,16 @@ export const ProfileViewV2: React.FC<ProfileViewProps> = ({
                         </div>
                         <div>
                             <h4 className="text-sm font-black uppercase tracking-widest">{session ? 'Conta Pro Conectada' : 'Nuvem Desconectada'}</h4>
-                            <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-1">
-                                {isAuthLoading ? 'Sincronizando dados...' : (session ? (email || profile.email) : 'Salve registros na sua conta')}
-                            </p>
+                            <div className="flex flex-wrap gap-2 mt-1">
+                                <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                                    {isAuthLoading ? 'Sincronizando dados...' : (session ? (email || profile.email) : 'Salve registros na sua conta')}
+                                </p>
+                                {profile.telegramId && (
+                                    <span className="bg-sky-500/20 text-sky-400 text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest flex items-center gap-1 border border-sky-500/30">
+                                        <Send className="w-2 h-2 fill-current" /> Telegram
+                                    </span>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -212,6 +222,17 @@ export const ProfileViewV2: React.FC<ProfileViewProps> = ({
                                 >
                                     {isAuthModeLogin ? 'Criar Conta Grátis' : 'Já tenho conta'}
                                 </button>
+
+                                {isAuthModeLogin && onTelegramAuth && (
+                                    <>
+                                        <div className="flex items-center gap-4 py-2">
+                                            <div className="h-px flex-1 bg-white/10" />
+                                            <span className="text-[10px] font-black text-zinc-500 uppercase">Ou</span>
+                                            <div className="h-px flex-1 bg-white/10" />
+                                        </div>
+                                        <TelegramLogin onAuth={onTelegramAuth} />
+                                    </>
+                                )}
                             </div>
                         )}
                     </div>

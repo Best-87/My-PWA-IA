@@ -13,7 +13,7 @@ import { LanguageProvider, useTranslation } from './services/i18n';
 import { ToastProvider, useToast } from './components/Toast';
 import { trackEvent } from './services/analyticsService';
 import { ChatInterface } from './components/ChatInterface';
-import { isSupabaseConfigured, signIn, signUp, signOut, onAuthStateChange, fetchRecordsFromSupabase } from './services/supabaseService';
+import { isSupabaseConfigured, signIn, signUp, signOut, onAuthStateChange, fetchRecordsFromSupabase, signInWithTelegram, syncProfileToSupabase } from './services/supabaseService';
 import { SplashScreen } from './components/SplashScreen';
 import { V2Shell } from './components/v2/V2Shell';
 import { ProfileViewV2 } from './components/v2/ProfileViewV2';
@@ -524,6 +524,38 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
         }
     };
 
+    const handleTelegramAuth = async (data: any) => {
+        setIsAuthLoading(true);
+        try {
+            const { data: authData, error } = await signInWithTelegram(data);
+            if (error) throw error;
+            
+            // Se o perfil local está vazio ou padrão, tenta rellenar com info do Telegram
+            if (authData?.user?.user_metadata) {
+                const meta = authData.user.user_metadata;
+                const telegramName = meta.full_name || meta.name || `${meta.first_name || ''} ${meta.last_name || ''}`.trim();
+                
+                if (telegramName && (!profile.name || profile.name === 'Usuário' || profile.name === 'Admin')) {
+                    const updatedProfile = { 
+                        ...profile, 
+                        name: telegramName,
+                        telegramId: meta.sub || data.id // O ID do Telegram geralmente vem como sub ou id
+                    };
+                    setProfile(updatedProfile);
+                    localStorage.setItem('conferente_profile', JSON.stringify(updatedProfile));
+                    await syncProfileToSupabase(updatedProfile);
+                }
+            }
+
+            showToast("Conectado com Telegram!", "success");
+        } catch (err: any) {
+            showToast("Erro ao conectar com Telegram", "error");
+            console.error(err);
+        } finally {
+            setIsAuthLoading(false);
+        }
+    };
+
     const handleSignOut = async () => {
         try {
             // Immediate UI update
@@ -664,6 +696,7 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                             onSignup={handleSignup}
                             isAuthModeLogin={isAuthModeLogin}
                             onToggleAuthMode={() => setIsAuthModeLogin(!isAuthModeLogin)}
+                            onTelegramAuth={handleTelegramAuth}
                             onEmailChange={setEmail}
                             onClearCache={handleClearCache}
                         />
@@ -803,6 +836,7 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                                 onSignup={handleSignup}
                                 isAuthModeLogin={isAuthModeLogin}
                                 onToggleAuthMode={() => setIsAuthModeLogin(!isAuthModeLogin)}
+                                onTelegramAuth={handleTelegramAuth}
                                 onEmailChange={setEmail}
                             />
                         )}

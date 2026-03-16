@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import { UserProfile, Language } from '../types';
 import { useTranslation } from '../services/i18n';
+import { TelegramLogin } from './v2/TelegramLogin';
 
 interface ProfileViewProps {
     profile: UserProfile;
@@ -24,6 +25,7 @@ interface ProfileViewProps {
     onEmailChange?: (val: string) => void;
     onBackup: () => void;
     onRestore: () => void;
+    onTelegramAuth?: (data: any) => void;
     version: string;
 }
 
@@ -47,6 +49,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
     isAuthModeLogin,
     onToggleAuthMode,
     onEmailChange,
+    onTelegramAuth,
     onBackup,
     onRestore,
     version
@@ -201,6 +204,12 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                                 <button type="button" onClick={onToggleAuthMode} className="w-full pt-2 text-[10px] font-bold uppercase text-zinc-500 hover:text-blue-500 transition-colors underline underline-offset-4 tracking-widest">
                                     {isAuthModeLogin ? '¿SIN CUENTA? REGÍSTRATE' : '¿YA TIENES CUENTA? ENTRAR'}
                                 </button>
+
+                                {isAuthModeLogin && onTelegramAuth && (
+                                    <div className="mt-6 pt-6 border-t-2 border-zinc-100 dark:border-zinc-800">
+                                        <TelegramLogin onAuth={onTelegramAuth} />
+                                    </div>
+                                )}
                             </form>
                         )}
                     </div>
