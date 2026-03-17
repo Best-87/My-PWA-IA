@@ -65,96 +65,80 @@ export const ProfileViewV2: React.FC<ProfileViewProps> = ({
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     return (
-        <div className="space-y-6 pb-24 animate-fade-in-up max-w-lg mx-auto">
+        <div className="space-y-4 pb-20 animate-fade-in-up max-w-lg mx-auto px-4">
             {/* 1. Profile Header Card */}
-            <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] p-6 shadow-xl shadow-zinc-200/50 dark:shadow-none border border-zinc-100 dark:border-zinc-800 flex flex-col items-center">
-                <div className="relative group mb-4" onClick={() => fileInputRef.current?.click()}>
-                    <div className="w-24 h-24 rounded-[2.5rem] bg-gradient-to-br from-blue-500 to-indigo-600 p-1 shadow-lg shadow-blue-500/30">
-                        <div className="w-full h-full rounded-[2.3rem] bg-white dark:bg-zinc-800 overflow-hidden flex items-center justify-center border-4 border-white dark:border-zinc-900">
+            <div className="bg-white dark:bg-zinc-900 rounded-[2rem] p-4 shadow-xl shadow-zinc-200/50 dark:shadow-none border border-zinc-100 dark:border-zinc-800 flex items-center gap-4">
+                <div className="relative group" onClick={() => fileInputRef.current?.click()}>
+                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 p-0.5 shadow-lg shadow-blue-500/20">
+                        <div className="w-full h-full rounded-[0.9rem] bg-white dark:bg-zinc-800 overflow-hidden flex items-center justify-center border-2 border-white dark:border-zinc-900">
                             {profile.photo ? (
                                 <img src={profile.photo} alt="Profile" className="w-full h-full object-cover" />
                             ) : (
-                                <User className="w-12 h-12 text-zinc-300" />
+                                <User className="w-6 h-6 text-zinc-300" />
                             )}
                         </div>
                     </div>
-                    <div className="absolute -bottom-1 -right-1 w-10 h-10 bg-white dark:bg-zinc-900 rounded-2xl shadow-lg border border-zinc-100 dark:border-zinc-800 flex items-center justify-center text-blue-600 transition-transform group-hover:scale-110">
-                        <Camera className="w-5 h-5" />
+                    <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-white dark:bg-zinc-900 rounded-lg shadow-md border border-zinc-100 dark:border-zinc-800 flex items-center justify-center text-blue-600">
+                        <Camera className="w-3 h-3" />
                     </div>
                     <input ref={fileInputRef} type="file" className="hidden" accept="image/*" onChange={onPhotoUpload} />
                 </div>
 
-                <div className="w-full text-center space-y-2">
+                <div className="flex-1 min-w-0">
                     <input
                         value={profile.name}
                         onChange={e => onProfileChange('name', e.target.value)}
-                        className="text-2xl font-black text-center bg-transparent border-none outline-none text-zinc-900 dark:text-white w-full placeholder:text-zinc-300 uppercase tracking-tighter"
+                        className="text-lg font-black bg-transparent border-none outline-none text-zinc-900 dark:text-white w-full placeholder:text-zinc-300 uppercase tracking-tight"
                         placeholder="SEU NOME"
                     />
-                    <div className="flex items-center justify-center gap-2">
-                        <span className="px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-[10px] font-black uppercase tracking-widest border border-blue-100 dark:border-blue-800">
+                    <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest">
                             {profile.role || 'CONFERENTE'}
                         </span>
                     </div>
                 </div>
             </div>
 
-            {/* 2. Professional Credentials */}
-            <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] p-6 border border-zinc-100 dark:border-zinc-800 space-y-5">
-                <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
-                    <Building className="w-4 h-4" /> Informações Profissionais
-                </h3>
-
-                <div className="grid grid-cols-1 gap-4">
-                    <div className="relative group">
-                        <Building className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 group-focus-within:text-blue-500 transition-colors" />
+            {/* 2. Professional & Preferences Row */}
+            <div className="grid grid-cols-1 gap-3">
+                <div className="grid grid-cols-2 gap-3">
+                    <div className="relative">
+                        <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400" />
                         <input
                             type="text"
-                            placeholder="UNIDADE / LOJA"
+                            placeholder="LOJA"
                             value={profile.store}
                             onChange={e => onProfileChange('store', e.target.value)}
-                            className="w-full pl-11 pr-4 py-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border-none focus:ring-2 focus:ring-blue-500/50 text-sm font-medium uppercase transition-all"
+                            className="w-full pl-9 pr-3 py-3 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 text-xs font-bold uppercase"
                         />
                     </div>
-
-                    <div className="relative group">
-                        <Shield className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 group-focus-within:text-blue-500 transition-colors" />
+                    <div className="relative">
+                        <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400" />
                         <input
                             type="text"
-                            placeholder="CARGO / FUNÇÃO"
+                            placeholder="CARGO"
                             value={profile.role}
                             onChange={e => onProfileChange('role', e.target.value)}
-                            className="w-full pl-11 pr-4 py-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border-none focus:ring-2 focus:ring-blue-500/50 text-sm font-medium uppercase transition-all"
+                            className="w-full pl-9 pr-3 py-3 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 text-xs font-bold uppercase"
                         />
                     </div>
                 </div>
-            </div>
 
-            {/* 3. Preferences */}
-            <div className="grid grid-cols-2 gap-4">
-                <div className="bg-white dark:bg-zinc-900 rounded-[2rem] p-6 border border-zinc-100 dark:border-zinc-800 space-y-4">
-                    <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
-                        <Palette className="w-4 h-4" /> Tema
-                    </h3>
+                <div className="bg-white dark:bg-zinc-900 rounded-2xl p-2 border border-zinc-100 dark:border-zinc-800 flex items-center gap-2">
                     <button
                         onClick={onThemeChange}
-                        className="w-full py-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800 flex items-center justify-center gap-3 active:scale-95 transition-all border border-zinc-100 dark:border-zinc-700"
+                        className="flex-1 py-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-800 flex items-center justify-center gap-2 border border-transparent dark:border-zinc-700"
                     >
-                        {theme === 'dark' ? <Moon className="w-5 h-5 text-indigo-400" /> : <Sun className="w-5 h-5 text-amber-500" />}
-                        <span className="text-xs font-black uppercase tracking-widest">{theme === 'dark' ? 'Noite' : 'Dia'}</span>
+                        {theme === 'dark' ? <Moon className="w-4 h-4 text-indigo-400" /> : <Sun className="w-4 h-4 text-amber-500" />}
+                        <span className="text-[10px] font-black uppercase tracking-widest">{theme === 'dark' ? 'DARK' : 'LIGHT'}</span>
                     </button>
-                </div>
-
-                <div className="bg-white dark:bg-zinc-900 rounded-[2rem] p-6 border border-zinc-100 dark:border-zinc-800 space-y-4">
-                    <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
-                        <Languages className="w-4 h-4" /> Idioma
-                    </h3>
-                    <div className="flex gap-2 p-1 bg-zinc-50 dark:bg-zinc-800 rounded-xl">
+                    
+                    <div className="flex p-1 bg-zinc-50 dark:bg-zinc-800 rounded-xl flex-[1.5]">
                         {(['pt', 'es'] as const).map(lang => (
                             <button
                                 key={lang}
                                 onClick={() => onLanguageChange(lang)}
-                                className={`flex-1 py-3 rounded-lg text-[10px] font-black uppercase transition-all ${currentLanguage === lang ? 'bg-white dark:bg-zinc-700 shadow-sm text-blue-600' : 'text-zinc-400'}`}
+                                className={`flex-1 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all ${currentLanguage === lang ? 'bg-white dark:bg-zinc-700 shadow-sm text-blue-600' : 'text-zinc-400'}`}
                             >
                                 {lang}
                             </button>
@@ -163,115 +147,103 @@ export const ProfileViewV2: React.FC<ProfileViewProps> = ({
                 </div>
             </div>
 
-            {/* 4. Cloud Integration */}
-            <div className="bg-gradient-to-br from-zinc-900 to-zinc-950 dark:from-zinc-900 dark:to-zinc-800 rounded-[2.5rem] p-8 text-white shadow-xl shadow-zinc-900/20">
-                <div className="flex items-center justify-between mb-8">
-                    <div className="flex items-center gap-4">
-                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${session ? 'bg-emerald-500/20 text-emerald-400' : 'bg-blue-500/20 text-blue-400'}`}>
-                            <Cloud className={`w-6 h-6 ${isAuthLoading ? 'animate-bounce' : ''}`} />
-                        </div>
-                        <div>
-                            <h4 className="text-sm font-black uppercase tracking-widest">{session ? 'Conta Pro Conectada' : 'Nuvem Desconectada'}</h4>
-                            <div className="flex flex-wrap gap-2 mt-1">
-                                <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
-                                    {isAuthLoading ? 'Sincronizando dados...' : (session ? (email || profile.email) : 'Salve registros na sua conta')}
-                                </p>
-                                {profile.telegramId && (
-                                    <span className="bg-sky-500/20 text-sky-400 text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest flex items-center gap-1 border border-sky-500/30">
-                                        <Send className="w-2 h-2 fill-current" /> Telegram
-                                    </span>
-                                )}
-                            </div>
-                        </div>
+            {/* 3. Cloud Integration Card */}
+            <div className="bg-zinc-900 dark:bg-zinc-900 rounded-[2rem] p-5 text-white shadow-xl">
+                <div className="flex items-center gap-3 mb-4">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${session ? 'bg-emerald-500/20 text-emerald-400' : 'bg-blue-500/20 text-blue-400'}`}>
+                        <Cloud className={`w-5 h-5 ${isAuthLoading ? 'animate-bounce' : ''}`} />
                     </div>
+                    <div className="min-w-0 flex-1">
+                        <h4 className="text-[10px] font-black uppercase tracking-widest leading-none mb-1">
+                            {session ? 'Nuvem Conectada' : 'Nuvem Desconectada'}
+                        </h4>
+                        <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest truncate">
+                            {session ? (email || profile.email) : 'Sincronizar em Nuvem'}
+                        </p>
+                    </div>
+                    {session && profile.telegramId && (
+                        <span className="bg-sky-500/20 text-sky-400 text-[8px] font-black px-2 py-1 rounded-lg border border-sky-500/30 flex items-center gap-1">
+                            <Send className="w-2 h-2 fill-current" /> TG
+                        </span>
+                    )}
                 </div>
 
                 {!session ? (
-                    <div className="space-y-4">
-                        {onLogin && (
-                            <div className="space-y-3">
-                                <div className="relative">
-                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-                                    <input
-                                        type="email"
-                                        value={email}
-                                        onChange={e => onEmailChange?.(e.target.value)}
-                                        className="w-full pl-11 pr-4 py-4 rounded-2xl bg-white/5 border border-white/10 focus:border-blue-500/50 outline-none text-sm font-medium transition-all"
-                                        placeholder="EMAIL"
-                                    />
-                                </div>
-                                <div className="relative">
-                                    <Shield className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-                                    <input
-                                        type="password"
-                                        value={password}
-                                        onChange={e => onPasswordChange?.(e.target.value)}
-                                        className="w-full pl-11 pr-4 py-4 rounded-2xl bg-white/5 border border-white/10 focus:border-blue-500/50 outline-none text-sm font-medium transition-all"
-                                        placeholder="PASSWORD"
-                                    />
-                                </div>
-                                <button
-                                    onClick={isAuthModeLogin ? onLogin as any : onSignup as any}
-                                    className="w-full py-4 bg-blue-600 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-lg shadow-blue-500/20 active:scale-95 transition-all mt-2"
-                                >
-                                    {isAuthLoading ? '...' : (isAuthModeLogin ? 'Entrar' : 'Cadastrar')}
-                                </button>
-                                <button
-                                    onClick={onToggleAuthMode}
-                                    className="w-full text-center text-[10px] font-black text-zinc-500 uppercase tracking-widest hover:text-white transition-colors"
-                                >
-                                    {isAuthModeLogin ? 'Criar Conta Grátis' : 'Já tenho conta'}
-                                </button>
-
-                                {isAuthModeLogin && onTelegramAuth && (
-                                    <>
-                                        <div className="flex items-center gap-4 py-2">
-                                            <div className="h-px flex-1 bg-white/10" />
-                                            <span className="text-[10px] font-black text-zinc-500 uppercase">Ou</span>
-                                            <div className="h-px flex-1 bg-white/10" />
-                                        </div>
-                                        <TelegramLogin onAuth={onTelegramAuth} />
-                                    </>
-                                )}
+                    <div className="space-y-3">
+                        <div className="grid grid-cols-1 gap-2">
+                            <div className="relative">
+                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500" />
+                                <input
+                                    type="email"
+                                    value={email}
+                                    onChange={e => onEmailChange?.(e.target.value)}
+                                    className="w-full pl-9 pr-3 py-3 rounded-xl bg-white/5 border border-white/10 text-[11px] font-medium"
+                                    placeholder="USUÁRIO"
+                                />
                             </div>
-                        )}
+                            <div className="relative">
+                                <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500" />
+                                <input
+                                    type="password"
+                                    value={password}
+                                    onChange={e => onPasswordChange?.(e.target.value)}
+                                    className="w-full pl-9 pr-3 py-3 rounded-xl bg-white/5 border border-white/10 text-[11px] font-medium"
+                                    placeholder="SENHA"
+                                />
+                            </div>
+                        </div>
+                        <button
+                            onClick={isAuthModeLogin ? onLogin as any : onSignup as any}
+                            className="w-full py-3 bg-blue-600 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-blue-500/20 active:scale-95 transition-all"
+                        >
+                            {isAuthLoading ? '...' : (isAuthModeLogin ? 'ENTRAR' : 'REGISTRAR')}
+                        </button>
+                        <div className="flex items-center justify-between">
+                            <button
+                                onClick={onToggleAuthMode}
+                                className="text-[9px] font-black text-zinc-500 uppercase tracking-widest"
+                            >
+                                {isAuthModeLogin ? 'CRIAR CONTA' : 'LOGAR'}
+                            </button>
+                            {isAuthModeLogin && onTelegramAuth && (
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[8px] font-bold text-zinc-600 uppercase">Ou</span>
+                                    <TelegramLogin onAuth={onTelegramAuth} />
+                                </div>
+                            )}
+                        </div>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-2">
                         <button
-                            type="button"
                             onClick={onSaveProfile}
-                            className="py-4 bg-white/10 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-white/20 active:scale-95 transition-all"
+                            className="py-3 bg-white/10 rounded-xl font-black text-[9px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-white/20 active:scale-95 transition-all"
                         >
-                            <Save className="w-4 h-4" /> Salvar
+                            <Save className="w-3.5 h-3.5" /> SALVAR
                         </button>
                         <button
-                            type="button"
-                            onClick={(e) => { e.preventDefault(); onSignOut(); }}
-                            className="py-4 bg-red-500/20 text-red-500 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-red-500/30 active:scale-95 transition-all border border-red-500/20"
+                            onClick={onSignOut}
+                            className="py-3 bg-red-500/10 text-red-500 rounded-xl font-black text-[9px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-red-500/20 active:scale-95 transition-all border border-red-500/10"
                         >
-                            <LogOut className="w-4 h-4" /> Sair da Conta
+                            <LogOut className="w-3.5 h-3.5" /> SAIR
                         </button>
                     </div>
                 )}
             </div>
 
-            {/* 5. Data Management */}
-            <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] p-6 border border-zinc-100 dark:border-zinc-800">
+            {/* 4. Action Bar */}
+            <div className="flex gap-2">
                 <button
                     onClick={onClearCache}
-                    className="w-full py-4 bg-orange-50 dark:bg-orange-900/10 text-orange-600 dark:text-orange-500 rounded-2xl font-black text-[10px] uppercase tracking-widest border border-orange-100 dark:border-orange-900/30 flex items-center justify-center gap-2 active:scale-95 transition-all"
+                    className="flex-1 py-3 bg-white dark:bg-zinc-900 text-zinc-400 dark:text-zinc-500 rounded-xl font-black text-[9px] uppercase tracking-widest border border-zinc-100 dark:border-zinc-800 flex items-center justify-center gap-2 active:scale-95 transition-all"
                 >
-                    <AlertTriangle className="w-4 h-4" /> Limpar Cache do App
+                    <AlertTriangle className="w-3.5 h-3.5" /> LIMPAR CACHE
                 </button>
             </div>
 
             {/* Footer */}
-            <div className="flex flex-col items-center gap-4 py-8 opacity-20">
-                <div className="h-px w-20 bg-zinc-500" />
-                <div className="text-center font-black tracking-[0.5em] text-[10px] uppercase text-zinc-500">
-                    {version} PRO
-                </div>
+            <div className="text-center font-black tracking-[0.3em] text-[8px] uppercase text-zinc-300 dark:text-zinc-800 py-4">
+                {version} PRO
             </div>
         </div>
     );
