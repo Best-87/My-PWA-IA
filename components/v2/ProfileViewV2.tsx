@@ -65,11 +65,11 @@ export const ProfileViewV2: React.FC<ProfileViewProps> = ({
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     return (
-        <div className="space-y-8 pb-32 animate-fade-in-up max-w-lg mx-auto">
+        <div className="space-y-6 pb-24 animate-fade-in-up max-w-lg mx-auto">
             {/* 1. Profile Header Card */}
-            <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] p-8 shadow-xl shadow-zinc-200/50 dark:shadow-none border border-zinc-100 dark:border-zinc-800 flex flex-col items-center">
-                <div className="relative group mb-6" onClick={() => fileInputRef.current?.click()}>
-                    <div className="w-32 h-32 rounded-[2.5rem] bg-gradient-to-br from-blue-500 to-indigo-600 p-1 shadow-lg shadow-blue-500/30">
+            <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] p-6 shadow-xl shadow-zinc-200/50 dark:shadow-none border border-zinc-100 dark:border-zinc-800 flex flex-col items-center">
+                <div className="relative group mb-4" onClick={() => fileInputRef.current?.click()}>
+                    <div className="w-24 h-24 rounded-[2.5rem] bg-gradient-to-br from-blue-500 to-indigo-600 p-1 shadow-lg shadow-blue-500/30">
                         <div className="w-full h-full rounded-[2.3rem] bg-white dark:bg-zinc-800 overflow-hidden flex items-center justify-center border-4 border-white dark:border-zinc-900">
                             {profile.photo ? (
                                 <img src={profile.photo} alt="Profile" className="w-full h-full object-cover" />
@@ -257,28 +257,7 @@ export const ProfileViewV2: React.FC<ProfileViewProps> = ({
             </div>
 
             {/* 5. Data Management */}
-            <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] p-6 border border-zinc-100 dark:border-zinc-800 space-y-6">
-                <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
-                    <Save className="w-4 h-4" /> Dados e Segurança
-                </h3>
-
-                <div className="grid grid-cols-2 gap-4">
-                    <button
-                        onClick={onBackup}
-                        className="flex flex-col items-center gap-3 p-6 rounded-[2rem] bg-zinc-50 dark:bg-zinc-800 border-none hover:bg-zinc-100 dark:hover:bg-zinc-700 active:scale-95 transition-all"
-                    >
-                        <Download className="w-6 h-6 text-zinc-500" />
-                        <span className="text-[10px] font-black uppercase tracking-widest">Backup</span>
-                    </button>
-                    <button
-                        onClick={onRestore}
-                        className="flex flex-col items-center gap-3 p-6 rounded-[2rem] bg-zinc-50 dark:bg-zinc-800 border-none hover:bg-zinc-100 dark:hover:bg-zinc-700 active:scale-95 transition-all"
-                    >
-                        <Upload className="w-6 h-6 text-zinc-500" />
-                        <span className="text-[10px] font-black uppercase tracking-widest">Importar</span>
-                    </button>
-                </div>
-                
+            <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] p-6 border border-zinc-100 dark:border-zinc-800">
                 <button
                     onClick={onClearCache}
                     className="w-full py-4 bg-orange-50 dark:bg-orange-900/10 text-orange-600 dark:text-orange-500 rounded-2xl font-black text-[10px] uppercase tracking-widest border border-orange-100 dark:border-orange-900/30 flex items-center justify-center gap-2 active:scale-95 transition-all"
