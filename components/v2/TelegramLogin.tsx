@@ -42,13 +42,14 @@ export const TelegramLogin: React.FC<TelegramLoginProps> = ({ onAuth }) => {
         setError(null);
 
         try {
-            console.log("DEBUG: Configurando Telegram Auth con ID:", clientId);
-            // Documentação Sugerida: Iniciamos auth() diretamente sem widget para fluxo OIDC
+            console.log("DEBUG: Iniciando Auth Telegram con Bot ID:", clientId);
+            console.log("DEBUG: Origen detectado:", window.location.origin);
             window.Telegram.Login.auth(
                 {
-                    bot_id: clientId.toString().trim(), // Telegram SDK suele usar bot_id
-                    client_id: clientId.toString().trim(), // Mantener client_id para compatibilidad
+                    bot_id: clientId.toString().trim(),
                     request_access: ['phone' as any],
+                    request_write_access: true,
+                    origin: window.location.origin
                 },
                 (data: any) => {
                     setIsLoading(false);
