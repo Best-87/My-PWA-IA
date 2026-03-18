@@ -536,9 +536,14 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                 const telegramName = meta.full_name || meta.name || `${meta.first_name || ''} ${meta.last_name || ''}`.trim();
                 
                 if (telegramName && (!profile.name || profile.name === 'Usuário' || profile.name === 'Admin')) {
+                    const telegramUsername = data.username || meta.username || '';
+                    const telegramPhoto = data.photo_url || meta.picture || meta.avatar_url || profile.photo;
+
                     const updatedProfile = { 
                         ...profile, 
                         name: telegramName,
+                        username: telegramUsername,
+                        photo: telegramPhoto,
                         telegramId: meta.sub || data.id // O ID do Telegram geralmente vem como sub ou id
                     };
                     setProfile(updatedProfile);

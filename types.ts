@@ -8,6 +8,7 @@ export interface UserProfile {
     store?: string; // Tienda / Sucursal
     photo?: string; // Base64 string
     telegramId?: string; // ID do usuário no Telegram
+    username?: string; // Username do Telegram
 }
 
 export interface CustomChatSession {

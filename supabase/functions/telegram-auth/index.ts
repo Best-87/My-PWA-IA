@@ -97,7 +97,8 @@ Deno.serve(async (req) => {
             user_metadata: {
                 full_name: fullName,
                 telegram_id: telegramIdStr,
-                username: payload.username || ''
+                username: payload.username || '',
+                picture: payload.photo_url || ''
             }
         });
 

@@ -91,10 +91,15 @@ export const ProfileViewV2: React.FC<ProfileViewProps> = ({
                         className="text-lg font-black bg-transparent border-none outline-none text-zinc-900 dark:text-white w-full placeholder:text-zinc-300 uppercase tracking-tight"
                         placeholder="SEU NOME"
                     />
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-col gap-0.5">
                         <span className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest">
                             {profile.role || 'CONFERENTE'}
                         </span>
+                        {profile.username && (
+                            <span className="text-[8px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
+                                @{profile.username}
+                            </span>
+                        )}
                     </div>
                 </div>
             </div>
