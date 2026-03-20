@@ -190,6 +190,22 @@ const AppContent = () => {
             console.log("Auth Event:", _event, session?.user?.email);
             setSession(session);
 
+            // ---- TELEGRAM REDIRECT OAUTH (FUERA DE LA APP / CHROME / SAFARI PWA) ----
+            // Captura los parámetros retornados por la ventana de login oficial de Telegram oauth.telegram.org.
+            const urlParams = new URLSearchParams(window.location.search);
+            const tgHash = urlParams.get('hash');
+            const tgId = urlParams.get('id');
+            if (tgHash && tgId && !session?.user) {
+                console.info("⚡ Auto-Login Detectado (Telegram OAuth Redirect)");
+                const oauthData = Object.fromEntries(urlParams.entries());
+                
+                // Limpiar la barra de direcciones para que no sea un enlace larguísimo y feo 
+                window.history.replaceState({}, document.title, window.location.pathname);
+                
+                // Forzar login
+                handleTelegramAuth(oauthData);
+            }
+
             const currentUser = session?.user;
 
             if (currentUser && (_event === 'SIGNED_IN' || _event === 'INITIAL_SESSION')) {
