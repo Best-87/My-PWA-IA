@@ -189,23 +189,6 @@ const AppContent = () => {
         const { data: { subscription } } = onAuthStateChange((_event, session) => {
             console.log("Auth Event:", _event, session?.user?.email);
             setSession(session);
-
-            // ---- TELEGRAM REDIRECT OAUTH (FUERA DE LA APP / CHROME / SAFARI PWA) ----
-            // Captura los parámetros retornados por la ventana de login oficial de Telegram oauth.telegram.org.
-            const urlParams = new URLSearchParams(window.location.search);
-            const tgHash = urlParams.get('hash');
-            const tgId = urlParams.get('id');
-            if (tgHash && tgId && !session?.user) {
-                console.info("⚡ Auto-Login Detectado (Telegram OAuth Redirect)");
-                const oauthData = Object.fromEntries(urlParams.entries());
-                
-                // Limpiar la barra de direcciones para que no sea un enlace larguísimo y feo 
-                window.history.replaceState({}, document.title, window.location.pathname);
-                
-                // Forzar login
-                handleTelegramAuth(oauthData);
-            }
-
             const currentUser = session?.user;
 
             if (currentUser && (_event === 'SIGNED_IN' || _event === 'INITIAL_SESSION')) {
@@ -577,16 +560,17 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
         }
     };
 
-    // Auto-Login Seameless trigger para Telegram Web Apps (Mini Apps)
+    // Auto-Login Seameless trigger para Telegram (Web Apps & URL Redirect Oauth)
     useEffect(() => {
+        // Evadir si ya hay sesión global conectada (Supabase se encargó)
+        if (session?.user) return;
+
+        // Caso 1: Telegram Mini App (Desde dentro de Telegram por botón de chat)
         const tgApp = (window as any).Telegram?.WebApp;
-        // Si detectamos que estamos dentro de Telegram (initData existe) y no hay sesión activa:
-        if (tgApp && tgApp.initDataUnsafe?.user && tgApp.initData && !session?.user) {
+        if (tgApp && tgApp.initDataUnsafe?.user && tgApp.initData) {
             console.info("⚡ Auto-Login Detectado (Telegram Mini App)");
             tgApp.expand();
             
-            // Procedemos al login automático usando los datos de WebApp
-            // Mandaremos initData crudo como 'hash_raw' para que Supabase lo procese diferente.
             handleTelegramAuth({
                 id: tgApp.initDataUnsafe.user.id,
                 first_name: tgApp.initDataUnsafe.user.first_name,
@@ -594,12 +578,29 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                 username: tgApp.initDataUnsafe.user.username,
                 photo_url: tgApp.initDataUnsafe.user.photo_url,
                 auth_date: tgApp.initDataUnsafe.auth_date,
-                hash: tgApp.initDataUnsafe.hash, // Mantenemos compatibilidad inicial
+                hash: tgApp.initDataUnsafe.hash,
                 __is_twa: true,
                 __twa_init_data: tgApp.initData
             });
+            return;
         }
-    }, [session?.user]); // Monitorizar sesión por si recarga
+
+        // Caso 2: Redirección OAuth (Desde el Botón Nativo en PWA fuera de Telegram)
+        const urlParams = new URLSearchParams(window.location.search);
+        const tgHash = urlParams.get('hash');
+        const tgId = urlParams.get('id');
+        
+        if (tgHash && tgId) {
+            console.info("⚡ Auto-Login Detectado (Telegram OAuth Redirect)");
+            const oauthData = Object.fromEntries(urlParams.entries());
+            
+            // Limpia la barra de direcciones instantáneamente
+            window.history.replaceState({}, document.title, window.location.pathname);
+            
+            // Ejecutar el handler que ya está seguro en este bloque de memoria
+            handleTelegramAuth(oauthData);
+        }
+    }, [session?.user]); // Solo depender de la sesión para reactivarse si hace logout.
 
     const handleSignOut = async () => {
         try {
