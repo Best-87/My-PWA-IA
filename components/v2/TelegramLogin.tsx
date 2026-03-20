@@ -28,9 +28,12 @@ export const TelegramLogin: React.FC<TelegramLoginProps> = ({ onAuth }) => {
         // Limpiar contenedor antes de inyectar
         containerRef.current.innerHTML = '';
         
+        const botName = import.meta.env.VITE_TELEGRAM_BOT_NAME || 'ConferentePro_bot';
+        console.info(`[Telegram Auth] Cargando widget para el bot: @${botName}`);
+
         const script = document.createElement('script');
         script.src = 'https://telegram.org/js/telegram-widget.js?22';
-        script.setAttribute('data-telegram-login', 'ConferentePro_bot');
+        script.setAttribute('data-telegram-login', botName);
         script.setAttribute('data-size', 'large');
         script.setAttribute('data-radius', '15');
         script.setAttribute('data-request-access', 'write');
