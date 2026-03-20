@@ -52,15 +52,23 @@ export const TelegramLogin: React.FC<TelegramLoginProps> = ({ onAuth }) => {
     }, [onAuth]);
 
     return (
-        <div className="w-full flex flex-col items-center gap-4">
-            <div ref={containerRef} className="min-h-[48px] overflow-hidden flex items-center justify-center">
+        <div className="w-full flex flex-col items-center gap-3 mt-2">
+            {/* Aviso Proactivo de UX - Evita que esperen un SMS */}
+            <div className="flex items-start gap-2 p-3 bg-indigo-500/10 dark:bg-indigo-500/20 rounded-2xl border border-indigo-500/20 dark:border-indigo-400/20 max-w-sm w-full">
+                <Info className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" />
+                <p className="text-[9px] text-zinc-600 dark:text-zinc-300 leading-tight">
+                    El código de acceso llegará <b>a tu app de Telegram</b>, no por SMS.
+                </p>
+            </div>
+
+            <div ref={containerRef} className="min-h-[48px] overflow-hidden flex items-center justify-center relative w-full scale-90 sm:scale-100 origin-center drop-shadow-xl">
                 {/* El widget se cargará aquí */}
             </div>
             
             {error && (
-                <div className="flex items-center gap-2 p-4 bg-red-50 dark:bg-red-900/10 rounded-2xl border border-red-100 dark:border-red-900/30">
+                <div className="flex items-center gap-2 p-3 w-full bg-red-50 dark:bg-red-900/10 rounded-xl border border-red-100 dark:border-red-900/30">
                     <AlertCircle className="w-4 h-4 text-red-600" />
-                    <span className="text-[10px] text-red-600 font-bold uppercase">{error}</span>
+                    <span className="text-[10px] text-red-600 font-bold uppercase truncate">{error}</span>
                 </div>
             )}
         </div>

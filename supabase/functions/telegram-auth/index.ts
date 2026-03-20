@@ -68,6 +68,17 @@ Deno.serve(async (req) => {
             return new Response(JSON.stringify({ error: "Firma de Telegram inválida. Posible intento de falsificación." }), { status: 403, headers: corsHeaders });
         }
 
+        // 1.5 Verificar expiración del login de Telegram (MÁXIMA SEGURIDAD - Evitar Replay Attacks)
+        if (payload.auth_date) {
+            const ONE_DAY_IN_SECONDS = 86400; // 24 Horas
+            const now = Math.floor(Date.now() / 1000);
+            const authDate = parseInt(payload.auth_date, 10);
+            
+            if (now - authDate > ONE_DAY_IN_SECONDS) {
+                 return new Response(JSON.stringify({ error: "El token de autorización de Telegram expiró. Inicia sesión de nuevo." }), { status: 403, headers: corsHeaders });
+            }
+        }
+
         // 2. Variables para el usuario Supabase
         const telegramIdStr = payload.id.toString();
         const generatedEmail = `telegram_${telegramIdStr}@mypwaia.app`;
