@@ -561,6 +561,30 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
         }
     };
 
+    // Auto-Login Seameless trigger para Telegram Web Apps (Mini Apps)
+    useEffect(() => {
+        const tgApp = (window as any).Telegram?.WebApp;
+        // Si detectamos que estamos dentro de Telegram (initData existe) y no hay sesión activa:
+        if (tgApp && tgApp.initDataUnsafe?.user && tgApp.initData && !session?.user) {
+            console.info("⚡ Auto-Login Detectado (Telegram Mini App)");
+            tgApp.expand();
+            
+            // Procedemos al login automático usando los datos de WebApp
+            // Mandaremos initData crudo como 'hash_raw' para que Supabase lo procese diferente.
+            handleTelegramAuth({
+                id: tgApp.initDataUnsafe.user.id,
+                first_name: tgApp.initDataUnsafe.user.first_name,
+                last_name: tgApp.initDataUnsafe.user.last_name,
+                username: tgApp.initDataUnsafe.user.username,
+                photo_url: tgApp.initDataUnsafe.user.photo_url,
+                auth_date: tgApp.initDataUnsafe.auth_date,
+                hash: tgApp.initDataUnsafe.hash, // Mantenemos compatibilidad inicial
+                __is_twa: true,
+                __twa_init_data: tgApp.initData
+            });
+        }
+    }, [session?.user]); // Monitorizar sesión por si recarga
+
     const handleSignOut = async () => {
         try {
             // Immediate UI update

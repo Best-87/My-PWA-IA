@@ -34,6 +34,46 @@ async function verifyTelegramHash(data: Record<string, any>, botToken: string): 
     return hashHex === hash;
 }
 
+// Validación para Telegram Web Apps (Mini Apps), que usa un algoritmo de firma distinto al Widget.
+async function verifyTelegramWebAppHash(initData: string, botToken: string): Promise<boolean> {
+    const urlParams = new URLSearchParams(initData);
+    const hash = urlParams.get('hash');
+    if (!hash) return false;
+    
+    urlParams.delete('hash');
+    
+    // Ordenar llaves
+    const keys = Array.from(urlParams.keys()).sort();
+    let dataCheckString = keys.map(key => `${key}=${urlParams.get(key)}`).join('\n');
+
+    const encoder = new TextEncoder();
+    
+    // Secret key = HMAC_SHA256(botToken, "WebAppData")
+    const secretKeyBuf = await crypto.subtle.importKey(
+        "raw",
+        encoder.encode("WebAppData"),
+        { name: "HMAC", hash: "SHA-256" },
+        false,
+        ["sign"]
+    );
+    const secretKeySign = await crypto.subtle.sign("HMAC", secretKeyBuf, encoder.encode(botToken));
+    
+    // Signature = HMAC_SHA256(dataCheckString, secret_key)
+    const finalKey = await crypto.subtle.importKey(
+        "raw",
+        secretKeySign,
+        { name: "HMAC", hash: "SHA-256" },
+        false,
+        ["sign"]
+    );
+    const signature = await crypto.subtle.sign("HMAC", finalKey, encoder.encode(dataCheckString));
+    
+    const hashArray = Array.from(new Uint8Array(signature));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    
+    return hashHex === hash;
+}
+
 // Generar una contraseña determinística y extremadamente segura a partir del ID y el Token del Bot
 async function generateSecurePassword(telegramId: string, botToken: string): Promise<string> {
    const encoder = new TextEncoder();
@@ -62,8 +102,18 @@ Deno.serve(async (req) => {
             return new Response(JSON.stringify({ error: "TELEGRAM_BOT_TOKEN no está configurado." }), { status: 500, headers: corsHeaders });
         }
 
-        // 1. Verificar la firma criptográfica de Telegram
-        const isValid = await verifyTelegramHash(payload, botToken);
+        // 1. Verificar la firma criptográfica de Telegram dependiendod del tipo de origen (Widget vs Mini App)
+        let isValid = false;
+        
+        if (payload.__is_twa && payload.__twa_init_data) {
+            isValid = await verifyTelegramWebAppHash(payload.__twa_init_data, botToken);
+            // Limpiar datos inyectados
+            delete payload.__is_twa;
+            delete payload.__twa_init_data;
+        } else {
+            isValid = await verifyTelegramHash(payload, botToken);
+        }
+
         if (!isValid) {
             return new Response(JSON.stringify({ error: "Firma de Telegram inválida. Posible intento de falsificación." }), { status: 403, headers: corsHeaders });
         }
