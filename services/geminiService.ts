@@ -6,50 +6,10 @@
 import { CustomChatSession } from '../types';
 
 export const generateGeminiContent = async (prompt: any, systemInstruction?: string) => {
-    // Local development fallback: if we're on localhost and have the key, call directly
-    // since the /api proxy might not be running in a standard 'npm run dev' (Vite)
-    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const localKey = import.meta.env.VITE_GEMINI_API_KEY;
-
-    if (isLocal && localKey) {
-        try {
-            const model = 'gemini-2.5-flash'; // Good for OCR and fast
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${localKey}`;
-
-            // Format prompt for direct API call (REST API expects snake_case: inline_data, mime_type)
-            const promptParts = prompt.parts || (Array.isArray(prompt) ? prompt : [{ text: prompt }]);
-            const contents = [{
-                parts: promptParts.map((p: any) => {
-                    if (p.inlineData) {
-                        return {
-                            inline_data: {
-                                mime_type: p.inlineData.mimeType || 'image/jpeg',
-                                data: p.inlineData.data
-                            }
-                        };
-                    }
-                    return p;
-                })
-            }];
-
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents,
-                    systemInstruction: systemInstruction ? { parts: [{ text: systemInstruction }] } : undefined
-                }),
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-            }
-            // If direct call fails, fall back to proxy (maybe they are using 'vercel dev')
-        } catch (e) {
-            console.warn("Direct Gemini call failed, falling back to proxy...", e);
-        }
-    }
+    // ⚠️ ALERTA DE SEGURIDAD CORREGIDA: 
+    // Se eliminó la lectura de import.meta.env.VITE_GEMINI_API_KEY del frontend.
+    // Todas las llamadas ahora pasan a través del proxy seguro del servidor de Vercel (/api/gemini)
+    // donde la clave (GEMINI_API_KEY) nunca es expuesta en el JavaScript público.
 
     try {
         const response = await fetch('/api/gemini', {

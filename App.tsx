@@ -180,7 +180,8 @@ const AppContent = () => {
             }
         };
     }, []);
-    const [isDataSyncing, setIsDataSyncing] = useState(false);
+
+    const [isDataSyncing, setIsDataSyncing] = useState(false);
     const isDataSyncingRef = useRef(false);
     const lastSyncUserId = useRef<string | null>(null);
 
@@ -192,7 +193,7 @@ const AppContent = () => {
             const currentUser = session?.user;
 
             if (currentUser && (_event === 'SIGNED_IN' || _event === 'INITIAL_SESSION')) {
-                
+
                 // --- Guard: never double-run sync ---
                 if (isDataSyncingRef.current) {
                     console.log("Sync guard: already running, skipping.");
@@ -287,17 +288,17 @@ const AppContent = () => {
         if (confirm("Isto apagará os dados locais (registros e perfil) e desconectará a conta. Suas configurações de tema e versão serão mantidas. Tem certeza?")) {
             // Surgical clear instead of localStorage.clear()
             const keysToRemove = [
-                'conferente_records', 
-                'conferente_profile', 
+                'conferente_records',
+                'conferente_profile',
                 'conferente_knowledge',
                 'sessoesPesagem',
                 'produtosPesagem',
                 'weighing_form_cache_v2',
                 'supabase.auth.token' // standard supabase key
             ];
-            
+
             keysToRemove.forEach(k => localStorage.removeItem(k));
-            
+
             // Clear all supabase related keys
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
@@ -314,7 +315,7 @@ const AppContent = () => {
                     }
                 } catch (e) { console.error("SW unregister failed", e); }
             }
-            
+
             showToast("Cache limpo. Reiniciando...", "info");
             setTimeout(() => window.location.reload(), 1000);
         }
@@ -514,7 +515,7 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                 store: profile.store
             });
             if (error) throw error;
-            
+
             // Supabase "Confirm Email": On = Devuelve user pero session=null.
             if (data?.user && !data?.session) {
                 showToast('🔑 Cuenta creada. REVISA TU EMAIL para verificar y activar la cuenta (podría estar en SPAM).', "info");
@@ -536,18 +537,18 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
         try {
             const { data: authData, error } = await signInWithTelegram(data);
             if (error) throw error;
-            
+
             // Se o perfil local está vazio ou padrão, tenta rellenar com info do Telegram
             if (authData?.user?.user_metadata) {
                 const meta = authData.user.user_metadata;
                 const telegramName = meta.full_name || meta.name || `${meta.first_name || ''} ${meta.last_name || ''}`.trim();
-                
+
                 if (telegramName && (!profile.name || profile.name === 'Usuário' || profile.name === 'Admin')) {
                     const telegramUsername = data.username || meta.username || '';
                     const telegramPhoto = data.photo_url || meta.picture || meta.avatar_url || profile.photo;
 
-                    const updatedProfile = { 
-                        ...profile, 
+                    const updatedProfile = {
+                        ...profile,
                         name: telegramName,
                         username: telegramUsername,
                         photo: telegramPhoto,
@@ -578,7 +579,7 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
         if (tgApp && tgApp.initDataUnsafe?.user && tgApp.initData) {
             console.info("⚡ Auto-Login Detectado (Telegram Mini App)");
             tgApp.expand();
-            
+
             handleTelegramAuth({
                 id: tgApp.initDataUnsafe.user.id,
                 first_name: tgApp.initDataUnsafe.user.first_name,
@@ -597,14 +598,14 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
         const urlParams = new URLSearchParams(window.location.search);
         const tgHash = urlParams.get('hash');
         const tgId = urlParams.get('id');
-        
+
         if (tgHash && tgId) {
             console.info("⚡ Auto-Login Detectado (Telegram OAuth Redirect)");
             const oauthData = Object.fromEntries(urlParams.entries());
-            
+
             // Limpia la barra de direcciones instantáneamente
             window.history.replaceState({}, document.title, window.location.pathname);
-            
+
             // Ejecutar el handler que ya está seguro en este bloque de memoria
             handleTelegramAuth(oauthData);
         }
