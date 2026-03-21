@@ -49,46 +49,39 @@ export const NFScanner: React.FC<OCRProcessorProps> = ({ mode, onDataExtracted, 
             const base64Data = resized.includes(',') ? resized.split(',')[1] : resized;
             setProgress(60);
 
-            const promptText = mode === 'nf'
-                ? `EXTRACT_INVOICE_DATA (DANFE): Return JSON { "cnpj": "string", "invoiceNumber": "string", "grossWeight": number, "totalWeight": number, "supplier": "string" }`
-                : `EXTRACT_LABEL_DATA: Return JSON { "product": "string", "batch": "string", "expirationDate": "DD/MM/YYYY" | null, "supplier": "string" | null, "unitTara": number | null }`;
-
-            const prompt = {
-                parts: [
-                    { inlineData: { mimeType: 'image/jpeg', data: base64Data } },
-                    { text: promptText + " Output ONLY raw JSON. UnitTara should be in grams (g)." }
-                ]
-            };
-
-            const text = await generateGeminiContent(prompt);
+            // --- HYBRID EXTRACTION PIPELINE ---
+            const { processDocumentHybrid } = await import('../../services/HybridExtractionService');
+            
+            setProgress(60);
+            
+            // Llama a la arquitectura híbrida que usa Regex + JSON Schema estricto + Auto-Learn
+            const hybridResult = await processDocumentHybrid(resized, mode === 'nf' ? 'NF' : 'ETIQUETA');
+            
             setProgress(90);
 
-            let cleanJson = text.replace(/```json|```/g, '').trim();
-            const firstBrace = cleanJson.indexOf('{');
-            const lastBrace = cleanJson.lastIndexOf('}');
-            if (firstBrace !== -1 && lastBrace !== -1) {
-                cleanJson = cleanJson.substring(firstBrace, lastBrace + 1);
+            // Warnings detection for the operator (Ej: Tara completada por ML)
+            if (hybridResult.warnings && hybridResult.warnings.length > 0) {
+                console.warn("HYBRID_ALERTS:", hybridResult.warnings);
+                // Aquí en un futuro se podrían mostrar al usuario. 
             }
 
-            const data = JSON.parse(cleanJson);
-
-            // Map keys robustly (handling different variants Gemini might return)
+            // Mantener el contrato estructural con el formulario sin romper estado
             const mappedData: any = {
-                cnpj: data.cnpj || data.cnpj_emitente || data.CNPJ || '',
-                invoiceNumber: data.invoiceNumber || data.numero_nota || data.numero || '',
-                grossWeight: data.grossWeight || data.peso_bruto || data.peso_bruto_kg || null,
-                totalWeight: data.totalWeight || data.peso_liquido || data.peso_liquido_kg || null,
-                supplier: data.supplier || data.fornecedor || data.emitente || '',
-                product: data.product || data.produto || data.item || '',
-                batch: data.batch || data.lote || '',
-                expirationDate: data.expirationDate || data.data_validade || data.validade || data.exp || null,
-                unitTara: data.unitTara || data.tara || data.peso_tara || null,
-                evidence: resized // Crucial: use the compressed image, NOT the 20MB original
+                cnpj: hybridResult.cnpj || '',
+                invoiceNumber: '', // extraible posteriormente o por regex 
+                grossWeight: hybridResult.pesoBruto || null,
+                totalWeight: hybridResult.pesoBruto || null, // fallback
+                supplier: hybridResult.productosDesc.join(' | ') || '', // temporal fallback si no hay proveedor explicito
+                product: hybridResult.productosDesc[0] || '',
+                batch: '',
+                expirationDate: null,
+                unitTara: hybridResult.tara !== null ? hybridResult.tara * 1000 : null, // kg to g translation
+                evidence: resized 
             };
 
             const summary = mode === 'nf'
-                ? `${mappedData.supplier || 'Nota'} - ${mappedData.grossWeight || '?'}kg`
-                : `${mappedData.product || 'Rótulo'} - ${mappedData.batch || 'S/L'}`;
+                ? `Capturado CNPJ: ${mappedData.cnpj || '?'} - ${mappedData.grossWeight || '?'}kg`
+                : `${mappedData.product || 'Produto'} - Tara: ${(hybridResult.tara || 0).toFixed(3)}kg ${hybridResult.warnings.length > 0 ? '⚠️' : ''}`;
 
             setOcrText(`Extraído: ${summary}`);
             onDataExtracted(mappedData);

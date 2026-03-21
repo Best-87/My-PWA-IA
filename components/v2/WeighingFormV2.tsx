@@ -132,6 +132,11 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
                 evidence: form.evidence // Save the photo
             };
 
+            // CAPA 4: FEEDBACK LOOP TRIGGER (Aprender taras del CNPJ)
+            if (form.cnpj && form.tara && parseFloat(form.tara) > 0) {
+                import('../../services/HybridExtractionService').then(m => m.feedbackLoopLearnTara(form.cnpj, parseFloat(form.tara) / 1000));
+            }
+
             const result: any = await saveRecord(record as any);
             if (result?.error) throw new Error(result.error);
 
@@ -442,6 +447,16 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
                             if (data.batch) updateForm('batch', data.batch);
                             if (data.expirationDate) updateForm('exp', data.expirationDate);
                             if (data.unitTara && !form.tara || form.tara === '0') updateForm('tara', data.unitTara.toString());
+
+                            // Mismatch Auditor (Cross-Validation)
+                            if (data.cnpj && form.cnpj && data.cnpj !== form.cnpj) {
+                                showToast(`⚠️ ALERTA: A etiqueta pertence a um CNPJ (${data.cnpj}) diferente da Nota Mestre!`, "error");
+                            }
+
+                            // Notification for Auto-Tara derived from ML
+                            if (data.unitTara && !data.grossWeight && !data.batch) {
+                                showToast("Tara importada automaticamente pelo histórico de IA", "info");
+                            }
 
                             // Supplier from label only if not already filled by NF
                             if (data.supplier && !form.supplier) {
