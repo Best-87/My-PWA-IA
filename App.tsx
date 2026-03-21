@@ -508,14 +508,22 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
         if (!email || !password || !profile.name) return;
         setIsAuthLoading(true);
         try {
-            const { error } = await signUp(email, password, {
+            const { data, error } = await signUp(email, password, {
                 name: profile.name,
                 role: profile.role,
                 store: profile.store
             });
             if (error) throw error;
-            showToast(t('msg_account_created'), "success");
-            setIsAuthModeLogin(true);
+            
+            // Supabase "Confirm Email": On = Devuelve user pero session=null.
+            if (data?.user && !data?.session) {
+                showToast('🔑 Cuenta creada. REVISA TU EMAIL para verificar y activar la cuenta (podría estar en SPAM).', "info");
+                // Retrasar el switch al login para que el usuario pueda leer
+                setTimeout(() => setIsAuthModeLogin(true), 3000);
+            } else {
+                showToast(t('msg_account_created'), "success");
+                setIsAuthModeLogin(true);
+            }
         } catch (err: any) {
             showToast(err.message || t('msg_auth_error'), "error");
         } finally {

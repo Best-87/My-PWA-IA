@@ -63,7 +63,10 @@ export const signUp = async (email: string, password: string, metadata: any) => 
     return await supabase.auth.signUp({
         email,
         password,
-        options: { data: metadata }
+        options: { 
+            data: metadata,
+            emailRedirectTo: window.location.origin // Forza el redirect a Producción (PWA) envés del localhost del dashboard.
+        }
     });
 };
 
