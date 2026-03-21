@@ -71,10 +71,10 @@ export const NFScanner: React.FC<OCRProcessorProps> = ({ mode, onDataExtracted, 
                 invoiceNumber: '', // extraible posteriormente o por regex 
                 grossWeight: hybridResult.pesoBruto || null,
                 totalWeight: hybridResult.pesoBruto || null, // fallback
-                supplier: hybridResult.productosDesc.join(' | ') || '', // temporal fallback si no hay proveedor explicito
-                product: hybridResult.productosDesc[0] || '',
-                batch: '',
-                expirationDate: null,
+                supplier: hybridResult.proveedor || '', 
+                product: hybridResult.productosDesc.join(' | ') || '',
+                batch: hybridResult.lote || '',
+                expirationDate: hybridResult.fechaVencimiento || null,
                 unitTara: hybridResult.tara !== null ? hybridResult.tara * 1000 : null, // kg to g translation
                 evidence: resized 
             };

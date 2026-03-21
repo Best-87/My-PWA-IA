@@ -9,6 +9,9 @@ export interface ExtractedData {
     pesoBruto: number | null;
     tara: number | null;
     productosDesc: string[];
+    proveedor: string | null;
+    lote: string | null;
+    fechaVencimiento: string | null;
     confidence: number;
     warnings: string[];
 }
@@ -45,9 +48,9 @@ export async function processDocumentHybrid(
     // 1. LLM Extraction (Capa Cognitiva Limitada)
     const systemPrompt = `
        Eres un validador industrial estricto. Analiza la imagen.
-       Extrae CNPJ (xx.xxx.xxx/xxxx-xx), Peso_Bruto, Tara y Nombres de Producto.
+       Extrae CNPJ (xx.xxx.xxx/xxxx-xx), Peso_Bruto, Tara, Nombres de Producto, Proveedor, Lote y Fecha de Vencimiento (DD/MM/AAAA).
        SI ALGO NO ES 100% VISIBLE, PONLO EN NULL. NO LO INVENTES.
-       Devuelve JSON: { "cnpj": "...", "pesoBruto": 0.0, "tara": 0.0, "productos": ["..."], "confidence": 0-1, "warnings": [] }
+       Devuelve JSON: { "cnpj": "...", "pesoBruto": 0.0, "tara": 0.0, "productos": ["..."], "proveedor": "...", "lote": "...", "fechaVencimiento": "...", "confidence": 0-1, "warnings": [] }
     `;
     
     // Llamada segura a Vercel Edge 
@@ -72,6 +75,9 @@ export async function processDocumentHybrid(
         pesoBruto: regexWeights.bw || llmData.pesoBruto || null,
         tara: regexWeights.tara || llmData.tara || null,
         productosDesc: llmData.productos || [],
+        proveedor: llmData.proveedor || llmData.fornecedor || null,
+        lote: llmData.lote || llmData.batch || null,
+        fechaVencimiento: llmData.fechaVencimiento || llmData.validade || null,
         confidence: llmData.confidence || 0.5,
         warnings: llmData.warnings || []
     };
