@@ -131,101 +131,121 @@ export const NFScanner: React.FC<OCRProcessorProps> = ({ mode, onDataExtracted, 
         }
     };
 
-    return (
-        <div className="fixed inset-0 z-[300] bg-black/90 backdrop-blur-xl flex flex-col items-center justify-center p-6 animate-fade-in">
-            <button
-                onClick={onClose}
-                className="absolute top-6 right-6 p-2 bg-white/10 rounded-full text-white hover:bg-white/20 transition-colors"
-            >
-                <X className="w-6 h-6" />
-            </button>
+    const accentColor = mode === 'nf' ? 'blue' : 'purple';
+    const accentClasses = mode === 'nf'
+        ? { bg: 'bg-blue-600', text: 'text-blue-500', glow: 'shadow-blue-500/20', light: 'bg-blue-500/10', border: 'border-blue-500/30' }
+        : { bg: 'bg-purple-600', text: 'text-purple-500', glow: 'shadow-purple-500/20', light: 'bg-purple-500/10', border: 'border-purple-500/30' };
 
-            <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-[2.5rem] overflow-hidden shadow-2xl animate-scale-in">
+    return (
+        <div className="fixed inset-0 z-[300] flex flex-col items-end justify-end animate-fade-in" style={{ background: 'rgba(10,12,18,0.75)', backdropFilter: 'blur(20px)' }}>
+            {/* Tap outside = close */}
+            <div className="absolute inset-0" onClick={onClose} />
+
+            {/* Bottom sheet */}
+            <div className="relative w-full max-w-lg mx-auto bg-[#111318] rounded-t-[2.5rem] overflow-hidden shadow-[0_-20px_60px_-10px_rgba(0,0,0,0.5)] animate-slide-up">
+                {/* Accent top bar */}
+                <div className={`h-1 w-full ${accentClasses.bg}`} />
+                
+                {/* Handle */}
+                <div className="flex justify-center pt-4 pb-2">
+                    <div className="w-10 h-1 bg-white/10 rounded-full" />
+                </div>
+
+                <button
+                    onClick={onClose}
+                    className="absolute top-5 right-5 p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors text-zinc-400"
+                >
+                    <X className="w-5 h-5" />
+                </button>
+
                 {!preview ? (
-                    <div className="p-10 flex flex-col items-center text-center">
-                        <div className="w-20 h-20 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center mb-6">
-                            {mode === 'nf' ? <FileSearch className="w-10 h-10 text-blue-600" /> : <ScanText className="w-10 h-10 text-purple-600" />}
-                        </div>
-                        <h2 className="text-xl font-black text-zinc-900 dark:text-white mb-2 uppercase tracking-tight">
-                            {mode === 'nf' ? 'Scanner de Notas' : 'Scanner de Rótulo'}
-                        </h2>
-                        <p className="text-sm text-zinc-500 mb-8 px-6">
+                    <div className="px-8 pb-10 pt-2 flex flex-col items-center text-center">
+                        {/* Icon */}
+                        <div className={`relative w-20 h-20 ${accentClasses.light} border ${accentClasses.border} rounded-2xl flex items-center justify-center mb-5 mt-2`}>
                             {mode === 'nf'
-                                ? 'Posicione a nota fiscal ou romaneio para extração de CNPJ e pesos.'
-                                : 'Posicione o rótulo do produto para extração de lote, validade e produto.'}
+                                ? <FileSearch className={`w-9 h-9 ${accentClasses.text}`} />
+                                : <ScanText className={`w-9 h-9 ${accentClasses.text}`} />
+                            }
+                        </div>
+
+                        <h2 className="text-lg font-black text-white uppercase tracking-tight mb-1">
+                            {mode === 'nf' ? 'Scanner de Nota Fiscal' : 'Scanner de Etiqueta'}
+                        </h2>
+                        <p className="text-xs text-zinc-500 mb-8 max-w-[260px] leading-relaxed">
+                            {mode === 'nf'
+                                ? 'Aponte para a nota fiscal ou DANFE. A IA irá extrair o CNPJ, pesos e dados automaticamente.'
+                                : 'Aponte para a etiqueta do produto. Serão extraídos lote, validade, tara e fornecedor.'}
                         </p>
 
-                        <div className="grid grid-cols-2 gap-4 w-full px-8 mb-10">
+                        <div className="grid grid-cols-2 gap-3 w-full">
                             <button
                                 onClick={() => fileInputRef.current?.click()}
-                                className="flex flex-col items-center gap-3 p-6 bg-blue-600 text-white rounded-[2rem] shadow-lg shadow-blue-500/30 active:scale-95 transition-all"
+                                className={`flex flex-col items-center gap-2.5 p-5 ${accentClasses.bg} text-white rounded-2xl ${accentClasses.glow} shadow-lg active:scale-95 transition-all`}
                             >
-                                <Camera className="w-8 h-8 opacity-90" />
+                                <Camera className="w-7 h-7" />
                                 <span className="text-[10px] font-black uppercase tracking-widest">Câmera</span>
                             </button>
 
                             <button
                                 onClick={() => galleryInputRef.current?.click()}
-                                className="flex flex-col items-center gap-3 p-6 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white rounded-[2rem] shadow-sm border border-zinc-200 dark:border-zinc-700 active:scale-95 transition-all"
+                                className="flex flex-col items-center gap-2.5 p-5 bg-white/5 border border-white/8 text-zinc-300 rounded-2xl active:scale-95 transition-all hover:bg-white/8"
                             >
-                                <FileSearch className="w-8 h-8 opacity-70" />
+                                <FileSearch className="w-7 h-7 opacity-70" />
                                 <span className="text-[10px] font-black uppercase tracking-widest">Galeria</span>
                             </button>
                         </div>
 
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            className="hidden"
-                            accept="image/*"
-                            capture="environment"
-                            onChange={handleCapture}
-                        />
-                        <input
-                            ref={galleryInputRef}
-                            type="file"
-                            className="hidden"
-                            accept="image/*"
-                            onChange={handleCapture}
-                        />
+                        <input ref={fileInputRef} type="file" className="hidden" accept="image/*" capture="environment" onChange={handleCapture} />
+                        <input ref={galleryInputRef} type="file" className="hidden" accept="image/*" onChange={handleCapture} />
                     </div>
                 ) : (
-                    <div className="p-6">
-                        <div className="relative aspect-video rounded-2xl overflow-hidden bg-black mb-6">
-                            <img src={preview} className="w-full h-full object-cover opacity-60" alt="Preview" />
+                    <div className="px-6 pb-10 pt-4">
+                        {/* Preview frame with scan line */}
+                        <div className="relative rounded-2xl overflow-hidden bg-black mb-5" style={{ aspectRatio: '4/3' }}>
+                            <img src={preview} className="w-full h-full object-cover" style={{ opacity: isProcessing ? 0.45 : 0.7 }} alt="Preview" />
+
+                            {/* Scan corner brackets */}
+                            <div className="absolute inset-4 pointer-events-none">
+                                <div className={`absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 ${mode === 'nf' ? 'border-blue-400' : 'border-purple-400'} rounded-tl-lg`} />
+                                <div className={`absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 ${mode === 'nf' ? 'border-blue-400' : 'border-purple-400'} rounded-tr-lg`} />
+                                <div className={`absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 ${mode === 'nf' ? 'border-blue-400' : 'border-purple-400'} rounded-bl-lg`} />
+                                <div className={`absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 ${mode === 'nf' ? 'border-blue-400' : 'border-purple-400'} rounded-br-lg`} />
+                            </div>
+
                             {isProcessing ? (
-                                <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
-                                    <Loader2 className="w-8 h-8 animate-spin mb-4" />
-                                    <div className="w-3/4 h-1.5 bg-white/20 rounded-full overflow-hidden">
-                                        <div className="h-full bg-blue-500 transition-all" style={{ width: `${progress}%` }}></div>
+                                <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
+                                    <Loader2 className={`w-8 h-8 animate-spin ${accentClasses.text}`} />
+                                    <div className="w-2/3">
+                                        <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+                                            <div className={`h-full ${accentClasses.bg} transition-all duration-500`} style={{ width: `${progress}%` }} />
+                                        </div>
+                                        <p className="text-[9px] text-white/40 font-black uppercase tracking-widest text-center mt-2">{progress}%</p>
                                     </div>
-                                    <span className="text-[10px] font-bold uppercase tracking-widest mt-2">{progress}%</span>
                                 </div>
                             ) : (
-                                <div className="absolute inset-0 flex flex-col items-center justify-center bg-emerald-500/90 text-white p-3 rounded-2xl gap-2 font-bold animate-fade-in">
-                                    <Check className="w-10 h-10" />
-                                    <span className="uppercase tracking-[0.2em] text-[10px]">Extração Concluída</span>
+                                <div className="absolute inset-0 flex flex-col items-center justify-center bg-emerald-500/80 gap-2">
+                                    <Check className="w-10 h-10 text-white" />
+                                    <span className="text-[10px] text-white font-black uppercase tracking-[0.2em]">Dados Capturados</span>
                                 </div>
                             )}
                         </div>
 
-                        <div className="text-center space-y-4">
-                            <p className="text-xs text-zinc-500 font-black uppercase tracking-widest animate-pulse">
-                                {ocrText || "Processando padrões..."}
-                            </p>
+                        <p className={`text-center text-[10px] font-black uppercase tracking-widest animate-pulse ${accentClasses.text}`}>
+                            {ocrText || 'Analisando imagem com IA...'}
+                        </p>
 
-                            {ocrText === "Erro no scanner" && (
-                                <button
-                                    onClick={() => { setPreview(null); setOcrText(''); }}
-                                    className="px-6 py-2 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-xl font-bold text-[10px] uppercase tracking-widest active:scale-95 transition-all"
-                                >
-                                    Tente Novamente
-                                </button>
-                            )}
-                        </div>
+                        {ocrText === 'Erro no scanner' && (
+                            <button
+                                onClick={() => { setPreview(null); setOcrText(''); }}
+                                className="mt-4 w-full py-3 bg-white/5 border border-white/10 text-white rounded-xl font-bold text-[10px] uppercase tracking-widest active:scale-95 transition-all"
+                            >
+                                Tentar Novamente
+                            </button>
+                        )}
                     </div>
                 )}
             </div>
         </div>
     );
 };
+

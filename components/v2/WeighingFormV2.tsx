@@ -132,9 +132,17 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
                 evidence: form.evidence // Save the photo
             };
 
-            // CAPA 4: FEEDBACK LOOP TRIGGER (Aprender taras del CNPJ)
-            if (form.cnpj && form.tara && parseFloat(form.tara) > 0) {
-                import('../../services/HybridExtractionService').then(m => m.feedbackLoopLearnTara(form.cnpj, parseFloat(form.tara) / 1000));
+            // CAPA 4: FEEDBACK LOOP TRIGGER (Aprender taras del CNPJ, proveedor y producto)
+            // Esto permite que el sistema relacione CNPJs con Nombres de Proveedores y sus pesos típicos automáticamente.
+            if ((form.cnpj || form.supplier) && form.tara && parseFloat(form.tara) > 0) {
+                import('../../services/HybridExtractionService').then(m => 
+                    m.feedbackLoopLearnTara(
+                        form.cnpj || null, 
+                        form.supplier || null, 
+                        parseFloat(form.tara) / 1000, 
+                        form.product || null
+                    )
+                );
             }
 
             const result: any = await saveRecord(record as any);

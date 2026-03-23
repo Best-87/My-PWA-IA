@@ -82,47 +82,91 @@ export async function processDocumentHybrid(
         warnings: llmData.warnings || []
     };
 
-    // 3. CAPA DE INTELIGENCIA DE NEGOCIO (TARAS AUTOCONTINUAS DESDE SUPABASE)
-    if (documentType === 'ETIQUETA' && result.tara === null && result.cnpj) {
-        // La etiqueta estaba rota y la IA no supo la TARA.
-        // Consultamos la vista de Machine Learning basada en el Feedback Humano
+    // 3. CAPA DE INTELIGENCIA DE NEGOCIO (TARAS Y PROVEEDORES DESDE SUPABASE)
+    if (result.cnpj || result.proveedor) {
         try {
-            const { data } = await supabase
-                .from('vw_tara_probabilistica')
-                .select('tara_mas_frecuente')
-                .eq('cnpj_proveedor', result.cnpj)
-                .single();
-                
-            if (data?.tara_mas_frecuente) {
-                result.tara = data.tara_mas_frecuente;
-                result.warnings.push(`Tara inyectada estadísticamente (${data.tara_mas_frecuente}kg) guiada por el histórico del Proveedor.`);
+            // A. Buscar nombre de proveedor si tenemos CNPJ pero no nombre
+            if (result.cnpj && !result.proveedor) {
+                const { data: provData } = await supabase
+                    .from('m_proveedores')
+                    .select('nombre')
+                    .eq('cnpj', result.cnpj)
+                    .single();
+                if (provData?.nombre) {
+                    result.proveedor = provData.nombre;
+                    result.warnings.push(`Fornecedor identificado pelo historial: ${provData.nombre}`);
+                }
+            }
+            
+            // B. Buscar CNPJ si tenemos nombre pero no CNPJ (Match por nombre)
+            if (!result.cnpj && result.proveedor) {
+                const { data: provData } = await supabase
+                    .from('m_proveedores')
+                    .select('cnpj')
+                    .ilike('nombre', `%${result.proveedor}%`)
+                    .limit(1)
+                    .maybeSingle();
+                if (provData?.cnpj) {
+                    result.cnpj = provData.cnpj;
+                    result.warnings.push(`CNPJ recuperado pelo historial: ${provData.cnpj}`);
+                }
+            }
+
+            // C. Tara Probabilística (Solo para etiquetas)
+            if (documentType === 'ETIQUETA' && result.tara === null && result.cnpj) {
+                const { data: taraData } = await supabase
+                    .from('vw_tara_probabilistica')
+                    .select('tara_mas_frecuente')
+                    .eq('cnpj_proveedor', result.cnpj)
+                    .single();
+                    
+                if (taraData?.tara_mas_frecuente) {
+                    result.tara = taraData.tara_mas_frecuente;
+                    result.warnings.push(`Tara injetada pelo historial (${taraData.tara_mas_frecuente}kg).`);
+                }
             }
         } catch(e) {
-            console.warn("No se encontró histórico para Auto-Tara ML", e);
+            console.warn("Error en enriquecimiento de datos ML:", e);
         }
     }
 
     // 4. Agregador final de alertas
     if (!result.cnpj) result.warnings.push("Falta CNPJ Válido. Origen Desconocido.");
-    if (!result.tara && documentType === 'ETIQUETA') result.warnings.push("Tara indefinida. DEBE requerir inserción manual del operario.");
+    if (!result.tara && documentType === 'ETIQUETA') result.warnings.push("Tara indefinida. DEBE requerir inserción manual.");
 
     return result;
 }
 
 /**
  * CAPA 4: FEEDBACK LOOP TRIGGER
- * Esta función debe llamarse CADA VEZ que el usuario empiece "Guardar y Nuevo".
- * Alimenta la base de datos que usa el Paso 3.
+ * Alimenta la base de datos de aprendizaje basándose en las correcciones del usuario.
  */
-export async function feedbackLoopLearnTara(cnpj: string, taraVerificadaHumanamente: number) {
+export async function feedbackLoopLearnTara(
+    cnpj: string | null, 
+    supplier: string | null, 
+    taraVerificada: number | null, 
+    product: string | null
+) {
     if(!supabase) return;
     try {
-        await supabase.from('historico_aprendizaje_taras').insert({
-            cnpj_proveedor: cnpj,
-            tara_aplicada: taraVerificadaHumanamente,
-            tipo_envase: 'CAJA_DEFECTO' // Se puede afinar luego añadiendo tipo
-        });
+        // 1. Aprender/Actualizar Proveedor (CNPJ <-> Nombre)
+        if (cnpj && supplier) {
+            await supabase.from('m_proveedores').upsert({
+                cnpj: cnpj,
+                nombre: supplier.toUpperCase(),
+                nivel_confianza: 1.0
+            });
+        }
+
+        // 2. Aprender Tara histórica
+        if (cnpj && taraVerificada && taraVerificada > 0) {
+            await supabase.from('historico_aprendizaje_taras').insert({
+                cnpj_proveedor: cnpj,
+                tara_aplicada: taraVerificada,
+                tipo_envase: product ? `CAJA_${product.toUpperCase()}` : 'CAJA_DEFECTO'
+            });
+        }
     } catch(err) {
-        console.error("Feedback Loop Failed: ", err)
+        console.error("Feedback Loop Failed: ", err);
     }
 }
