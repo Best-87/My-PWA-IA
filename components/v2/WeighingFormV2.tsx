@@ -358,8 +358,8 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
                                     type="number"
                                     value={form.qty}
                                     onChange={e => updateForm('qty', e.target.value)}
-                                    placeholder="—"
-                                    className="w-full p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800 border-none focus:ring-2 focus:ring-blue-500/50 text-sm font-black text-center placeholder:text-zinc-300 dark:placeholder:text-zinc-600"
+                                    placeholder=""
+                                    className="w-full p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800 border-none focus:ring-2 focus:ring-blue-500/50 text-sm font-black text-center"
                                 />
                             </div>
                             <div className="space-y-1">
@@ -403,7 +403,7 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
                                 value={form.gross}
                                 onChange={e => updateForm('gross', e.target.value)}
                                 placeholder="0.000"
-                                className="w-full p-4 rounded-2xl bg-blue-600 text-white border-none focus:ring-2 focus:ring-blue-400/60 text-xl font-black text-center shadow-md shadow-blue-500/20 transition-all"
+                                className="w-full p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 focus:ring-2 focus:ring-blue-500/40 focus:border-blue-400 text-xl font-black text-center text-zinc-900 dark:text-white transition-all"
                             />
                         </div>
                     </div>
