@@ -417,22 +417,25 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
                         setForm(emptyForm);
                         localStorage.removeItem('weighing_form_cache_v2');
                     }}
-                    className="py-3.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 font-bold flex items-center justify-center gap-2 active:scale-95 transition-all text-sm"
+                    className="py-4 rounded-2xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all border border-zinc-200 dark:border-zinc-700"
                 >
                     <Trash2 className="w-4 h-4" /> Limpar
                 </button>
                 <button
                     onClick={handleSave}
                     disabled={isSaving}
-                    className={`py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 shadow-xl active:scale-95 transition-all text-sm ${isSaving ? 'bg-zinc-400 cursor-not-allowed' : 'bg-zinc-900 dark:bg-white text-white dark:text-black'
-                        }`}
+                    className={`py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all ${
+                        isSaving
+                            ? 'bg-zinc-300 dark:bg-zinc-700 text-zinc-400 cursor-not-allowed'
+                            : 'bg-blue-600 text-white shadow-blue-500/25'
+                    }`}
                 >
                     {isSaving ? (
                         <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     ) : (
                         <Save className="w-4 h-4" />
                     )}
-                    {isSaving ? "Salvando..." : "Salvar"}
+                    {isSaving ? 'Salvando...' : 'Salvar'}
                 </button>
             </div>
 

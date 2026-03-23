@@ -58,6 +58,7 @@ const AppContent = () => {
     const [showProfileModal, setShowProfileModal] = useState(false);
     const [showChat, setShowChat] = useState(false);
     const [theme, setThemeState] = useState(getTheme());
+    const [showClearConfirm, setShowClearConfirm] = useState(false);
 
     // Filter States
     const [searchTerm, setSearchTerm] = useState('');
@@ -285,40 +286,43 @@ const AppContent = () => {
     }, []);
 
     const handleClearCache = async () => {
-        if (confirm("Isto apagará os dados locais (registros e perfil) e desconectará a conta. Suas configurações de tema e versão serão mantidas. Tem certeza?")) {
-            // Surgical clear instead of localStorage.clear()
-            const keysToRemove = [
-                'conferente_records',
-                'conferente_profile',
-                'conferente_knowledge',
-                'sessoesPesagem',
-                'produtosPesagem',
-                'weighing_form_cache_v2',
-                'supabase.auth.token' // standard supabase key
-            ];
+        setShowClearConfirm(true);
+    };
 
-            keysToRemove.forEach(k => localStorage.removeItem(k));
+    const executeClearCache = async () => {
+        setShowClearConfirm(false);
+        // Surgical clear instead of localStorage.clear()
+        const keysToRemove = [
+            'conferente_records',
+            'conferente_profile',
+            'conferente_knowledge',
+            'sessoesPesagem',
+            'produtosPesagem',
+            'weighing_form_cache_v2',
+            'supabase.auth.token' // standard supabase key
+        ];
 
-            // Clear all supabase related keys
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key && (key.startsWith('sb-') || key.includes('supabase'))) {
-                    localStorage.removeItem(key);
-                }
+        keysToRemove.forEach(k => localStorage.removeItem(k));
+
+        // Clear all supabase related keys
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && (key.startsWith('sb-') || key.includes('supabase'))) {
+                localStorage.removeItem(key);
             }
-
-            if ('serviceWorker' in navigator) {
-                try {
-                    const regs = await navigator.serviceWorker.getRegistrations();
-                    for (let reg of regs) {
-                        await reg.unregister();
-                    }
-                } catch (e) { console.error("SW unregister failed", e); }
-            }
-
-            showToast("Cache limpo. Reiniciando...", "info");
-            setTimeout(() => window.location.reload(), 1000);
         }
+
+        if ('serviceWorker' in navigator) {
+            try {
+                const regs = await navigator.serviceWorker.getRegistrations();
+                for (let reg of regs) {
+                    await reg.unregister();
+                }
+            } catch (e) { console.error("SW unregister failed", e); }
+        }
+
+        showToast("Cache limpo. Reiniciando...", "info");
+        setTimeout(() => window.location.reload(), 1000);
     };
 
     // Theme Toggle
@@ -952,6 +956,37 @@ ${rec.aiAnalysis ? `${t('rpt_ai_obs')} ${rec.aiAnalysis}` : ''}
                     >
                         {t('btn_update')}
                     </button>
+                </div>
+            )}
+
+            {/* Custom clear-cache confirmation modal */}
+            {showClearConfirm && (
+                <div className="fixed inset-0 z-[900] flex items-center justify-center p-6" style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)' }}>
+                    <div className="w-full max-w-sm bg-white dark:bg-zinc-900 rounded-[2rem] p-6 shadow-2xl animate-fade-in-up border border-zinc-100 dark:border-zinc-800">
+                        <div className="flex flex-col items-center text-center mb-6">
+                            <div className="w-14 h-14 bg-red-50 dark:bg-red-900/20 rounded-2xl flex items-center justify-center mb-4">
+                                <Trash2 className="w-7 h-7 text-red-500" />
+                            </div>
+                            <h2 className="text-lg font-black text-zinc-900 dark:text-white mb-1">Apagar Dados?</h2>
+                            <p className="text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed max-w-[260px]">
+                                Isto apagará os dados locais e desconectará a conta. Configurações de tema serão mantidas.
+                            </p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                            <button
+                                onClick={() => setShowClearConfirm(false)}
+                                className="py-4 bg-zinc-100 dark:bg-zinc-800 rounded-2xl font-black text-xs uppercase tracking-widest text-zinc-600 dark:text-zinc-400 active:scale-95 transition-all"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={executeClearCache}
+                                className="py-4 bg-red-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-red-600/20 active:scale-95 transition-all"
+                            >
+                                Apagar
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
 
