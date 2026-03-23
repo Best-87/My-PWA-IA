@@ -246,4 +246,32 @@
   .pause-marquee:hover {
     animation-play-state: paused;
   }
+
+  @keyframes slide-up {
+    from {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.42s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+
+  @keyframes scan-line {
+    0%   { top: 0%; }
+    100% { top: 100%; }
+  }
+
+  .animate-scan-line {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    animation: scan-line 1.6s ease-in-out infinite alternate;
+  }
 }
