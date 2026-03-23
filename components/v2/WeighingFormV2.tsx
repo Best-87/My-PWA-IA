@@ -358,8 +358,8 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
                                     type="number"
                                     value={form.qty}
                                     onChange={e => updateForm('qty', e.target.value)}
-                                    placeholder="0"
-                                    className="w-full p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800 border-none focus:ring-2 focus:ring-blue-500/50 text-sm font-black text-center"
+                                    placeholder="—"
+                                    className="w-full p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800 border-none focus:ring-2 focus:ring-blue-500/50 text-sm font-black text-center placeholder:text-zinc-300 dark:placeholder:text-zinc-600"
                                 />
                             </div>
                             <div className="space-y-1">
@@ -385,25 +385,25 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
                         <Scale className="w-4 h-4" /> Conferência de Pesos
                     </h3>
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="relative">
-                            <label className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5 block ml-1">Peso Nota</label>
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1.5">
+                            <label className="text-[9px] font-black uppercase tracking-widest text-zinc-400 block ml-1">Peso Nota</label>
                             <input
                                 type="text"
                                 value={form.note}
                                 onChange={e => updateForm('note', e.target.value)}
                                 placeholder="0.000"
-                                className="w-full p-4 rounded-xl bg-blue-50 dark:bg-blue-900/10 border-2 border-blue-200 dark:border-blue-900/30 text-blue-600 focus:ring-4 focus:ring-blue-500/30 text-xl font-black text-center"
+                                className="w-full p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 focus:ring-2 focus:ring-blue-500/40 focus:border-blue-400 text-xl font-black text-center text-zinc-900 dark:text-white transition-all"
                             />
                         </div>
-                        <div className="relative">
-                            <label className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5 block ml-1">Peso Bruto</label>
+                        <div className="space-y-1.5">
+                            <label className="text-[9px] font-black uppercase tracking-widest text-zinc-400 block ml-1">Peso Bruto</label>
                             <input
                                 type="text"
                                 value={form.gross}
                                 onChange={e => updateForm('gross', e.target.value)}
                                 placeholder="0.000"
-                                className="w-full p-4 rounded-xl bg-zinc-900 text-white dark:bg-white dark:text-black border-none focus:ring-4 focus:ring-blue-500/30 text-xl font-black text-center shadow-lg"
+                                className="w-full p-4 rounded-2xl bg-blue-600 text-white border-none focus:ring-2 focus:ring-blue-400/60 text-xl font-black text-center shadow-md shadow-blue-500/20 transition-all"
                             />
                         </div>
                     </div>
