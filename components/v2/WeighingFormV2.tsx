@@ -19,7 +19,7 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
     const [scannerMode, setScannerMode] = useState<'nf' | 'label'>('nf');
     const [showUnifiedNF, setShowUnifiedNF] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
-    const [productPickerList, setProductPickerList] = useState<string[]>([]);
+    const [productPickerList, setProductPickerList] = useState<any[]>([]);
     const [showProductPicker, setShowProductPicker] = useState(false);
     const [pendingFormData, setPendingFormData] = useState<any>(null);
 
@@ -463,6 +463,7 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
                                 setShowProductPicker(true);
                             } else {
                                 if (data.product) updateForm('product', data.product);
+                                if (data.noteWeight) updateForm('note', data.noteWeight.toString());
                                 showToast('Nota Fiscal processada!', 'success');
                             }
                         } else {
@@ -516,6 +517,7 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
                             setShowProductPicker(true);
                         } else {
                             if (data.product) updateForm('product', data.product);
+                            if (data.noteWeight) updateForm('note', data.noteWeight.toString());
                             showToast('Dados da Nota Fiscal unificados com sucesso!', 'success');
                         }
                     }}
@@ -551,24 +553,37 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
                                 </div>
 
                                 <div className="space-y-2 max-h-64 overflow-y-auto no-scrollbar">
-                                    {productPickerList.map((prod, idx) => (
-                                        <button
-                                            key={idx}
-                                            onClick={() => {
-                                                updateForm('product', prod);
-                                                setShowProductPicker(false);
-                                                showToast('Produto selecionado!', 'success');
-                                            }}
-                                            className="w-full text-left px-4 py-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 active:scale-[0.98] transition-all group"
-                                        >
-                                            <div className="flex items-center justify-between gap-3">
-                                                <span className="text-xs font-bold text-zinc-700 dark:text-zinc-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 leading-tight">
-                                                    {prod}
-                                                </span>
-                                                <div className="w-5 h-5 rounded-full border-2 border-zinc-300 dark:border-zinc-600 group-hover:border-blue-500 flex-shrink-0 transition-colors" />
-                                            </div>
-                                        </button>
-                                    ))}
+                                    {productPickerList.map((prod, idx) => {
+                                        const desc = typeof prod === 'string' ? prod : prod.descricao;
+                                        const weight = prod.peso_total_kg || prod.peso_total || null;
+
+                                        return (
+                                            <button
+                                                key={idx}
+                                                onClick={() => {
+                                                    updateForm('product', desc);
+                                                    if (weight) updateForm('note', weight.toString());
+                                                    setShowProductPicker(false);
+                                                    showToast('Produto selecionado!', 'success');
+                                                }}
+                                                className="w-full text-left px-4 py-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 active:scale-[0.98] transition-all group"
+                                            >
+                                                <div className="flex items-center justify-between gap-3">
+                                                    <div className="flex flex-col gap-0.5">
+                                                        <span className="text-[11px] font-bold text-zinc-900 dark:text-zinc-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 leading-tight">
+                                                            {desc}
+                                                        </span>
+                                                        {weight && (
+                                                            <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest">
+                                                                Peso: {weight} KG
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <div className="w-5 h-5 rounded-full border-2 border-zinc-300 dark:border-zinc-600 group-hover:border-blue-500 flex-shrink-0 transition-colors" />
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         </div>

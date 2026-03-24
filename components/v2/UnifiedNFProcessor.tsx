@@ -56,12 +56,34 @@ export const UnifiedNFProcessor: React.FC<UnifiedNFProcessorProps> = ({ onClose,
                 parts: [
                     { inlineData: { mimeType: 'image/jpeg', data: base64Data } },
                     {
-                        text: `Aja como especialista em OCR. Analise esta Nota Fiscal e extraia TUDO visível.
-Retorne JSON único:
-1. "chave_acesso": string (44 dígitos).
-2. "cabecalho": { "cnpj_emitente": string, "numero_nota": string, "peso_bruto": num, "peso_liquido": num, "fornecedor": string }.
-3. "productos": [ { "descricao": string, "quantidade": float, "valor": float } ].
-Converta formatos BR (1.250,50) para float (1250.50). Se não encontrar, coloque null. Output ONLY raw JSON.`
+                        text: `Aja como especialista em OCR de Notas Fiscais brasileiras (DANFE). Analise a imagem com precisão máxima.
+
+Retorne JSON único com esta estrutura exata:
+{
+  "chave_acesso": "string 44 dígitos ou null",
+  "cabecalho": {
+    "cnpj_emitente": "string formato XX.XXX.XXX/XXXX-XX ou null",
+    "numero_nota": "string ou null",
+    "peso_bruto_total": número em KG ou null,
+    "peso_liquido_total": número em KG ou null,
+    "fornecedor": "razão social/nome ou null"
+  },
+  "productos": [
+    {
+      "descricao": "descrição completa do produto",
+      "quantidade_unidades": número de caixas/unidades,
+      "peso_unitario_kg": peso de cada caixa/unidade em KG (procure no nome ex: 'CX 26 KG' = 26),
+      "peso_total_kg": quantidade_unidades × peso_unitario_kg (calcule você mesmo)
+    }
+  ]
+}
+
+REGRAS CRÍTICAS:
+- Converta números BR (1.250,50 → 1250.50).
+- Para peso_unitario_kg: procure padrões como 'CX 26 KG', 'FDO 18KG', 'PCT 5KG' na descrição do produto.
+- Se não encontrar peso unitário, use o campo PESO BRUTO da linha do produto dividido pela quantidade.
+- Se ainda não tiver, coloque peso_unitario_kg: null e peso_total_kg: null.
+- Output ONLY raw JSON, sem markdown.`
                     }
                 ]
             };
@@ -93,9 +115,10 @@ Converta formatos BR (1.250,50) para float (1250.50). Se não encontrar, coloque
             if (rawResult.productos?.length > 0) {
                 lines.push(`📦 <b>Produtos:</b>`);
                 rawResult.productos.forEach((p: any) => {
-                    const diff = Math.abs(currentPesagem - p.quantidade);
+                    const weight = p.peso_total_kg || 0;
+                    const diff = Math.abs(currentPesagem - weight);
                     const alert = (diff > 0.5 && currentPesagem > 0) ? ' ⚠️' : '';
-                    lines.push(`• ${p.descricao}: <b>${p.quantidade}kg</b>${alert}`);
+                    lines.push(`• ${p.descricao}: <b>${weight > 0 ? weight + 'kg' : 'N/A'}</b> (Qtd: ${p.quantidade_unidades || '?'})${alert}`);
                 });
             }
 
@@ -110,11 +133,12 @@ Converta formatos BR (1.250,50) para float (1250.50). Se não encontrar, coloque
                 cnpj: rawResult.cabecalho?.cnpj_emitente || '',
                 noteNumber: rawResult.cabecalho?.numero_nota || '',
                 accessKey: rawResult.chave_acesso || '',
-                grossWeight: rawResult.cabecalho?.peso_bruto || null,
-                totalWeight: rawResult.cabecalho?.peso_liquido || null,
+                grossWeight: rawResult.cabecalho?.peso_bruto_total || null,
+                totalWeight: rawResult.cabecalho?.peso_liquido_total || null,
                 evidence: resized,
                 product: rawResult.productos?.[0]?.descricao || '',
-                products: (rawResult.productos || []).map((p: any) => p.descricao).filter(Boolean)
+                noteWeight: rawResult.productos?.[0]?.peso_total_kg || null,
+                products: rawResult.productos || []
             });
 
             setProgress(100);

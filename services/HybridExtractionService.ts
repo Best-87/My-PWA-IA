@@ -9,6 +9,7 @@ export interface ExtractedData {
     pesoBruto: number | null;
     tara: number | null;
     productosDesc: string[];
+    productos?: any[];
     proveedor: string | null;
     lote: string | null;
     fechaVencimiento: string | null;
@@ -47,10 +48,18 @@ export async function processDocumentHybrid(
     
     // 1. LLM Extraction (Capa Cognitiva Limitada)
     const systemPrompt = `
-       Eres un validador industrial estricto. Analiza la imagen.
-       Extrae CNPJ (xx.xxx.xxx/xxxx-xx), Peso_Bruto, Tara, Nombres de Producto, Proveedor, Lote y Fecha de Vencimiento (DD/MM/AAAA).
+       Eres un validador industrial estricto de Notas Fiscales y Etiquetas brasileñas.
+       Analiza la imagen y extrae:
+       - CNPJ (xx.xxx.xxx/xxxx-xx) del emisor.
+       - Peso Bruto Total de la nota.
+       - Proveedor (Nombre/Razón Social).
+       - Productos: Lista de objetos { "descricao": string, "qtd": num, "peso_unitario": num, "peso_total": num }.
+         - Busca patrones como 'CX 26 KG', '10 KG' en la descripción para obtener peso_unitario.
+         - peso_total debe ser qtd * peso_unitario.
+       - Para ETIQUETAS: Extrae además Lote, Tara (en KG) y Fecha de Vencimiento (DD/MM/AAAA).
+
        SI ALGO NO ES 100% VISIBLE, PONLO EN NULL. NO LO INVENTES.
-       Devuelve JSON: { "cnpj": "...", "pesoBruto": 0.0, "tara": 0.0, "productos": ["..."], "proveedor": "...", "lote": "...", "fechaVencimiento": "...", "confidence": 0-1, "warnings": [] }
+       Devuelve JSON: { "cnpj": "...", "pesoBruto": 0.0, "productos": [...], "proveedor": "...", "lote": "...", "fechaVencimiento": "...", "tara": 0.0, "confidence": 0-1 }
     `;
     
     // Llamada segura a Vercel Edge 
@@ -70,11 +79,15 @@ export async function processDocumentHybrid(
     const regexCNPJ = extractCnpjDeterminista(aiRaw) || llmData.cnpj || null;
     const regexWeights = extractWeightsDeterminista(aiRaw);
     
+    const productsArr = Array.isArray(llmData.productos) ? llmData.productos : [];
+    const productsDesc = productsArr.map((p: any) => typeof p === 'object' ? p.descricao : p).filter(Boolean);
+
     let result: ExtractedData = {
         cnpj: regexCNPJ,
         pesoBruto: regexWeights.bw || llmData.pesoBruto || null,
         tara: regexWeights.tara || llmData.tara || null,
-        productosDesc: llmData.productos || [],
+        productosDesc: productsDesc,
+        productos: productsArr,
         proveedor: llmData.proveedor || llmData.fornecedor || null,
         lote: llmData.lote || llmData.batch || null,
         fechaVencimiento: llmData.fechaVencimiento || llmData.validade || null,
