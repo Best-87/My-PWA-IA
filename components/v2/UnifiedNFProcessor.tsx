@@ -113,7 +113,8 @@ Converta formatos BR (1.250,50) para float (1250.50). Se não encontrar, coloque
                 grossWeight: rawResult.cabecalho?.peso_bruto || null,
                 totalWeight: rawResult.cabecalho?.peso_liquido || null,
                 evidence: resized,
-                product: rawResult.productos?.[0]?.descricao || ''
+                product: rawResult.productos?.[0]?.descricao || '',
+                products: (rawResult.productos || []).map((p: any) => p.descricao).filter(Boolean)
             });
 
             setProgress(100);

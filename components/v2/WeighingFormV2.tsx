@@ -19,6 +19,9 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
     const [scannerMode, setScannerMode] = useState<'nf' | 'label'>('nf');
     const [showUnifiedNF, setShowUnifiedNF] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [productPickerList, setProductPickerList] = useState<string[]>([]);
+    const [showProductPicker, setShowProductPicker] = useState(false);
+    const [pendingFormData, setPendingFormData] = useState<any>(null);
 
     const emptyForm = {
         supplier: '',
@@ -444,14 +447,24 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
                     mode={scannerMode}
                     onDataExtracted={(data) => {
                         if (scannerMode === 'nf') {
-                            // NF Priority: supplier, weights, doc numbers
+                            // Fill all NF fields immediately
                             if (data.grossWeight) updateForm('gross', data.grossWeight.toString());
                             if (data.totalWeight) updateForm('note', data.totalWeight.toString());
                             if (data.cnpj) updateForm('cnpj', data.cnpj);
                             if (data.invoiceNumber) updateForm('noteNumber', data.invoiceNumber);
                             if (data.supplier) updateForm('supplier', data.supplier);
                             if (data.evidence) updateForm('evidence', data.evidence);
-                            showToast("Nota Fiscal processada!", "success");
+
+                            // Product picker if multiple products
+                            const prods: string[] = (data.products || []).filter(Boolean);
+                            if (prods.length > 1) {
+                                setPendingFormData(data);
+                                setProductPickerList(prods);
+                                setShowProductPicker(true);
+                            } else {
+                                if (data.product) updateForm('product', data.product);
+                                showToast('Nota Fiscal processada!', 'success');
+                            }
                         } else {
                             // Label Logic: fill product/tara if missing, supplier only if empty
                             if (data.product && !form.product) updateForm('product', data.product);
@@ -493,11 +506,74 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
                         if (data.noteNumber) updateForm('noteNumber', data.noteNumber);
                         if (data.supplier) updateForm('supplier', data.supplier);
                         if (data.accessKey) updateForm('accessKey', data.accessKey);
-                        if (data.product) updateForm('product', data.product);
                         if (data.evidence) updateForm('evidence', data.evidence);
-                        showToast("Dados da Nota Fiscal unificados com sucesso!", "success");
+
+                        // Product picker if multiple products
+                        const prods: string[] = (data.products || []).filter(Boolean);
+                        if (prods.length > 1) {
+                            setPendingFormData(data);
+                            setProductPickerList(prods);
+                            setShowProductPicker(true);
+                        } else {
+                            if (data.product) updateForm('product', data.product);
+                            showToast('Dados da Nota Fiscal unificados com sucesso!', 'success');
+                        }
                     }}
                 />
+            )}
+
+            {/* Product Picker — shown when NF has multiple products */}
+            {showProductPicker && (
+                <div className="fixed inset-0 z-[400] flex flex-col justify-end">
+                    <div className="absolute inset-0" onClick={() => setShowProductPicker(false)} />
+                    <div className="relative animate-slide-up">
+                        <div className="mx-3 mb-3 bg-white dark:bg-zinc-900 rounded-[2rem] overflow-hidden border border-zinc-200/80 dark:border-zinc-800 shadow-xl">
+                            {/* Blue accent stripe */}
+                            <div className="h-1 w-full bg-blue-600" />
+                            {/* Handle */}
+                            <div className="flex justify-center py-3">
+                                <div className="w-9 h-1 rounded-full bg-zinc-300 dark:bg-zinc-700" />
+                            </div>
+
+                            <div className="px-5 pb-6">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center flex-shrink-0">
+                                        <ShoppingCart className="w-4 h-4 text-blue-500" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-sm font-black text-zinc-900 dark:text-white uppercase tracking-tight">
+                                            Vários Produtos Detectados
+                                        </h3>
+                                        <p className="text-[10px] text-zinc-400 dark:text-zinc-500">
+                                            Selecione o produto para esta pesagem
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2 max-h-64 overflow-y-auto no-scrollbar">
+                                    {productPickerList.map((prod, idx) => (
+                                        <button
+                                            key={idx}
+                                            onClick={() => {
+                                                updateForm('product', prod);
+                                                setShowProductPicker(false);
+                                                showToast('Produto selecionado!', 'success');
+                                            }}
+                                            className="w-full text-left px-4 py-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 active:scale-[0.98] transition-all group"
+                                        >
+                                            <div className="flex items-center justify-between gap-3">
+                                                <span className="text-xs font-bold text-zinc-700 dark:text-zinc-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 leading-tight">
+                                                    {prod}
+                                                </span>
+                                                <div className="w-5 h-5 rounded-full border-2 border-zinc-300 dark:border-zinc-600 group-hover:border-blue-500 flex-shrink-0 transition-colors" />
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );
