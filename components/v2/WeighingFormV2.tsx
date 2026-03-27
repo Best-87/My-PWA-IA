@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
 import {
     Scale, Package, ShoppingCart, Calendar, Tag, Thermometer,
     Camera, Image as ImageIcon, Trash2, Save, History, ChevronDown,
@@ -19,9 +19,40 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
     const [scannerMode, setScannerMode] = useState<'nf' | 'label'>('nf');
     const [showUnifiedNF, setShowUnifiedNF] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
-    const [productPickerList, setProductPickerList] = useState<any[]>([]);
+    const [productPickerList, setProductPickerList] = useState<any[]>(() => {
+        try {
+            const saved = localStorage.getItem('pending_products_v2');
+            return saved ? JSON.parse(saved) : [];
+        } catch (e) { return []; }
+    });
     const [showProductPicker, setShowProductPicker] = useState(false);
-    const [pendingFormData, setPendingFormData] = useState<any>(null);
+    const [pendingFormData, setPendingFormData] = useState<any>(() => {
+        try {
+            const saved = localStorage.getItem('pending_nf_data_v2');
+            return saved ? JSON.parse(saved) : null;
+        } catch (e) { return null; }
+    });
+
+    // Auto-save pending products to cache
+    useEffect(() => {
+        try {
+            if (productPickerList.length > 0) {
+                localStorage.setItem('pending_products_v2', JSON.stringify(productPickerList));
+            } else {
+                localStorage.removeItem('pending_products_v2');
+            }
+        } catch (e) { console.warn('Persistence error', e); }
+    }, [productPickerList]);
+
+    useEffect(() => {
+        try {
+            if (pendingFormData) {
+                localStorage.setItem('pending_nf_data_v2', JSON.stringify(pendingFormData));
+            } else {
+                localStorage.removeItem('pending_nf_data_v2');
+            }
+        } catch (e) { console.warn('Persistence error', e); }
+    }, [pendingFormData]);
 
     const emptyForm = {
         supplier: '',
@@ -72,13 +103,14 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
     const diff = netWeight - parsedNote;
     const isOk = Math.abs(diff) <= 0.2;
 
-    // --- Knowledge Logic: Auto-suggest based on Supplier/Product ---
+    // --- Intelligent Field Runner (Suggestions & Inferences) ---
     React.useEffect(() => {
         if (!form.supplier) return;
 
+        // 1. Storage Knowledge Suggestions
         const suggestions = predictData(form.supplier, form.product);
 
-        // 1. If only supplier, suggest Product and CNPJ
+        // a. Suggest Product and CNPJ
         if (!form.product && suggestions.suggestedProduct) {
             updateForm('product', suggestions.suggestedProduct);
         }
@@ -86,13 +118,30 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
             updateForm('cnpj', suggestions.suggestedCnpj);
         }
 
-        // 2. If product is present, suggest Unit Tara
-        if (form.product && suggestions.suggestedUnitTara) {
-            if (!form.tara) {
-                updateForm('tara', suggestions.suggestedUnitTara.toString());
+        // b. Suggest Unit Tara (only if missing)
+        if (form.product && !form.tara && suggestions.suggestedUnitTara) {
+            updateForm('tara', suggestions.suggestedUnitTara.toString());
+        }
+
+        // 2. Smart Quantity Inference (Calculation based on weights & current tara)
+        // This runs if we have weights and tara, but Qty is either missing or wrong (matches net kg)
+        if (parsedGross > 0 && parsedNote > 0 && parsedTara > 0) {
+            const qtyMatchesNet = Math.abs(parsedQty - parsedNote) < 0.1;
+            const isQtyDefault = !form.qty || form.qty === '0' || form.qty === '1';
+
+            if (isQtyDefault || qtyMatchesNet) {
+                const diffWeight = parsedGross - parsedNote;
+                // Only infer if the delta is significant (at least half a box weight)
+                if (diffWeight > parsedTara * 0.45) {
+                    const inferredQty = Math.round(diffWeight / parsedTara);
+                    if (inferredQty > 1 && inferredQty < 1000 && inferredQty !== parsedQty) {
+                        updateForm('qty', inferredQty.toString());
+                        showToast(`Qtd. de caixas ajustada (${inferredQty}) automaticamente`, 'info');
+                    }
+                }
             }
         }
-    }, [form.supplier, form.product]);
+    }, [form.supplier, form.product, parsedGross, parsedNote, parsedTara, parsedQty]);
 
     const updateForm = (field: string, val: any) => {
         setForm((prev: typeof emptyForm) => ({ ...prev, [field]: val }));
@@ -136,7 +185,6 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
             };
 
             // CAPA 4: FEEDBACK LOOP TRIGGER (Aprender taras del CNPJ, proveedor y producto)
-            // Esto permite que el sistema relacione CNPJs con Nombres de Proveedores y sus pesos típicos automáticamente.
             if ((form.cnpj || form.supplier) && form.tara && parseFloat(form.tara) > 0) {
                 import('../../services/HybridExtractionService').then(m => 
                     m.feedbackLoopLearnTara(
@@ -151,11 +199,42 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
             const result: any = await saveRecord(record as any);
             if (result?.error) throw new Error(result.error);
 
-            showToast("Conferência salva com sucesso!", "success");
+            // --- PERSISTENCE & FLOW LOGIC: Multi-product handling ---
+            const currentProductName = form.product;
+            const updatedList = productPickerList.filter(p => {
+                const desc = typeof p === 'string' ? p : p.descricao;
+                return desc !== currentProductName;
+            });
 
-            // Reset form and cache
-            setForm(emptyForm);
-            localStorage.removeItem('weighing_form_cache_v2');
+            setProductPickerList(updatedList);
+
+            if (updatedList.length > 0) {
+                // PRESERVE HEADER: Keep invoice context for the next items
+                setForm(prev => ({
+                    ...emptyForm,
+                    supplier: prev.supplier,
+                    cnpj: prev.cnpj,
+                    noteNumber: prev.noteNumber,
+                    accessKey: prev.accessKey,
+                    evidence: prev.evidence,
+                    tara: prev.tara, // Preserve tara as it's likely the same for other items in same NF
+                    storage: prev.storage
+                }));
+                
+                showToast(`Salvo! ${updatedList.length} ${updatedList.length === 1 ? 'item restante' : 'itens restantes'} na nota.`, "success");
+                
+                // AUTO-FLOW: Re-open picker for the next item after a small delay
+                setTimeout(() => {
+                    setShowProductPicker(true);
+                }, 1000);
+
+            } else {
+                // ALL DONE: Complete reset
+                setPendingFormData(null);
+                setForm(emptyForm);
+                localStorage.removeItem('weighing_form_cache_v2');
+                showToast("Conferência salva com sucesso!", "success");
+            }
 
             if (onRecordSaved) onRecordSaved();
         } catch (error) {
@@ -220,6 +299,46 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
                     </div>
                 </div>
             </div>
+
+            {/* 1.5 Pending Products from Scan (SMART SESSION) */}
+            {productPickerList.length > 0 && (
+                <div className="bg-blue-600 dark:bg-blue-600 p-5 rounded-[2rem] flex items-center justify-between animate-fade-in shadow-xl shadow-blue-500/20 border border-white/10">
+                    <div className="flex items-center gap-4">
+                        <div className="w-11 h-11 bg-white/20 rounded-2xl flex items-center justify-center text-white backdrop-blur-md">
+                            <ShoppingCart className="w-5 h-5" />
+                        </div>
+                        <div className="min-w-0">
+                            <div className="flex items-center gap-2 mb-0.5">
+                                <p className="text-[9px] font-black uppercase text-blue-100 tracking-wider">Sessão Ativa</p>
+                                <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                            </div>
+                            <p className="text-sm font-bold text-white truncate">
+                                {productPickerList.length} {productPickerList.length === 1 ? 'item pendente' : 'itens pendentes'}
+                            </p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <button 
+                            onClick={() => {
+                                if(confirm("Deseja descartar os itens pendentes desta nota?")) {
+                                    setProductPickerList([]);
+                                    setPendingFormData(null);
+                                }
+                            }}
+                            className="p-3 text-blue-200 hover:text-white transition-colors active:scale-95"
+                            title="Limpar pendências"
+                        >
+                            <Trash2 className="w-5 h-5" />
+                        </button>
+                        <button 
+                            onClick={() => setShowProductPicker(true)}
+                            className="px-6 py-3 bg-white text-blue-600 text-[11px] font-black uppercase rounded-xl active:scale-95 transition-all shadow-lg"
+                        >
+                            Selecionar
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* 2. Scanners Triggers */}
             <div className="grid grid-cols-2 gap-3">
@@ -448,8 +567,6 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
                     onDataExtracted={(data) => {
                         if (scannerMode === 'nf') {
                             // Fill all NF fields immediately
-                            if (data.grossWeight) updateForm('gross', data.grossWeight.toString());
-                            if (data.totalWeight) updateForm('note', data.totalWeight.toString());
                             if (data.cnpj) updateForm('cnpj', data.cnpj);
                             if (data.invoiceNumber) updateForm('noteNumber', data.invoiceNumber);
                             if (data.supplier) updateForm('supplier', data.supplier);
@@ -462,8 +579,17 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
                                 setProductPickerList(prods);
                                 setShowProductPicker(true);
                             } else {
-                                if (data.product) updateForm('product', data.product);
-                                if (data.noteWeight) updateForm('note', data.noteWeight.toString());
+                                // Clear old lists if new scan has only one product
+                                setPendingFormData(null);
+                                setProductPickerList([]);
+                                
+                                if (data.qty) updateForm('qty', data.qty.toString());
+                                // Fallback: If product weight is not in table, use header total weight
+                                const finalNoteWeight = data.noteWeight || data.totalWeight || null;
+                                if (finalNoteWeight) {
+                                    updateForm('note', finalNoteWeight.toString());
+                                    updateForm('gross', finalNoteWeight.toString()); // Sincronizar bruto para productos sin tara
+                                }
                                 showToast('Nota Fiscal processada!', 'success');
                             }
                         } else {
@@ -501,23 +627,48 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
                     onClose={() => setShowUnifiedNF(false)}
                     currentPesagem={parsedGross}
                     onDataCombined={(data) => {
-                        if (data.grossWeight) updateForm('gross', data.grossWeight.toString());
-                        if (data.totalWeight) updateForm('note', data.totalWeight.toString());
-                        if (data.cnpj) updateForm('cnpj', data.cnpj);
-                        if (data.noteNumber) updateForm('noteNumber', data.noteNumber);
-                        if (data.supplier) updateForm('supplier', data.supplier);
-                        if (data.accessKey) updateForm('accessKey', data.accessKey);
-                        if (data.evidence) updateForm('evidence', data.evidence);
+                        // Atomic state update to prevent race conditions
+                        setForm((prev: any) => ({
+                            ...prev,
+                            cnpj: data.cnpj || prev.cnpj,
+                            noteNumber: data.noteNumber || prev.noteNumber,
+                            supplier: data.supplier || prev.supplier,
+                            accessKey: data.accessKey || prev.accessKey,
+                            evidence: data.evidence || prev.evidence,
+                            product: data.product || prev.product,
+                            qty: (data.qty !== null && data.qty !== undefined) ? String(data.qty) : prev.qty,
+                            note: data.noteWeight ? String(data.noteWeight) : (data.totalWeight ? String(data.totalWeight) : prev.note),
+                            gross: data.grossWeight ? String(data.grossWeight) : (data.noteWeight ? String(data.noteWeight) : prev.gross)
+                        }));
 
-                        // Product picker if multiple products
-                        const prods: string[] = (data.products || []).filter(Boolean);
+                        if (onDataChange) onDataChange(true);
+
+                        // If multiple products, show picker (this uses the same data)
+                        const prods: any[] = (data.products || []).filter(Boolean);
                         if (prods.length > 1) {
                             setPendingFormData(data);
                             setProductPickerList(prods);
                             setShowProductPicker(true);
                         } else {
-                            if (data.product) updateForm('product', data.product);
-                            if (data.noteWeight) updateForm('note', data.noteWeight.toString());
+                            // Clear old lists if new scan has only one product
+                            setPendingFormData(null);
+                            setProductPickerList([]);
+
+                            // Calc unit tara if we have both weights and qty > 0
+                            const finalNoteWeight = data.noteWeight || data.totalWeight || 0;
+                            const finalGrossWeight = data.grossWeight || 0;
+                            const finalQty = parseFloat(data.qty) || 0;
+
+                            if (finalGrossWeight > 0 && finalNoteWeight > 0 && finalQty > 0) {
+                                const diffWeight = finalGrossWeight - finalNoteWeight;
+                                if (diffWeight > 0.05) {
+                                    const unitTaraG = Math.round((diffWeight / finalQty) * 1000);
+                                    if (unitTaraG > 0 && unitTaraG < 5000) {
+                                        updateForm('tara', unitTaraG.toString());
+                                        showToast(`Tara calculada: ${unitTaraG}g por volume`, 'info');
+                                    }
+                                }
+                            }
                             showToast('Dados da Nota Fiscal unificados com sucesso!', 'success');
                         }
                     }}
@@ -562,7 +713,32 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
                                                 key={idx}
                                                 onClick={() => {
                                                     updateForm('product', desc);
-                                                    if (weight) updateForm('note', weight.toString());
+                                                    const prodQty = parseFloat(prod.quantidade_unidades) || 0;
+                                                    if (prodQty > 0) {
+                                                        updateForm('qty', prodQty.toString());
+                                                    }
+                                                    if (weight) {
+                                                        updateForm('note', weight.toString());
+                                                        
+                                                        // Use header gross weight if this is the only product we are selecting
+                                                        // otherwise sync gross with net as fallback.
+                                                        const headerGross = pendingFormData?.grossWeight;
+                                                        const headerNet = pendingFormData?.totalWeight;
+                                                        
+                                                        if (headerGross && headerNet && prodQty > 0 && Math.abs(headerNet - weight) < 0.1) {
+                                                            // Likely this item represents the whole weight
+                                                            updateForm('gross', headerGross.toString());
+                                                            const diffWeight = headerGross - headerNet;
+                                                            if (diffWeight > 0.05) {
+                                                                const unitTaraG = Math.round((diffWeight / prodQty) * 1000);
+                                                                if (unitTaraG > 0 && unitTaraG < 5000) {
+                                                                    updateForm('tara', unitTaraG.toString());
+                                                                }
+                                                            }
+                                                        } else {
+                                                            updateForm('gross', weight.toString()); 
+                                                        }
+                                                    }
                                                     setShowProductPicker(false);
                                                     showToast('Produto selecionado!', 'success');
                                                 }}
