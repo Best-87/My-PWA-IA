@@ -141,7 +141,20 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
                 }
             }
         }
-    }, [form.supplier, form.product, parsedGross, parsedNote, parsedTara, parsedQty]);
+        // 3. Smart Gross Weight Inference (Calculation of Expected Gross Weight)
+        // If we have note weight, qty, and tara, but gross is missing/default, infer it.
+        if (parsedNote > 0 && parsedQty > 0 && parsedTara > 0) {
+            const isGrossDefault = !form.gross || form.gross === '0' || form.gross === form.note;
+            if (isGrossDefault) {
+                const totalTaraKg = parsedQty * parsedTara;
+                const inferredGross = (parsedNote + totalTaraKg).toFixed(3);
+                if (inferredGross !== form.gross) {
+                    updateForm('gross', inferredGross);
+                    showToast(`Peso Bruto auto-calculado: ${inferredGross} kg (Nota + Tara)`, 'info');
+                }
+            }
+        }
+    }, [form.supplier, form.product, parsedGross, parsedNote, parsedTara, parsedQty, totalTara]);
 
     const updateForm = (field: string, val: any) => {
         setForm((prev: typeof emptyForm) => ({ ...prev, [field]: val }));
