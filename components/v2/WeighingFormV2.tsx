@@ -8,7 +8,6 @@ import {
 import { WeighingFormProps } from '../WeighingForm';
 import { NFScanner } from './NFScanner';
 import { UnifiedNFProcessor } from './UnifiedNFProcessor';
-import { DeleteAllModal } from '../CommonModals';
 import { useToast } from '../Toast';
 import { saveRecord, predictData } from '../../services/storageService';
 import { trackEvent } from '../../services/analyticsService';
@@ -225,7 +224,7 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
 
             if (updatedList.length > 0) {
                 // PRESERVE HEADER: Keep invoice context for the next items
-                setForm(prev => ({
+                setForm((prev: typeof emptyForm) => ({
                     ...emptyForm,
                     supplier: prev.supplier,
                     cnpj: prev.cnpj,
@@ -776,21 +775,26 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
                     </div>
                 </div>
             )}
-            {/* Confirm Discard Modal */}
-            <DeleteAllModal 
-                show={showDiscardModal}
-                title="Descartar Itens?"
-                description="Isto removerá a lista de produtos pendentes desta nota fiscal."
-                cancelText="Cancelar"
-                confirmText="Descartar"
-                onCancel={() => setShowDiscardModal(false)}
-                onConfirm={() => {
-                    setProductPickerList([]);
-                    setPendingFormData(null);
-                    setShowDiscardModal(false);
-                    showToast("Lista de pendências descartada", "info");
-                }}
-            />
+            {/* Confirm Discard Modal (inline, no external dependencies) */}
+            {showDiscardModal && (
+                <div className="fixed inset-0 z-[600] bg-black/60 flex items-center justify-center p-4" onClick={() => setShowDiscardModal(false)}>
+                    <div className="bg-white dark:bg-zinc-900 rounded-[2rem] p-8 text-center shadow-2xl w-full max-w-sm animate-fade-in-up" onClick={e => e.stopPropagation()}>
+                        <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Trash2 className="w-8 h-8" />
+                        </div>
+                        <h3 className="text-xl font-black mb-2 text-zinc-900 dark:text-white uppercase tracking-tight">Descartar Itens?</h3>
+                        <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-8">Isto removerá a lista de produtos pendentes desta nota fiscal.</p>
+                        <div className="flex gap-3">
+                            <button onClick={() => setShowDiscardModal(false)} className="flex-1 py-4 bg-zinc-100 dark:bg-zinc-800 rounded-2xl font-black text-[10px] uppercase tracking-widest text-zinc-600 dark:text-zinc-400 active:scale-95 transition-all">
+                                Cancelar
+                            </button>
+                            <button onClick={() => { setProductPickerList([]); setPendingFormData(null); setShowDiscardModal(false); showToast('Lista de pendências descartada', 'info'); }} className="flex-1 py-4 bg-red-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-red-500/20 active:scale-95 transition-all">
+                                Descartar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
