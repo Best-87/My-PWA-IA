@@ -777,7 +777,7 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
             )}
             {/* Confirm Discard Modal (inline) */}
             {showDiscardModal && (
-                <div className="fixed inset-0 z-[600] bg-black/60 backdrop-blur-sm flex items-center justify-center p-6" onClick={() => setShowDiscardModal(false)}>
+                <div className="fixed inset-0 z-[600] bg-black/20 backdrop-blur-xl flex items-center justify-center p-6" onClick={() => setShowDiscardModal(false)}>
                     <div className="bg-white dark:bg-zinc-900 rounded-3xl p-8 text-center shadow-2xl w-full max-w-xs animate-fade-in-up" onClick={e => e.stopPropagation()}>
                         <div className="w-14 h-14 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-5">
                             <Trash2 className="w-7 h-7 text-red-500" />
