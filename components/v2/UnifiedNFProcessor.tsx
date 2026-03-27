@@ -9,7 +9,7 @@ interface UnifiedNFProcessorProps {
     currentPesagem: number;
 }
 
-const resizeImage = (base64Str: string, maxWidth = 1000): Promise<string> =>
+const resizeImage = (base64Str: string, maxWidth = 1600): Promise<string> =>
     new Promise((resolve) => {
         const img = new Image();
         img.onload = () => {
@@ -58,32 +58,39 @@ export const UnifiedNFProcessor: React.FC<UnifiedNFProcessorProps> = ({ onClose,
                     {
                         text: `Aja como especialista em OCR de Notas Fiscais brasileiras (DANFE). Analise a imagem com precisão máxima.
 
-Retorne JSON único com esta estrutura exata:
+Extraia cabeçalho da nota e todos os itens da tabela de produtos. 
+
+RETORNE JSON ÚNICO:
 {
-  "chave_acesso": "string 44 dígitos ou null",
+  "chave_acesso": "44 dígitos ou null",
   "cabecalho": {
-    "cnpj_emitente": "string formato XX.XXX.XXX/XXXX-XX ou null",
-    "numero_nota": "string ou null",
-    "peso_bruto_total": número em KG ou null,
-    "peso_liquido_total": número em KG ou null,
-    "fornecedor": "razão social/nome ou null"
+    "cnpj_emitente": "XX.XXX.XXX/XXXX-XX",
+    "numero_nota": "string",
+    "peso_bruto_total": 0.0,
+    "peso_liquido_total": 0.0,
+    "quantidade_volumes": 0.0,
+    "fornecedor": "string"
   },
   "productos": [
     {
-      "descricao": "descrição completa do produto",
-      "quantidade_unidades": número de caixas/unidades,
-      "peso_unitario_kg": peso de cada caixa/unidade em KG (procure no nome ex: 'CX 26 KG' = 26),
-      "peso_total_kg": quantidade_unidades × peso_unitario_kg (calcule você mesmo)
+      "descricao": "NOME DO ITEM",
+      "unidade": "KG/CX/UN",
+      "quantidade_unidades": 0.0,
+      "peso_total_kg": 0.0
     }
   ]
 }
 
-REGRAS CRÍTICAS:
-- Converta números BR (1.250,50 → 1250.50).
-- Para peso_unitario_kg: procure padrões como 'CX 26 KG', 'FDO 18KG', 'PCT 5KG' na descrição do produto.
-- Se não encontrar peso unitário, use o campo PESO BRUTO da linha do produto dividido pela quantidade.
-- Se ainda não tiver, coloque peso_unitario_kg: null e peso_total_kg: null.
-- Output ONLY raw JSON, sem markdown.`
+REGRAS DE OURO:
+1. PESOS DO CABEÇALHO: No quadro 'DADOS DOS TRANSPORTES / VOLUMES', extraia rigorosamente 'PESO BRUTO', 'PESO LÍQUIDO' e 'QUANTIDADE' (volumes totais).
+2. DEDUÇÃO DE VOLUMES (CRÍTICO):
+   - Se a Unidade (UN) for 'KG' e a descrição indicar 'CX XX KG' (ex: CX 20 KG), a 'quantidade_unidades' DEVE SER o cálculo: (QUANT / XX). Ex: Se QUANT é 200.00 e diz 'CX 20 KG', retorne quantidade_unidades: 10.
+   - Se a Unidade (UN) for 'CX', 'UN' ou 'PC', a 'quantidade_unidades' é o valor da coluna QUANT diretamente.
+3. PESO TOTAL ITEM: 'peso_total_kg' deve ser o peso líquido total daquele item. 
+   - Se UN for 'KG', peso_total_kg é RIGOROSAMENTE o valor da coluna QUANT. Nunca multiplique.
+   - Se UN for 'CX/UN/PC', procure o peso na descrição (ex: 'CX 20 KG' con QUANT 1 -> 20 kg) o use a proporção.
+4. CONSISTÊNCIA: A soma de 'quantidade_unidades' de todos os itens deve ser igual à 'QUANTIDADE' de volumes do cabeçalho.
+5. Números BR (1.250,50) para US (1250.50). No markdown. No text outside JSON. `
                     }
                 ]
             };
@@ -97,6 +104,27 @@ REGRAS CRÍTICAS:
             const end = cleanJson.lastIndexOf('}');
             if (start === -1) throw new Error('Falha na interpretação da IA');
             const rawResult = JSON.parse(cleanJson.substring(start, end + 1));
+
+            const processedProducts = (rawResult.productos || []).map((p: any) => {
+                let weight = parseFloat(p.peso_total_kg) || 0;
+                const qty = parseFloat(p.quantidade_unidades) || 0;
+                
+                // Fallback: Si el peso del producto es 0 pero hay peso líquido total en el encabezado
+                // y es el único producto o se detecta como peso válido para el item.
+                if (weight === 0 && rawResult.cabecalho?.peso_liquido_total > 0) {
+                   weight = rawResult.cabecalho.peso_liquido_total;
+                }
+
+                // Si la unidad es KG y el peso está vacío, usamos la cantidad directamente
+                if (weight === 0 && qty > 0 && (p.unidade === 'KG' || p.unidade === 'KGS' || p.unidade === 'QUILOS')) {
+                    weight = qty;
+                }
+                return { 
+                    ...p, 
+                    peso_total_kg: weight, 
+                    quantidade_unidades: qty 
+                };
+            });
 
             setProgress(85);
             setProgressLabel('Enviando relatório...');
@@ -112,9 +140,9 @@ REGRAS CRÍTICAS:
                 lines.push(`🔗 <a href="https://www.nfe.fazenda.gov.br/portal/consultaRecaptcha.aspx?tipoConsulta=resumo&nfe=${rawResult.chave_acesso}">Ver na SEFAZ</a>`);
             }
 
-            if (rawResult.productos?.length > 0) {
+            if (processedProducts.length > 0) {
                 lines.push(`📦 <b>Produtos:</b>`);
-                rawResult.productos.forEach((p: any) => {
+                processedProducts.forEach((p: any) => {
                     const weight = p.peso_total_kg || 0;
                     const diff = Math.abs(currentPesagem - weight);
                     const alert = (diff > 0.5 && currentPesagem > 0) ? ' ⚠️' : '';
@@ -136,9 +164,12 @@ REGRAS CRÍTICAS:
                 grossWeight: rawResult.cabecalho?.peso_bruto_total || null,
                 totalWeight: rawResult.cabecalho?.peso_liquido_total || null,
                 evidence: resized,
-                product: rawResult.productos?.[0]?.descricao || '',
-                noteWeight: rawResult.productos?.[0]?.peso_total_kg || null,
-                products: rawResult.productos || []
+                product: processedProducts[0]?.descricao || '',
+                noteWeight: processedProducts[0]?.peso_total_kg || null,
+                qty: (processedProducts[0]?.quantidade_unidades > 0) 
+                    ? processedProducts[0].quantidade_unidades 
+                    : (rawResult.cabecalho?.quantidade_volumes || null),
+                products: processedProducts
             });
 
             setProgress(100);
