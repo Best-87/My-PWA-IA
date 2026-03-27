@@ -8,6 +8,7 @@ import {
 import { WeighingFormProps } from '../WeighingForm';
 import { NFScanner } from './NFScanner';
 import { UnifiedNFProcessor } from './UnifiedNFProcessor';
+import { DeleteAllModal } from '../CommonModals';
 import { useToast } from '../Toast';
 import { saveRecord, predictData } from '../../services/storageService';
 import { trackEvent } from '../../services/analyticsService';
@@ -26,6 +27,7 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
         } catch (e) { return []; }
     });
     const [showProductPicker, setShowProductPicker] = useState(false);
+    const [showDiscardModal, setShowDiscardModal] = useState(false);
     const [pendingFormData, setPendingFormData] = useState<any>(() => {
         try {
             const saved = localStorage.getItem('pending_nf_data_v2');
@@ -332,12 +334,7 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
                     </div>
                     <div className="flex items-center gap-1">
                         <button 
-                            onClick={() => {
-                                if(confirm("Deseja descartar os itens pendentes desta nota?")) {
-                                    setProductPickerList([]);
-                                    setPendingFormData(null);
-                                }
-                            }}
+                            onClick={() => setShowDiscardModal(true)}
                             className="p-3 text-blue-200 hover:text-white transition-colors active:scale-95"
                             title="Limpar pendências"
                         >
@@ -779,6 +776,21 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
                     </div>
                 </div>
             )}
+            {/* Confirm Discard Modal */}
+            <DeleteAllModal 
+                show={showDiscardModal}
+                title="Descartar Itens?"
+                description="Isto removerá a lista de produtos pendentes desta nota fiscal."
+                cancelText="Cancelar"
+                confirmText="Descartar"
+                onCancel={() => setShowDiscardModal(false)}
+                onConfirm={() => {
+                    setProductPickerList([]);
+                    setPendingFormData(null);
+                    setShowDiscardModal(false);
+                    showToast("Lista de pendências descartada", "info");
+                }}
+            />
         </div>
     );
 };
