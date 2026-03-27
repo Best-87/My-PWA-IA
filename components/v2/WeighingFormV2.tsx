@@ -775,20 +775,20 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
                     </div>
                 </div>
             )}
-            {/* Confirm Discard Modal (inline, no external dependencies) */}
+            {/* Confirm Discard Modal (inline) */}
             {showDiscardModal && (
-                <div className="fixed inset-0 z-[600] bg-black/60 flex items-center justify-center p-4" onClick={() => setShowDiscardModal(false)}>
-                    <div className="bg-white dark:bg-zinc-900 rounded-[2rem] p-8 text-center shadow-2xl w-full max-w-sm animate-fade-in-up" onClick={e => e.stopPropagation()}>
-                        <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <Trash2 className="w-8 h-8" />
+                <div className="fixed inset-0 z-[600] bg-black/60 backdrop-blur-sm flex items-center justify-center p-6" onClick={() => setShowDiscardModal(false)}>
+                    <div className="bg-white dark:bg-zinc-900 rounded-3xl p-8 text-center shadow-2xl w-full max-w-xs animate-fade-in-up" onClick={e => e.stopPropagation()}>
+                        <div className="w-14 h-14 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-5">
+                            <Trash2 className="w-7 h-7 text-red-500" />
                         </div>
-                        <h3 className="text-xl font-black mb-2 text-zinc-900 dark:text-white uppercase tracking-tight">Descartar Itens?</h3>
-                        <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-8">Isto removerá a lista de produtos pendentes desta nota fiscal.</p>
+                        <h3 className="text-lg font-bold mb-2 text-zinc-900 dark:text-white">Descartar Itens?</h3>
+                        <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-7 leading-relaxed">Isto removerá a lista de produtos pendentes desta nota fiscal.</p>
                         <div className="flex gap-3">
-                            <button onClick={() => setShowDiscardModal(false)} className="flex-1 py-4 bg-zinc-100 dark:bg-zinc-800 rounded-2xl font-black text-[10px] uppercase tracking-widest text-zinc-600 dark:text-zinc-400 active:scale-95 transition-all">
+                            <button onClick={() => setShowDiscardModal(false)} className="flex-1 py-3.5 bg-zinc-100 dark:bg-zinc-800 rounded-2xl font-black text-[10px] uppercase tracking-widest text-zinc-600 dark:text-zinc-400 active:scale-95 transition-all">
                                 Cancelar
                             </button>
-                            <button onClick={() => { setProductPickerList([]); setPendingFormData(null); setShowDiscardModal(false); showToast('Lista de pendências descartada', 'info'); }} className="flex-1 py-4 bg-red-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-red-500/20 active:scale-95 transition-all">
+                            <button onClick={() => { setProductPickerList([]); setPendingFormData(null); setShowDiscardModal(false); showToast('Lista de pendências descartada', 'info'); }} className="flex-1 py-3.5 bg-red-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-red-500/20 active:scale-95 transition-all">
                                 Descartar
                             </button>
                         </div>
