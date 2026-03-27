@@ -268,7 +268,8 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
     }, [form.qty]);
 
     return (
-        <div className="space-y-4 animate-fade-in-up">
+        <>
+            <div className="space-y-4 animate-fade-in-up">
             {/* 1. Summary Card - LCD Modernized */}
             <div className={`relative overflow-hidden p-4 rounded-[2rem] border transition-all duration-500 shadow-sm ${isOk ? 'bg-emerald-50/50 border-emerald-100 dark:bg-emerald-950/20 dark:border-emerald-900/40' :
                 'bg-red-50/50 border-red-100 dark:bg-red-950/20 dark:border-red-900/40'
@@ -570,6 +571,8 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
                 </button>
             </div>
 
+            </div>
+
             {showScanner && (
                 <NFScanner
                     mode={scannerMode}
@@ -795,7 +798,7 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
                     </div>
                 </div>
             )}
-        </div>
+        </>
     );
 };
 
