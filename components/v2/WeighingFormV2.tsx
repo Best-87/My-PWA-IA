@@ -804,3 +804,4 @@ export const WeighingFormV2: React.FC<WeighingFormProps> = ({ onViewHistory, onD
 
 // Internal icons needed for V2
 const BoxIcon = (props: any) => <Package {...props} />;
+// Force Deploy: 04/03/2026 14:35:41
